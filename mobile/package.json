@@ -1,0 +1,19 @@
+{
+  "name": "mitspor-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MitSpor-appen (Capacitor): lokal skal, der åbner mitspor.dk i en in-app WebView",
+  "scripts": {
+    "vendor": "node scripts/copy-vendor.mjs",
+    "sync": "npm run vendor && cap sync"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/inappbrowser": "^4.0.3",
+    "@capacitor/ios": "^8.5.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.2"
+  }
+}

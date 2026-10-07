@@ -1,0 +1,8 @@
+{
+  "appId": "dk.mitspor.app",
+  "appName": "MitSpor",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false
+  }
+}
