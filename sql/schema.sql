@@ -37,6 +37,27 @@ CREATE TABLE `activity_types` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `api_tokens`
+--
+
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `api_tokens` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `token_hash` char(64) NOT NULL,
+  `device_name` varchar(100) NOT NULL DEFAULT '',
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `last_used_at` datetime DEFAULT NULL,
+  `expires_at` datetime NOT NULL,
+  `revoked_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_api_tokens_hash` (`token_hash`),
+  KEY `idx_api_tokens_user` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `app_settings`
 --
 
@@ -258,6 +279,7 @@ CREATE TABLE `route_likes` (
 CREATE TABLE `routes` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `public_id` char(8) NOT NULL,
+  `client_upload_id` char(36) DEFAULT NULL,
   `user_id` bigint(20) unsigned NOT NULL,
   `group_id` bigint(20) unsigned DEFAULT NULL,
   `group_position` smallint(5) unsigned DEFAULT NULL,
@@ -293,6 +315,7 @@ CREATE TABLE `routes` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_routes_public_id` (`public_id`),
   UNIQUE KEY `uq_routes_share_token` (`share_token`),
+  UNIQUE KEY `uq_routes_user_client_upload` (`user_id`,`client_upload_id`),
   KEY `idx_routes_user` (`user_id`),
   KEY `idx_routes_activity` (`activity_type_id`),
   KEY `idx_routes_public_listing` (`visibility`,`status`),
@@ -355,4 +378,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed
+-- Dump completed on 2026-10-07  9:53:56
