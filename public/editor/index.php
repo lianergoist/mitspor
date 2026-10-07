@@ -53,7 +53,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <title>GPX-editor</title>
 
 <link rel="stylesheet" href="../vendor/leaflet/leaflet.css" />
-<link rel="stylesheet" href="style.css?v=27" />
+<link rel="stylesheet" href="style.css?v=28" />
 </head>
 <body>
 
@@ -63,24 +63,23 @@ if ($initialRouteId === '' && !$isNewRoute) {
 
 <div id="toolbar">
   <div class="toolbar-group">
-    <a href="../dashboard.php" id="btn-back" class="back-arrow" title="Tilbage" aria-label="Tilbage">&larr;</a>
+    <a href="../dashboard.php" id="btn-back" class="brand" title="Tilbage" aria-label="Tilbage">
+      <span class="back-arrow" aria-hidden="true">&larr;</span>
+      <img src="../grafik/mitspor_50x50.png" alt="" class="brand-logo">
+    </a>
   </div>
 
-  <div class="toolbar-group">
+  <!-- Redigeringsknapperne samlet i én ramme, som filterknapperne på forsiden. -->
+  <div class="toolbar-group tool-group" role="group" aria-label="Redigering">
     <button id="btn-save-server" title="Gem på platformen" aria-label="Gem" disabled><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg><span class="btn-text">Gem</span></button>
-  </div>
-
-  <div class="toolbar-group">
     <button id="btn-undo" title="Fortryd (Ctrl+Z)" aria-label="Fortryd" disabled><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg><span class="btn-text">Fortryd</span></button>
     <button id="btn-redo" title="Gendan (Ctrl+Y)" aria-label="Gendan" disabled><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg><span class="btn-text">Gendan</span></button>
-  </div>
-
-  <div class="toolbar-group">
     <button id="btn-view-page" title="Vis rutens side" aria-label="Vis side" disabled><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg><span class="btn-text">Vis side</span></button>
   </div>
 
+  <!-- "Hjælp" som almindelig tekstknap, som på forsiden og i kontrolpanelet. -->
   <div class="toolbar-group toolbar-group-help">
-    <button id="btn-help" title="Hjælp &amp; Vejledning" aria-label="Hjælp"><span class="help-icon" aria-hidden="true">?</span><span class="btn-text">Hjælp</span></button>
+    <button id="btn-help" title="Hjælp &amp; Vejledning">Hjælp</button>
   </div>
 </div>
 
