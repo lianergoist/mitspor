@@ -14,16 +14,17 @@ html {
   text-size-adjust: 100%;
 }
 
-/* Toolbaren følger topbaren på forsiden og i kontrolpanelet: pil og logo
-   til venstre, redigeringsknapperne samlet i én ramme som forsidens
-   filterknapper, og en almindelig "Hjælp"-tekstknap til højre. */
+/* Toolbaren følger topbaren på forsiden og i kontrolpanelet: pil til
+   venstre, redigeringsknapperne samlet i én ramme som forsidens
+   filterknapper, og en almindelig "Hjælp"-tekstknap til højre. Samme
+   lysegrå baggrund som kontrolpanelets topbar (#dashboard-topbar). */
 #toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   padding: 9px 20px;
-  background: rgba(255, 255, 255, 0.97);
+  background: #eef1f5;
   color: #1e293b;
   border-bottom: 1px solid #e2e8f0;
   font-size: 14px;
@@ -35,22 +36,10 @@ html {
   font-weight: 600;
 }
 
-/* Pil + logo som i kontrolpanelet (.brand/.brand-logo i assets/style.css) */
-#toolbar a.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  text-decoration: none;
-}
-
-#toolbar .brand-logo {
-  height: 32px;
-  width: auto;
-  display: block;
-}
-
-/* Samme pil som i kontrolpanelet og på rutens side (assets/style.css) */
-#toolbar .back-arrow {
+/* Samme pil som i kontrolpanelet og på rutens side (assets/style.css).
+   Lidt luft til højre, så den ikke klæber til redigeringsknapperne. */
+#toolbar a.back-arrow {
+  margin-right: 8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;

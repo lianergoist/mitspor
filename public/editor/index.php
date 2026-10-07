@@ -53,7 +53,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <title>GPX-editor</title>
 
 <link rel="stylesheet" href="../vendor/leaflet/leaflet.css" />
-<link rel="stylesheet" href="style.css?v=28" />
+<link rel="stylesheet" href="style.css?v=29" />
 </head>
 <body>
 
@@ -63,10 +63,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 
 <div id="toolbar">
   <div class="toolbar-group">
-    <a href="../dashboard.php" id="btn-back" class="brand" title="Tilbage" aria-label="Tilbage">
-      <span class="back-arrow" aria-hidden="true">&larr;</span>
-      <img src="../grafik/mitspor_50x50.png" alt="" class="brand-logo">
-    </a>
+    <a href="../dashboard.php" id="btn-back" class="back-arrow" title="Tilbage" aria-label="Tilbage">&larr;</a>
   </div>
 
   <!-- Redigeringsknapperne samlet i én ramme, som filterknapperne på forsiden. -->
