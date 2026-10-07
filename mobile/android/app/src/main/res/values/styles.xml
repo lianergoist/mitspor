@@ -18,5 +18,7 @@
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
+        <!-- Android 12+: app-ikonet vises på denne farve ved opstart (MitSpor-navy). -->
+        <item name="windowSplashScreenBackground">#0e3a5b</item>
     </style>
 </resources>

@@ -5,7 +5,8 @@
   "description": "MitSpor-appen (Capacitor): lokal skal, der åbner mitspor.dk i en in-app WebView",
   "scripts": {
     "vendor": "node scripts/copy-vendor.mjs",
-    "sync": "npm run vendor && cap sync"
+    "sync": "npm run vendor && cap sync",
+    "assets": "capacitor-assets generate --android --ios --iconBackgroundColor '#0e3a5b' --iconBackgroundColorDark '#0e3a5b' --splashBackgroundColor '#0e3a5b' --splashBackgroundColorDark '#0e3a5b'"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",
@@ -15,6 +16,7 @@
     "@capacitor/network": "^8.0.1"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.5.2"
   }
 }
