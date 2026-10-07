@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://mitspor.dk">
     <meta name="color-scheme" content="light">
     <title>MitSpor</title>
     <link rel="stylesheet" href="app.css">
@@ -30,6 +30,8 @@
 
         <footer class="start-footer">
             <a href="#" id="open-privacy">Privatlivspolitik</a>
+            <!-- MIDLERTIDIG diagnose af netstatus — fjernes før udgivelse. -->
+            <p class="start-diag" id="net-diag"></p>
         </footer>
     </main>
 
