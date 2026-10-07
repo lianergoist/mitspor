@@ -148,25 +148,59 @@ if ($route['visibility'] === 'public') {
     <link rel="stylesheet" href="assets/style.css?v=16">
     <style>
         html, body { height: 100%; margin: 0; }
-        .info-panel { top: 80px; left: 12px; max-width: 320px; }
+        /* Topbar + info-boks: .top-area ligger øverst over kortet, og info-boksen
+           hænger 8 px under topbaren og 8 px fra venstre kant — uanset hvor høj
+           topbaren er. Boksen er halvgennemsigtig, så kortet anes bagved. */
+        .top-area { position: absolute; top: 0; left: 0; right: 0; z-index: 1000; }
+        .map-page .top-area .topbar { position: relative; }
+        .map-page .info-panel {
+            top: calc(100% + 8px);
+            left: 8px;
+            max-width: min(320px, calc(100vw - 16px));
+            background: rgba(255, 255, 255, 0.85);
+            -webkit-backdrop-filter: blur(4px);
+            overflow-y: auto; /* udfoldet: max-height sættes i JS, se applyStatsFolding() */
+        }
         .info-panel h1 { font-size: 16px; margin: 0 0 4px; }
         .info-panel .route-description { font-size: 13px; margin: 0 0 8px; }
+        /* Beskrivelsen hører til "mere"-delen og vises først ved udfoldning. */
+        .info-panel .route-description { display: none; }
+        .info-panel.info-expanded .route-description { display: block; }
         .info-panel .meta { color: var(--text-muted); font-size: 12px; margin-bottom: 6px; }
         .info-panel .stats { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
         .info-panel .stat-extra-field { display: flex; flex-direction: column; }
         .info-panel .stat-current-line { display: block; }
         .info-panel .stat-range-line { display: block; font-size: 0.85em; color: #64748b; }
         .info-panel .stat-extra { display: none; }
-        .info-panel .stats.stats-expanded { overflow-y: auto; } /* max-height sættes i JS, se applyStatsFolding() */
         .info-panel .stats.stats-expanded .stat-extra { display: block; }
-        #btn-stats-toggle { margin-top: 4px; font-size: 12px; }
+        /* Felterne til venstre og det lille "vis mere"-ikon nederst til højre. */
+        .stats-row { display: flex; align-items: flex-end; gap: 8px; }
+        .info-panel .stats { flex: 1 1 auto; min-width: 0; }
+        #btn-stats-toggle {
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            margin: 0;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            background: #f1f5f9;
+            color: var(--text);
+            font-size: 11px;
+            line-height: 1;
+            text-decoration: none;
+            /* Bliver stående nederst i boksen, når den udfoldede boks scrolles,
+               så den altid kan foldes sammen igen. */
+            position: sticky;
+            bottom: 0;
+        }
         #btn-stats-toggle[hidden] { display: none; }
-        .stats-toggle-icon { display: none; }
-        /* På desktop er top-area bare en usynlig beholder: topbar og info-panel
-           ligger stadig frit oven på kortet, som de altid har gjort. */
-        .top-area { display: contents; }
+        .stats-toggle-label { display: none; }
         .meta-line { display: block; }
-        .meta-uploader { display: block; }
+        /* "Uploadet af" på sin egen linje, afkortet med "…" hvis navnet er langt. */
+        .meta-uploader { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .meta-sep-uploader { display: none; }
         .group-more { display: none; } /* kun mobil: "Del af ..." bag ▾-ikonet */
         /* Knapperne i topbaren ligger i en flex-række på ALLE skærmbredder. Uden den er
@@ -194,21 +228,16 @@ if ($route['visibility'] === 'public') {
         .group-nav-pos { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
 
         /* ---------------------------------------------------------------
-           Mobil: topbar og info-panel smelter sammen til ÉN bjælke i fuld
-           bredde øverst. Den ligger IKKE oven på kortet — kortet fylder
-           resten af skærmen under den (og bliver derfor mindre).
+           Mobil: topbaren er en bjælke i fuld bredde øverst, og kortet fylder
+           resten af skærmen under den. Info-boksen svæver over kortet lige
+           under topbaren, som på computer.
         ------------------------------------------------------------------ */
         @media (max-width: 600px) {
             .map-page { display: flex; flex-direction: column; }
 
             .top-area {
-                display: block;
                 flex: 0 0 auto;
                 position: relative;
-                z-index: 1000;
-                background: rgba(255, 255, 255, 0.97);
-                border-bottom: 1px solid var(--border);
-                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
             }
 
             /* Topbar: kun pilen (ikke "Mit kontrolpanel"), og knapperne må
@@ -230,28 +259,7 @@ if ($route['visibility'] === 'public') {
             .topbar-buttons { flex: 1 1 0; min-width: 0; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
             .map-page .topbar .btn { padding: 6px 12px; font-size: 14px; min-height: 40px; }
 
-            /* Info-panelet er nu en del af bjælken i stedet for en svævende boks. */
-            .map-page .info-panel {
-                position: relative;
-                top: auto;
-                left: auto;
-                max-width: none;
-                z-index: auto;
-                background: transparent;
-                backdrop-filter: none;
-                -webkit-backdrop-filter: none;
-                border: 0;
-                border-radius: 0;
-                box-shadow: none;
-                padding: 0 12px 8px;
-            }
-            /* Udfoldet må bjælken højst fylde knap halvdelen af skærmen; er der
-               mere indhold, kan den scrolles. */
-            .map-page .info-panel.info-expanded {
-                max-height: 45vh;
-                max-height: 45dvh;
-                overflow-y: auto;
-            }
+            .map-page .info-panel { padding: 8px 12px; }
 
             /* Titlen på én linje, afkortet med "…" hvis den er for lang. */
             .info-panel h1 {
@@ -260,64 +268,8 @@ if ($route['visibility'] === 'public') {
                 overflow: hidden;
                 text-overflow: ellipsis;
             }
-            /* Beskrivelsen hører til "mere"-delen og vises først ved udfoldning. */
-            .info-panel .route-description { display: none; }
-            .info-panel.info-expanded .route-description { display: block; }
 
-            /* Rutetype · offentlig/privat · Uploadet af — på ÉN linje. Er der
-               ikke plads til hele uploader-navnet, afkortes det med "…". */
-            .meta-line {
-                display: flex;
-                align-items: baseline;
-                gap: 5px;
-                white-space: nowrap;
-                margin-bottom: 4px;
-            }
-            .meta-type, .meta-vis, .meta-sep, .meta-sep-uploader { flex: 0 0 auto; }
-            .meta-sep-uploader { display: inline; }
-            .meta-uploader {
-                display: block;
-                flex: 0 1 auto;
-                min-width: 0;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-
-            /* Kun afstands-felterne vises som standard — resten bag det lille ikon. */
-            .stats-row { display: flex; align-items: flex-start; gap: 8px; }
-            .info-panel .stats {
-                flex: 1 1 auto;
-                min-width: 0;
-                flex-direction: row;
-                flex-wrap: wrap;
-                gap: 2px 10px;
-                /* "Afstand ialt" og "Afstand fra start" skal kunne stå på én linje
-                   også ved lidt større systemtekst (appens Android-WebView). */
-                font-size: 12.5px;
-            }
-            .info-panel .stats .stat-extra { flex: 1 1 100%; }
-            .info-panel .stats.stats-expanded { max-height: none !important; overflow-y: visible; }
-            #btn-stats-toggle {
-                flex: 0 0 auto;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                width: 28px;
-                height: 28px;
-                margin: 0;
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                background: #f1f5f9;
-                color: var(--text);
-                font-size: 14px;
-                line-height: 1;
-            }
-            #btn-stats-toggle[hidden] { display: none; }
-            .stats-toggle-label { display: none; }
-            .stats-toggle-icon { display: inline; }
-
-            /* Gruppe: knapperne og "Del af ..." ligger stadig øverst, men breder
-               sig over hele skærmbredden. */
+            /* Gruppe: knapperne ligger stadig øverst i boksen. */
             .group-nav { margin: 0 0 6px; padding-bottom: 6px; }
             /* "Del af <gruppe>" flyttes på mobil bag ▾-ikonet (nederst, efter det
                sidste felt) for at spare plads øverst. */
@@ -1074,12 +1026,11 @@ if ($route['visibility'] === 'public') {
         return Math.round(n * 10) / 10;
     }
 
-    // Sammenfoldet vises kun "Afstand ialt" og "Afstand fra start". Resten
-    // foldes ud via "Vis flere felter" (på mobil: det lille ikon). Udfoldet
-    // må boksen højst blive dobbelt så høj som sammenfoldet — er der flere
-    // felter end der er plads til, kan listen scrolles. På mobil er
-    // beskrivelsen også en del af "mere"-delen (se CSS), og bjælken scroller
-    // selv, hvis den bliver for høj.
+    // Sammenfoldet viser boksen titel, type/synlighed, uploader og de to
+    // afstande. Resten (beskrivelse, øvrige felter, på mobil "Del af <gruppe>")
+    // foldes ud via det lille ▾-ikon. Udfoldet bliver boksen ca. dobbelt så
+    // høj som sammenfoldet (og aldrig højere end kortet giver plads til) —
+    // er der mere indhold, kan boksen scrolles.
     function applyStatsFolding() {
         var STATS_VISIBLE_BY_DEFAULT = 2; // afstand ialt + afstand fra start
         var statsEl = document.getElementById('route-stats');
@@ -1088,8 +1039,9 @@ if ($route['visibility'] === 'public') {
         var iconEl = toggleBtn.querySelector('.stats-toggle-icon');
         var panelEl = document.querySelector('.info-panel');
         var mobileMq = window.matchMedia('(max-width: 600px)');
-        // Beskrivelse og "Del af <gruppe>" er skjult som standard på mobil.
-        var hasDescription = !!panelEl.querySelector('.route-description, .group-more');
+        // Beskrivelsen er altid skjult som standard; "Del af <gruppe>" kun på mobil.
+        var hasDescription = !!panelEl.querySelector('.route-description');
+        var hasGroupMore = !!panelEl.querySelector('.group-more');
         var visibleItems = Array.prototype.filter.call(statsEl.children, function (el) { return !el.hidden; });
         var hasExtraStats = visibleItems.length > STATS_VISIBLE_BY_DEFAULT;
 
@@ -1097,34 +1049,33 @@ if ($route['visibility'] === 'public') {
             visibleItems.slice(STATS_VISIBLE_BY_DEFAULT).forEach(function (el) { el.classList.add('stat-extra'); });
         }
 
-        // Toggle-knappen skal kun vises, når der reelt er noget mere at vise
-        // (beskrivelsen tæller kun på mobil, hvor den er skjult som standard).
+        // Toggle-knappen skal kun vises, når der reelt er noget mere at vise.
         function refreshToggleVisibility() {
-            toggleBtn.hidden = !(hasExtraStats || (hasDescription && mobileMq.matches));
+            toggleBtn.hidden = !(hasExtraStats || hasDescription || (hasGroupMore && mobileMq.matches));
         }
 
         function setExpanded(expanded) {
-            var text = expanded ? 'Vis færre felter' : 'Vis flere felter';
+            var text = expanded ? 'Vis mindre' : 'Vis mere';
             labelEl.textContent = text;
             iconEl.textContent = expanded ? '\u25B4' : '\u25BE'; // ▴ / ▾
             toggleBtn.setAttribute('aria-label', text);
             toggleBtn.setAttribute('title', text);
             toggleBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-            panelEl.classList.toggle('info-expanded', expanded);
 
             if (expanded) {
-                if (hasExtraStats && !mobileMq.matches) {
-                    // Mål den sammenfoldede tilstand, FØR noget vises: listen må
-                    // vokse med højst én sammenfoldet boks-højde + 50 px, og aldrig
-                    // højere end ca. 60 % af skærmen.
-                    var limit = Math.min(statsEl.offsetHeight + panelEl.offsetHeight + 50, window.innerHeight * 0.6);
-                    statsEl.style.maxHeight = Math.round(limit) + 'px';
-                }
+                // Mål den sammenfoldede boks, FØR noget vises: udfoldet må den
+                // højst blive dobbelt så høj, og den skal holde sig over
+                // afspilningsknapperne nederst på kortet (ca. 80 px).
+                var collapsedHeight = panelEl.offsetHeight;
+                var mapRect = document.getElementById('map').getBoundingClientRect();
+                var room = mapRect.bottom - panelEl.getBoundingClientRect().top - 80;
+                panelEl.style.maxHeight = Math.round(Math.max(collapsedHeight, Math.min(collapsedHeight * 2, room))) + 'px';
+                panelEl.classList.add('info-expanded');
                 statsEl.classList.add('stats-expanded');
             } else {
+                panelEl.classList.remove('info-expanded');
                 statsEl.classList.remove('stats-expanded');
-                statsEl.style.maxHeight = '';
-                statsEl.scrollTop = 0;
+                panelEl.style.maxHeight = '';
                 panelEl.scrollTop = 0;
             }
         }
