@@ -51,7 +51,7 @@ $groups = group_list_for_user($pdo, $userId);
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mit kontrolpanel</title>
-    <link rel="stylesheet" href="assets/style.css?v=14">
+    <link rel="stylesheet" href="assets/style.css?v=15">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
     <link rel="stylesheet" href="assets/dashboard.css?v=7">
 </head>
@@ -343,7 +343,7 @@ $ruteRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
 $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'] === 'spor');
 
 ?>
-<div class="container">
+<div class="container dashboard-container">
 
     <div class="actions-row">
         <div class="action-group" role="group" aria-label="Ny rute">

@@ -184,8 +184,14 @@ a { color: var(--primary); }
 .actions-row {
     display: flex;
     gap: 12px;
-    margin-bottom: 20px;
+    margin-bottom: 14px;
     flex-wrap: wrap;
+}
+
+/* Kontrolpanelet: mindre luft over knapperne "Upload GPX"/"Tegn ny rute"
+   end den almindelige .container giver. */
+.dashboard-container {
+    padding-top: 14px;
 }
 
 .btn {
