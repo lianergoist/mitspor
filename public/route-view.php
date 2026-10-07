@@ -157,6 +157,7 @@ if ($route['visibility'] === 'public') {
             top: calc(100% + 8px);
             left: 8px;
             max-width: min(320px, calc(100vw - 16px));
+            padding: 8px 12px;
             background: rgba(255, 255, 255, 0.85);
             -webkit-backdrop-filter: blur(4px);
             overflow-y: auto; /* udfoldet: max-height sættes i JS, se applyStatsFolding() */
@@ -173,16 +174,20 @@ if ($route['visibility'] === 'public') {
         .info-panel .stat-range-line { display: block; font-size: 0.85em; color: #64748b; }
         .info-panel .stat-extra { display: none; }
         .info-panel .stats.stats-expanded .stat-extra { display: block; }
-        /* Felterne til venstre og det lille "vis mere"-ikon nederst til højre. */
-        .stats-row { display: flex; align-items: flex-end; gap: 8px; }
-        .info-panel .stats { flex: 1 1 auto; min-width: 0; }
+        /* Det lille "vis mere"-ikon fylder ikke noget i boksen (der derfor kun
+           er så bred som den bredeste tekst): det ligger i et lag over teksten
+           nederst til højre. Docken er 0 px høj og "klistrer" til bunden af
+           boksen, så ikonet bliver stående, mens den udfoldede boks scrolles. */
+        .stats-toggle-dock { position: sticky; bottom: 0; height: 0; }
         #btn-stats-toggle {
-            flex: 0 0 auto;
+            position: absolute;
+            right: -10px; /* trukket ud i boksens hjørne (padding 8px 12px), */
+            bottom: -6px; /* så det dækker så lidt tekst som muligt */
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
             margin: 0;
             border: 1px solid var(--border);
             border-radius: 5px;
@@ -191,10 +196,6 @@ if ($route['visibility'] === 'public') {
             font-size: 11px;
             line-height: 1;
             text-decoration: none;
-            /* Bliver stående nederst i boksen, når den udfoldede boks scrolles,
-               så den altid kan foldes sammen igen. */
-            position: sticky;
-            bottom: 0;
         }
         #btn-stats-toggle[hidden] { display: none; }
         .stats-toggle-label { display: none; }
@@ -258,8 +259,6 @@ if ($route['visibility'] === 'public') {
             #btn-open-route-help .help-icon { display: inline-flex; }
             .topbar-buttons { flex: 1 1 0; min-width: 0; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
             .map-page .topbar .btn { padding: 6px 12px; font-size: 14px; min-height: 40px; }
-
-            .map-page .info-panel { padding: 8px 12px; }
 
             /* Titlen på én linje, afkortet med "…" hvis den er for lang. */
             .info-panel h1 {
@@ -408,13 +407,16 @@ if ($route['visibility'] === 'public') {
             <span id="stat-min-speed" hidden></span>
             <span id="stat-max-speed" hidden></span>
         </div>
-        <button type="button" id="btn-stats-toggle" class="link-btn" hidden><span class="stats-toggle-label"></span><span class="stats-toggle-icon" aria-hidden="true"></span></button>
         </div>
         <?php if ($groupContext !== null): ?>
             <div class="group-more">
                 Del af <a href="group-view.php?id=<?= htmlspecialchars($groupContext['group']['public_id'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($groupContext['group']['title'], ENT_QUOTES, 'UTF-8') ?></a>
             </div>
         <?php endif; ?>
+        <!-- "Vis mere"-ikonet ligger i et lag over teksten nederst til højre (se CSS). -->
+        <div class="stats-toggle-dock">
+            <button type="button" id="btn-stats-toggle" class="link-btn" hidden><span class="stats-toggle-label"></span><span class="stats-toggle-icon" aria-hidden="true"></span></button>
+        </div>
     </div>
 
     </div><!-- /.top-area -->
