@@ -53,7 +53,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <title>GPX-editor</title>
 
 <link rel="stylesheet" href="../vendor/leaflet/leaflet.css" />
-<link rel="stylesheet" href="style.css?v=30" />
+<link rel="stylesheet" href="style.css?v=31" />
 </head>
 <body>
 
@@ -66,7 +66,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
     <a href="../dashboard.php" id="btn-back" class="back-arrow" title="Tilbage" aria-label="Tilbage">&larr;</a>
   </div>
 
-  <!-- Redigeringsknapperne samlet i én ramme, som filterknapperne på forsiden. -->
+  <!-- Redigeringsknapperne: separate knapper som på rutens side, venstrestillet efter pilen. -->
   <div class="toolbar-group tool-group" role="group" aria-label="Redigering">
     <button id="btn-save-server" title="Gem på platformen" aria-label="Gem" disabled><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg><span class="btn-text">Gem</span></button>
     <button id="btn-undo" title="Fortryd (Ctrl+Z)" aria-label="Fortryd" disabled><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg><span class="btn-text">Fortryd</span></button>

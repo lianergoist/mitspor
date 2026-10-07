@@ -14,10 +14,10 @@ html {
   text-size-adjust: 100%;
 }
 
-/* Toolbaren følger topbaren på forsiden og i kontrolpanelet: pil til
-   venstre, redigeringsknapperne samlet i én ramme som forsidens
-   filterknapper, og en almindelig "Hjælp"-tekstknap til højre. Samme
-   lysegrå baggrund som kontrolpanelets topbar (#dashboard-topbar). */
+/* Toolbaren følger topbaren i kontrolpanelet og på rutens side: pil til
+   venstre, redigeringsknapperne som separate knapper lige efter pilen, og
+   en almindelig "Hjælp"-tekstknap til højre. Samme lysegrå baggrund som
+   kontrolpanelets topbar (#dashboard-topbar). */
 #toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -132,38 +132,12 @@ html {
   cursor: not-allowed;
 }
 
-/* Redigeringsknapperne (Gem, Fortryd, Gendan, Vis side) samlet i én ramme
-   med samme størrelse og look som filterknapperne på forsiden
-   (.segmented-filter / .segmented-btn i assets/style.css). Rammen er 40px
-   høj ligesom Hjælp-knappen ved siden af. */
-#toolbar .tool-group {
-  gap: 2px;
-  padding: 3px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-}
-
-#toolbar .tool-group button {
-  min-height: 32px;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  background: none;
-  font-size: 13px;
-  font-weight: 600;
-  color: #64748b;
-}
-
-/* Ikonerne fylder knapperne i rammen ud */
+/* Redigeringsknapperne (Gem, Fortryd, Gendan, Vis side) er separate,
+   hvide knapper som i topbaren på rutens side (route-view.php) og står
+   venstrestillet lige efter pilen. */
 #toolbar .tool-group .tb-icon {
   width: 20px;
   height: 20px;
-}
-
-#toolbar .tool-group button:hover:not(:disabled) {
-  color: #1e293b;
-  background: rgba(15, 23, 42, 0.04);
 }
 
 /* Visuelt hint om at et klik på kortet nu sætter et waypoint, i
@@ -817,11 +791,18 @@ html {
 
 /* Responsivt design (til mobilskærme under 800px bredde) */
 @media (max-width: 800px) {
-  /* Redigeringsknapperne viser kun ikonet på mobil (Hjælp beholder teksten) */
+  /* Redigeringsknapperne viser kun ikonet på mobil (Hjælp beholder teksten),
+     med samme luft om ikonet som på rutens side. */
   #toolbar .tool-group button {
-    width: 38px;
-    padding: 0;
+    padding: 0 10px;
     justify-content: center; /* Centrerer ikonet */
+  }
+
+  /* Lidt mindre sidemargin, så pil, fire knapper og Hjælp kan stå på én
+     linje på en smal telefon. */
+  #toolbar {
+    padding-left: 14px;
+    padding-right: 14px;
   }
   
   /* Skjul teksten, så kun ikonet er tilbage */
