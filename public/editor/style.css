@@ -23,7 +23,7 @@ html {
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  padding: 9px 20px;
+  padding: 11px 20px; /* 63px høj i alt, som kontrolpanelets topbar */
   background: #eef1f5;
   color: #1e293b;
   border-bottom: 1px solid #e2e8f0;
@@ -153,6 +153,12 @@ html {
   font-size: 13px;
   font-weight: 600;
   color: #64748b;
+}
+
+/* Ikonerne fylder knapperne i rammen ud */
+#toolbar .tool-group .tb-icon {
+  width: 20px;
+  height: 20px;
 }
 
 #toolbar .tool-group button:hover:not(:disabled) {
@@ -813,7 +819,7 @@ html {
 @media (max-width: 800px) {
   /* Redigeringsknapperne viser kun ikonet på mobil (Hjælp beholder teksten) */
   #toolbar .tool-group button {
-    width: 36px;
+    width: 38px;
     padding: 0;
     justify-content: center; /* Centrerer ikonet */
   }
@@ -822,13 +828,9 @@ html {
   .btn-text {
     display: none;
   }
-  #toolbar .tb-icon {
-    width: 20px;
-    height: 20px;
-  }
-
-  #toolbar {
-    padding: 6px 10px;
+  #toolbar .tool-group .tb-icon {
+    width: 22px;
+    height: 22px;
   }
 
   #route-title-bar {

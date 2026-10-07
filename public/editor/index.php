@@ -53,7 +53,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <title>GPX-editor</title>
 
 <link rel="stylesheet" href="../vendor/leaflet/leaflet.css" />
-<link rel="stylesheet" href="style.css?v=29" />
+<link rel="stylesheet" href="style.css?v=30" />
 </head>
 <body>
 
