@@ -49,22 +49,8 @@
     // der at være net, så knappen aldrig blokeres af en fejl her.
     function isConnected() {
         return Network.getStatus()
-            .then(function (status) {
-                showDiag('getStatus: connected=' + status.connected + ', type=' + status.connectionType);
-                return status.connected;
-            })
-            .catch(function (error) {
-                showDiag('getStatus FEJL: ' + (error && (error.code || '') + ' ' + (error.message || error)));
-                return true;
-            });
-    }
-
-    // MIDLERTIDIG diagnose af netstatus — fjernes før udgivelse.
-    var diag = document.getElementById('net-diag');
-    function showDiag(text) {
-        var time = new Date().toTimeString().slice(0, 8);
-        diag.textContent = time + ' ' + text + ' | native=' + Capacitor.isNativePlatform() +
-            ', plugin=' + Capacitor.isPluginAvailable('Network');
+            .then(function (status) { return status.connected; })
+            .catch(function () { return true; });
     }
 
     // Kan sitet faktisk nås? Fanger også Wi-Fi uden internet og tilfælde,
@@ -75,14 +61,8 @@
         var timer = setTimeout(function () { controller.abort(); }, 5000);
 
         return fetch(config.siteUrl + '/', { method: 'HEAD', mode: 'no-cors', cache: 'no-store', signal: controller.signal })
-            .then(function () {
-                showDiag('sitet kan nås');
-                return true;
-            })
-            .catch(function (error) {
-                showDiag('sitet kan IKKE nås: ' + (error && (error.name + ' ' + error.message)));
-                return false;
-            })
+            .then(function () { return true; })
+            .catch(function () { return false; })
             .finally(function () { clearTimeout(timer); });
     }
 
@@ -126,7 +106,6 @@
     });
 
     Network.addListener('networkStatusChange', function (status) {
-        showDiag('ændring: connected=' + status.connected + ', type=' + status.connectionType);
         showOnlineState(status.connected);
     });
     isConnected().then(showOnlineState);

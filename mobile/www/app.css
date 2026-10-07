@@ -130,12 +130,3 @@ body {
 .start-footer a {
     color: var(--text-muted);
 }
-
-/* MIDLERTIDIG diagnose af netstatus — fjernes før udgivelse. */
-.start-diag {
-    margin: 12px 0 0;
-    font-size: 12px;
-    font-family: monospace;
-    color: var(--text-muted);
-    word-break: break-word;
-}
