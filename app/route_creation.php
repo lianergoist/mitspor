@@ -16,7 +16,11 @@ require_once __DIR__ . '/og_image.php';
  * tidsstempler eller udtynde punkter, gøres det manuelt via
  * værktøjskassen i editoren.
  *
- * @return array{success: bool, errors?: string[], route_id?: int}
+ * $clientUploadId bruges af mobil-API'et (public/api/v1/upload-route.php)
+ * til at genkende gentagne uploads af samme fil. Findes id'et allerede
+ * for brugeren, returneres duplicate_client_upload = true.
+ *
+ * @return array{success: bool, errors?: string[], route_id?: int, public_id?: string, duplicate_client_upload?: bool, server_error?: bool}
  */
 function create_route(
     PDO $pdo,
@@ -33,7 +37,8 @@ function create_route(
     ?int $thinIntervalSeconds = null,
     string $routeType = 'rute',
     ?string $enabledDataFields = null,
-    ?string $enabledFunctions = null
+    ?string $enabledFunctions = null,
+    ?string $clientUploadId = null
 ): array {
     $errors = [];
 
@@ -114,18 +119,19 @@ function create_route(
 
         $stmt = $pdo->prepare(
             'INSERT INTO routes
-                (public_id, user_id, activity_type_id, route_type, has_time_data, enabled_data_fields, enabled_functions, title, description, gpx_file_path, original_gpx_file_path, file_size_bytes,
+                (public_id, client_upload_id, user_id, activity_type_id, route_type, has_time_data, enabled_data_fields, enabled_functions, title, description, gpx_file_path, original_gpx_file_path, file_size_bytes,
                  distance_meters, elevation_gain_meters, elevation_loss_meters,
                  min_lat, max_lat, min_lon, max_lon, start_lat, start_lon, centroid,
                  visibility, visibility_changed_at, allow_download, hide_uploader_name)
              VALUES
-                (:public_id, :user_id, :activity_type_id, :route_type, :has_time_data, :enabled_data_fields, :enabled_functions, :title, :description, :gpx_file_path, :original_gpx_file_path, :file_size_bytes,
+                (:public_id, :client_upload_id, :user_id, :activity_type_id, :route_type, :has_time_data, :enabled_data_fields, :enabled_functions, :title, :description, :gpx_file_path, :original_gpx_file_path, :file_size_bytes,
                  :distance_meters, :elevation_gain_meters, :elevation_loss_meters,
                  :min_lat, :max_lat, :min_lon, :max_lon, :start_lat, :start_lon, ST_GeomFromText(:centroid_wkt, 4326),
                  :visibility, NOW(), :allow_download, :hide_uploader_name)'
         );
         $stmt->execute([
             'public_id'              => $publicId,
+            'client_upload_id'       => $clientUploadId,
             'user_id'                => $user['id'],
             'activity_type_id'       => $activityTypeId,
             'route_type'             => $routeType,
@@ -175,8 +181,14 @@ function create_route(
         if ($originalStored !== null) {
             @unlink($originalStored['full_path']);
         }
+        // Samme client_upload_id blev indsat samtidig af en anden forespørgsel.
+        if ($clientUploadId !== null && $e instanceof PDOException
+            && (int) ($e->errorInfo[1] ?? 0) === 1062
+            && str_contains($e->getMessage(), 'uq_routes_user_client_upload')) {
+            return ['success' => false, 'duplicate_client_upload' => true, 'errors' => ['Ruten er allerede uploadet.']];
+        }
         error_log('Ruteoprettelse fejlede: ' . $e->getMessage());
-        return ['success' => false, 'errors' => ['Der skete en fejl under oprettelse af ruten. Prøv igen.']];
+        return ['success' => false, 'server_error' => true, 'errors' => ['Der skete en fejl under oprettelse af ruten. Prøv igen.']];
     }
 
     // Delingsbillede laves efter svaret er sendt (kun for offentlige ruter).

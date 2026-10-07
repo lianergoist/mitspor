@@ -32,6 +32,33 @@ function rate_limit_allow(string $action, string $ipAddress, int $maxAttempts, i
 }
 
 /**
+ * Som rate_limit_allow(), men tæller pr. identifier (fx bruger-id) i
+ * stedet for pr. IP — bruges hvor grænsen skal gælde brugeren, uanset
+ * hvilket net (mobil/wifi) forsøgene kommer fra.
+ */
+function rate_limit_allow_identifier(string $action, string $identifier, int $maxAttempts, int $windowSeconds): bool
+{
+    $pdo = get_db();
+
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*) AS attempts
+         FROM rate_limit_log
+         WHERE action = :action
+           AND identifier = :identifier
+           AND created_at >= (NOW() - INTERVAL :window SECOND)'
+    );
+    $stmt->execute([
+        'action'     => $action,
+        'identifier' => $identifier,
+        'window'     => $windowSeconds,
+    ]);
+
+    $row = $stmt->fetch();
+
+    return (int) $row['attempts'] < $maxAttempts;
+}
+
+/**
  * Registrér et forsøg i loggen. Kaldes uanset om forsøget lykkedes,
  * for at forsøg (også mislykkede) tæller med i rate-grænsen.
  */
