@@ -513,7 +513,7 @@ a { color: var(--primary); }
     bottom: 20%;
 }
 .map-page.graphs-open .scrubber {
-    bottom: calc(20% + 16px);
+    bottom: calc(20% + var(--attribution-height, 11px) + 5px);
 }
 
 #graphs-panel {
@@ -628,10 +628,14 @@ a { color: var(--primary); }
     cursor: pointer;
 }
 
+/* Afspilningsknapperne står 5 px over kortets copyright-linje.
+   --attribution-height sættes af route-view.php ud fra den målte højde
+   (den følger tekststørrelsen, fx større i appens Android-WebView);
+   uden den bruges de oprindelige 16 px. */
 .scrubber {
     position: absolute;
     left: 50%;
-    bottom: 16px;
+    bottom: calc(var(--attribution-height, 11px) + 5px);
     transform: translateX(-50%);
     display: flex;
     gap: 8px;

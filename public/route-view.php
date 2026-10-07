@@ -145,7 +145,7 @@ if ($route['visibility'] === 'public') {
     <meta name="twitter:image" content="<?= htmlspecialchars($ogImageUrl, ENT_QUOTES, 'UTF-8') ?>">
 
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/style.css?v=15">
+    <link rel="stylesheet" href="assets/style.css?v=16">
     <style>
         html, body { height: 100%; margin: 0; }
         .info-panel { top: 80px; left: 12px; max-width: 320px; }
@@ -290,7 +290,10 @@ if ($route['visibility'] === 'public') {
                 min-width: 0;
                 flex-direction: row;
                 flex-wrap: wrap;
-                gap: 2px 14px;
+                gap: 2px 10px;
+                /* "Afstand ialt" og "Afstand fra start" skal kunne stå på én linje
+                   også ved lidt større systemtekst (appens Android-WebView). */
+                font-size: 12.5px;
             }
             .info-panel .stats .stat-extra { flex: 1 1 100%; }
             .info-panel .stats.stats-expanded { max-height: none !important; overflow-y: visible; }
@@ -550,6 +553,20 @@ if ($route['visibility'] === 'public') {
         attribution: '&copy; OpenStreetMap-bidragydere',
         maxZoom: <?= (int) TILE_MAX_ZOOM ?>
     }).addTo(map);
+
+    // Afspilningsknapperne skal stå 5 px over copyright-linjen nederst på
+    // kortet. Linjens højde følger tekststørrelsen (fx større i appens
+    // Android-WebView), så den måles og gives videre til CSS'en.
+    var attribution = document.querySelector('#map .leaflet-control-attribution');
+    if (attribution) {
+        var updateAttributionHeight = function () {
+            document.querySelector('.map-page').style.setProperty('--attribution-height', attribution.offsetHeight + 'px');
+        };
+        updateAttributionHeight();
+        if (window.ResizeObserver) {
+            new ResizeObserver(updateAttributionHeight).observe(attribution);
+        }
+    }
 
     // Egne lag med garanteret z-rækkefølge (uafhængigt af i hvilken
     // rækkefølge markørerne tilføjes) — den bevægelige positions-markør
