@@ -13,6 +13,7 @@ const vendorDir = join(root, 'www', 'vendor');
 const files = {
     '@capacitor/core/dist/capacitor.js': 'capacitor.js',
     '@capacitor/inappbrowser/dist/plugin.js': 'inappbrowser.js',
+    '@capacitor/network/dist/plugin.js': 'network.js',
 };
 
 mkdirSync(vendorDir, { recursive: true });

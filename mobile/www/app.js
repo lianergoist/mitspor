@@ -9,6 +9,9 @@
     var config = window.MITSPOR_CONFIG;
     var Capacitor = window.capacitorExports.Capacitor;
     var browser = window.capacitorInAppBrowser;
+    // navigator.onLine er ikke pålidelig i Android-WebView (forbliver true
+    // i flytilstand), så netstatus hentes fra styresystemet via Network.
+    var Network = window.capacitorNetwork.Network;
 
     var openSiteButton = document.getElementById('open-site');
     var privacyLink = document.getElementById('open-privacy');
@@ -38,28 +41,39 @@
         return options;
     }
 
-    function updateOnlineState() {
-        offlineNotice.hidden = navigator.onLine;
+    function showOnlineState(connected) {
+        offlineNotice.hidden = connected;
+    }
+
+    // Spørg styresystemet om netstatus. Kan det ikke afgøres, antages
+    // der at være net, så knappen aldrig blokeres af en fejl her.
+    function isConnected() {
+        return Network.getStatus()
+            .then(function (status) { return status.connected; })
+            .catch(function () { return true; });
     }
 
     function openSite(path) {
-        if (!navigator.onLine) {
-            updateOnlineState();
-            return;
-        }
-
         var url = config.siteUrl + path;
 
-        // I en almindelig browser (test af startsiden uden app) åbnes siden bare.
-        if (!Capacitor.isNativePlatform()) {
-            window.location.href = url;
-            return;
-        }
-
         openSiteButton.disabled = true;
-        browser.InAppBrowser.openInWebView({ url: url, options: webViewOptions() })
-            .catch(function () {
-                window.alert('mitspor.dk kunne ikke åbnes. Prøv igen.');
+        isConnected()
+            .then(function (connected) {
+                showOnlineState(connected);
+                if (!connected) {
+                    return;
+                }
+
+                // I en almindelig browser (test af startsiden uden app) åbnes siden bare.
+                if (!Capacitor.isNativePlatform()) {
+                    window.location.href = url;
+                    return;
+                }
+
+                return browser.InAppBrowser.openInWebView({ url: url, options: webViewOptions() })
+                    .catch(function () {
+                        window.alert('mitspor.dk kunne ikke åbnes. Prøv igen.');
+                    });
             })
             .finally(function () {
                 openSiteButton.disabled = false;
@@ -75,7 +89,8 @@
         openSite('/privatlivspolitik.php');
     });
 
-    window.addEventListener('online', updateOnlineState);
-    window.addEventListener('offline', updateOnlineState);
-    updateOnlineState();
+    Network.addListener('networkStatusChange', function (status) {
+        showOnlineState(status.connected);
+    });
+    isConnected().then(showOnlineState);
 })();
