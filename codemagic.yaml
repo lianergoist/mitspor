@@ -1,0 +1,31 @@
+# Bygning af MitSpor-appen i Codemagic (https://codemagic.io).
+# Appen ligger i mappen mobile/. Hvert script starter i repoets rod.
+# Bygninger startes manuelt i Codemagic (ingen automatiske triggers).
+
+workflows:
+  android-test:
+    name: Android-testversion (APK)
+    # Mac-maskinen er med i Codemagics gratis minutter og kan også bygge iOS senere.
+    instance_type: mac_mini_m2
+    max_build_duration: 30
+    environment:
+      node: 22
+      java: 21
+    scripts:
+      - name: Installér npm-pakker
+        script: |
+          cd mobile
+          npm ci
+      - name: Kopiér web-filer ind i Android-projektet
+        script: |
+          cd mobile
+          npm run vendor
+          npx cap sync android
+      - name: Byg debug-APK
+        script: |
+          cd mobile/android
+          ./gradlew assembleDebug
+    artifacts:
+      # Debug-APK'en er signeret med en midlertidig testnøgle og kan
+      # installeres direkte på en Android-telefon (ikke til Google Play).
+      - mobile/android/app/build/outputs/apk/debug/*.apk

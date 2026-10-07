@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://mitspor.dk">
+    <meta name="color-scheme" content="light">
+    <title>MitSpor</title>
+    <link rel="stylesheet" href="app.css">
+</head>
+<body>
+    <main class="start">
+        <header class="start-header">
+            <img src="img/ikon.png" alt="" class="start-logo" width="96" height="96">
+            <h1>MitSpor</h1>
+            <p class="start-tagline">Del dine ture på et kort, alle kan åbne.</p>
+        </header>
+
+        <p class="offline-notice" id="offline-notice" hidden>
+            Du er ikke på nettet. mitspor.dk kan åbnes, når du har forbindelse igen.
+        </p>
+
+        <nav class="start-actions">
+            <button type="button" class="btn btn-primary" id="open-site">Åbn mitspor.dk</button>
+
+            <!-- Optageren laves i trin 3 (lokal GPS-optagelse, virker uden net). -->
+            <button type="button" class="btn btn-secondary" disabled aria-describedby="record-note">Optag tur</button>
+            <p class="start-note" id="record-note">Optagelse af ture kommer i en senere version.</p>
+        </nav>
+
+        <footer class="start-footer">
+            <a href="#" id="open-privacy">Privatlivspolitik</a>
+        </footer>
+    </main>
+
+    <script src="vendor/capacitor.js"></script>
+    <script src="vendor/inappbrowser.js"></script>
+    <script src="vendor/network.js"></script>
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
