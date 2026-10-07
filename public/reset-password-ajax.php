@@ -5,6 +5,7 @@ session_start();
 
 require_once __DIR__ . '/../app/db.php';
 require_once __DIR__ . '/../app/csrf.php';
+require_once __DIR__ . '/../app/api_auth.php';
 
 header('Content-Type: application/json; charset=UTF-8');
 
@@ -76,6 +77,10 @@ try {
          WHERE user_id = :user_id AND used_at IS NULL'
     );
     $stmt->execute(['user_id' => $tokenRow['user_id']]);
+
+    // Log appen ud på alle enheder — et evt. stjålet token må ikke
+    // overleve en nulstilling af adgangskoden.
+    api_tokens_revoke_all($pdo, (int) $tokenRow['user_id']);
 
     $pdo->commit();
 } catch (Throwable $e) {

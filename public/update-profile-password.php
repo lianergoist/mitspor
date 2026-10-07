@@ -5,6 +5,7 @@ session_start();
 
 require_once __DIR__ . '/../app/db.php';
 require_once __DIR__ . '/../app/csrf.php';
+require_once __DIR__ . '/../app/api_auth.php';
 
 header('Content-Type: application/json; charset=UTF-8');
 
@@ -49,6 +50,10 @@ $newHash = password_hash($newPassword, PASSWORD_DEFAULT);
 
 $stmt = $pdo->prepare("UPDATE users SET password_hash = :hash WHERE id = :id AND status = 'active'");
 $stmt->execute(['hash' => $newHash, 'id' => $userId]);
+
+// Log appen ud på alle enheder — et gammelt token må ikke overleve
+// et skift af adgangskode.
+api_tokens_revoke_all($pdo, $userId);
 
 // Forny session-ID efter en adgangskodeændring — god praksis.
 session_regenerate_id(true);
