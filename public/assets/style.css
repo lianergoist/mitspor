@@ -332,6 +332,41 @@ a { color: var(--primary); }
     background: var(--primary);
 }
 
+/* Handlingsknapper samlet i én ramme med samme størrelse og look som
+   filterknapperne ovenfor — fx "Upload GPX" / "Tegn ny rute" i
+   kontrolpanelet. Ingen af dem er "valgt"; de har blå tekst og ikon. */
+.action-group {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 3px;
+}
+.action-group-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: calc(var(--radius) - 2px);
+    background: none;
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary);
+    text-decoration: none;
+    white-space: nowrap;
+}
+.action-group-btn:hover { background: rgba(37, 99, 235, 0.08); }
+.action-group-btn .tb-icon {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+}
+
 .icon-edit-btn {
     background: none;
     border: none;
@@ -1007,6 +1042,15 @@ a { color: var(--primary); }
         flex: 1 1 auto;
         padding: 6px 8px;
         white-space: normal;
+    }
+    /* Kontrolpanelets faner (Alle/Spor/Ruter/Grupper) deler bredden og
+       må bryde teksten om — ellers stikker den sidste fane ud over
+       kanten på en smal skærm. */
+    .tab-btn {
+        flex: 1 1 auto;
+        min-width: 0;
+        padding: 8px 4px;
+        font-size: 13px;
     }
     /* Søgefeltet vises ikke direkte på mobil — kun søge-ikonet, som
        åbner (og fokuserer) feltet ved klik. */
