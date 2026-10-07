@@ -3,3 +3,10 @@ log
 *.bak
 public/billeder/*/
 data/
+# Signeringsnøgler og certifikater til appen — må aldrig i git
+*.keystore
+*.jks
+*.p8
+*.p12
+*.mobileprovision
+local.properties
