@@ -41,5 +41,12 @@ skala 0.88), `icon-foreground.png` (Android, gennemsigtig, skala 0.9),
 npm run assets
 ```
 
+Ikonet på appens startside (`www/img/ikon.png`, 256×256) er en nedskaleret
+kopi af `assets/icon-only.png` og skal laves igen, når ikonet ændres, fx:
+
+```bash
+php -r '$s=imagecreatefrompng("assets/icon-only.png"); imagepng(imagescale($s,256,256,IMG_BICUBIC),"www/img/ikon.png",9);'
+```
+
 Værktøjet omformaterer `android/app/src/main/AndroidManifest.xml` uden at
 ændre indholdet; den ændring kan rulles tilbage med `git checkout`.
