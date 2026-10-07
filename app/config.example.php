@@ -46,6 +46,15 @@ define('EMAIL_CHANGE_TTL_HOURS', 24);
 define('EMAIL_CHANGE_RATE_LIMIT_MAX_ATTEMPTS', 5);
 define('EMAIL_CHANGE_RATE_LIMIT_WINDOW_SECONDS', 3600); // 1 time
 
+// --- Mobil-API (public/api/v1/) ---
+// Et app-token udløber dette antal dage efter SIDSTE brug.
+define('API_TOKEN_TTL_DAYS', 180);
+// Uploads pr. bruger via API'et inden for tidsvinduet.
+define('API_UPLOAD_RATE_LIMIT_MAX_ATTEMPTS', 30);
+define('API_UPLOAD_RATE_LIMIT_WINDOW_SECONDS', 3600); // 1 time
+// Origins der får CORS-headere (Capacitor-appen på iOS/Android).
+define('API_CORS_ALLOWED_ORIGINS', ['capacitor://localhost', 'https://localhost']);
+
 // --- Udtynding af punkter ---
 // Foreslå udtynding, hvis den typiske (median) logningsfrekvens er
 // hyppigere end dette antal sekunder.
