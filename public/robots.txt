@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /assets/
+Disallow: /billeder/
+Disallow: /editor/
+Disallow: /grafik/
+Disallow: /arkers/
+Disallow: /route-icons/
+Disallow: /vendor/

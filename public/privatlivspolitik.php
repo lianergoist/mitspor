@@ -1,0 +1,194 @@
+<?php
+declare(strict_types=1);
+
+require_once __DIR__ . '/../app/config.php';
+?>
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="grafik/mitspor_50x50.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privatlivspolitik – MitSpor</title>
+    <meta name="description" content="Sådan behandler MitSpor dine oplysninger: hvad vi gemmer, hvorfor, hvor længe, og hvordan du selv kan downloade eller slette dine data.">
+    <link rel="canonical" href="<?= APP_BASE_URL ?>/privatlivspolitik.php">
+
+    <link rel="stylesheet" href="assets/style.css?v=8">
+    <style>
+        .policy { max-width: 780px; }
+        .policy h1 { margin: 0 0 4px; font-size: 26px; }
+        .policy h2 { margin: 30px 0 8px; font-size: 18px; }
+        .policy h3 { margin: 18px 0 4px; font-size: 15px; }
+        .policy p, .policy li { font-size: 15px; }
+        .policy ul { padding-left: 22px; margin: 6px 0 12px; }
+        .policy li { margin-bottom: 4px; }
+        .policy .updated { color: var(--text-muted); font-size: 13px; margin: 0 0 18px; }
+        .policy .summary {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: var(--radius);
+            padding: 14px 18px;
+            margin: 16px 0 8px;
+        }
+        .policy .summary p { margin: 0 0 6px; font-weight: 600; }
+        .policy .summary ul { margin: 0; }
+    </style>
+</head>
+<body>
+
+<header class="topbar">
+    <a href="index.php" class="brand"><img src="grafik/mitspor_50x50.png" alt="" class="brand-logo"><span class="brand-text">MitSpor</span></a>
+    <a href="index.php" class="btn">Til forsiden</a>
+</header>
+
+<main class="container policy">
+<div class="card">
+
+<article id="privatlivspolitik">
+
+    <h1>Privatlivspolitik</h1>
+    <p class="updated">Sidst opdateret: 28. september 2026</p>
+
+    <div class="summary">
+        <p>Kort fortalt</p>
+        <ul>
+            <li>MitSpor er gratis, og vi tjener ikke penge på dine oplysninger.</li>
+            <li>Vi gemmer kun det, der skal til: din e-mail, dit navn, en krypteret adgangskode og de ruter og billeder, du selv lægger op.</li>
+            <li>Ingen reklamer, ingen statistik- eller sporingsværktøjer og ingen tredjepartscookies.</li>
+            <li>Du bestemmer selv, hvem der kan se dine ruter, og hvilke data i en fil andre kan hente.</li>
+            <li>Du kan altid downloade alle dine data og slette både ruter og hele din konto.</li>
+        </ul>
+    </div>
+
+    <h2>1. Hvem er ansvarlig for dine oplysninger?</h2>
+    <p>
+        MitSpor drives af Thomas Jensen, Griffenfeldtsgade 7, 8700 Horsens (”vi”).
+        Vi er dataansvarlige for de oplysninger, der beskrives her.
+        Har du spørgsmål eller vil du bruge dine rettigheder, kan du skrive til
+        <a href="mailto:info@mitspor.dk">info@mitspor.dk</a>.
+    </p>
+
+    <h2>2. Hvilke oplysninger vi behandler, og hvorfor</h2>
+
+    <h3>Din konto</h3>
+    <ul>
+        <li>E-mailadresse, visningsnavn og adgangskode. Adgangskoden gemmes kun som en krypteret kode (hash), så hverken vi eller andre kan læse den.</li>
+        <li>Tidspunktet for oprettelsen, for bekræftelsen af din e-mail og for din kvittering på advarslen om offentlige ruter (se afsnit 4).</li>
+    </ul>
+    <p><em>Formål:</em> at give dig adgang til tjenesten. <em>Grundlag:</em> aftalen mellem dig og os om at bruge MitSpor (GDPR art. 6, stk. 1, litra b).</p>
+
+    <h3>Dine ruter og spor</h3>
+    <ul>
+        <li>GPX-filen med koordinater. Afhængigt af din enhed kan den også indeholde tid, højde, puls, kadence, effekt (watt) og andre målinger.</li>
+        <li>Titel, beskrivelse, aktivitetstype, om ruten er privat eller offentlig, og om navnet skal skjules.</li>
+        <li>Beregnede oplysninger som længde, højdemeter samt start- og slutposition.</li>
+        <li>Waypoints med tekst og henvisninger til billeder.</li>
+    </ul>
+    <p>
+        <em>Formål:</em> at gemme, vise og dele dine ruter, som du selv vælger. <em>Grundlag:</em> aftalen om at bruge tjenesten.
+        Gør du en rute offentlig, sker det efter dit eget valg og samtykke (art. 6, stk. 1, litra a).
+    </p>
+    <p>
+        <strong>Bemærk om pulsdata:</strong> Puls kan regnes som en helbredsoplysning. Hvis du vælger at uploade eller vise pulsdata,
+        sker det efter dit udtrykkelige samtykke (art. 9, stk. 2, litra a). Du kan til enhver tid fjerne pulsdata (og andre felter) fra filen i kontrolpanelet
+        under <em>Visning og datafelter</em> (fanen <em>Felter</em>).
+    </p>
+
+    <h3>Dine billeder</h3>
+    <p>
+        Billeder, du uploader til dine waypoints, gemmes i din billedsamling sammen med en lille miniature.
+        Når du uploader et billede, fjerner vi automatisk skjulte oplysninger i filen, såsom GPS-position, kameramodel og
+        tidspunkt (såkaldte EXIF-data). Selve billedet ændres ikke. Det gælder JPEG-, PNG- og WebP-billeder; GIF-filer indeholder ikke EXIF-data.
+    </p>
+
+    <h3>Sikkerhed og misbrugsbeskyttelse</h3>
+    <ul>
+        <li>Ved login, oprettelse af konto, glemt adgangskode og skift af e-mail noterer vi IP-adresse, tidspunkt og den e-mailadresse, der blev indtastet, så vi kan spærre for gentagne forsøg og misbrug.</li>
+        <li>Webserveren fører en teknisk adgangslog (IP-adresse, tidspunkt, hvilken side der blev hentet, og din browsertype) af hensyn til drift og fejlsøgning.</li>
+    </ul>
+    <p><em>Grundlag:</em> vores legitime interesse i at beskytte tjenesten og dens brugere (art. 6, stk. 1, litra f).</p>
+
+    <h3>Anmeldelser</h3>
+    <p>
+        Anmelder du en rute, gemmer vi din begrundelse og tidspunktet. Administratoren kan se, hvem der har anmeldt (navn og e-mail),
+        så anmeldelsen kan behandles. <em>Grundlag:</em> vores legitime interesse i at kunne fjerne ulovligt eller upassende indhold.
+    </p>
+
+    <h3>E-mails</h3>
+    <p>
+        Vi sender kun tekniske mails: bekræftelse af e-mail, nulstilling af adgangskode og bekræftelse eller advarsel ved skift af e-mailadresse.
+        Vi sender ikke nyhedsbreve eller markedsføring. Mails sendes via internettets almindelige mailsystem og kan derfor passere din mailudbyders servere.
+    </p>
+
+    <h2>3. Cookies</h2>
+    <p>
+        Vi bruger <strong>én teknisk cookie</strong> (en sessionscookie). Den er nødvendig for, at du kan logge ind og for at sikre formularerne mod misbrug.
+        Den sættes også, hvis du blot besøger sitet uden at logge ind, og den forsvinder som udgangspunkt, når du lukker browseren eller logger ud.
+        Fordi den er strengt nødvendig, kræver den ikke samtykke.
+    </p>
+    <p>Vi bruger ingen sporings- eller reklamecookies, ingen værktøjer til statistik og ingen tredjeparts-cookies.</p>
+
+    <h2>4. Hvem kan se hvad?</h2>
+    <ul>
+        <li><strong>Private ruter</strong> kan kun ses af dig og af personer, der får et delingslink fra dig. Alle, der har linket, kan se ruten – del det kun med personer, du stoler på.</li>
+        <li><strong>Offentlige ruter</strong> kan ses af alle på internettet og kan blive fundet af søgemaskiner. Vær opmærksom på, at start- og slutpunktet i en offentlig rute kan afsløre, hvor du bor. Derfor beder vi dig bekræfte, at du forstår det, første gang du gør en rute offentlig.</li>
+        <li><strong>Dit navn</strong> vises som uploader af offentlige ruter, medmindre du vælger, at ruten skal være anonym.</li>
+        <li><strong>Download:</strong> andre kan kun hente GPX-filen, hvis du har tilladt det. Filen indeholder de data, der ligger i den. Vil du ikke dele fx tid eller puls, kan du fjerne dem fra filen i editoren, før du tillader download.</li>
+        <li><strong>Billeder</strong> har svære at gætte adresser, men er ikke beskyttet af login. Den, der har adressen til et billede, kan se det – også hvis ruten senere gøres privat.</li>
+        <li><strong>Administrator:</strong> Vi kan se anmeldte ruter og anmeldelser. Ud over det bruger vi kun teknisk adgang til data, når det er nødvendigt for drift og sikkerhed.</li>
+    </ul>
+
+    <h2>5. Eksterne tjenester</h2>
+    <ul>
+        <li><strong>Kort:</strong> Kortet kommer fra OpenStreetMap. Kortbillederne hentes af vores server og gemmes midlertidigt hos os, så OpenStreetMap ikke får din IP-adresse eller kan se, hvad du kigger på.</li>
+        <li><strong>Højdedata:</strong> Vælger du selv at hente højdedata til en rute, sendes rutens koordinater fra vores server til tjenesten Open Topo Data (api.opentopodata.org), som svarer med højder. Din IP-adresse sendes ikke med. Det sker kun, når du selv trykker på knappen.</li>
+        <li>Vi bruger ingen reklamenetværk, statistikværktøjer, sociale plugins, eksterne skrifttyper eller indholdsnetværk (CDN). Alle programbiblioteker ligger på vores egen server.</li>
+        <li><strong>Drift:</strong> Sitet og dets data ligger på en server hos ssdvps.dk i Danmark.</li>
+    </ul>
+    <p>Vi sælger ikke dine oplysninger og giver dem ikke videre til andre til markedsføring.</p>
+
+    <h2>6. Hvor længe gemmer vi dine oplysninger?</h2>
+    <ul>
+        <li><strong>Konto, ruter og billeder:</strong> så længe du har din konto.</li>
+        <li><strong>Sletter du en rute:</strong> GPX-filen og en evt. gemt original-fil (sikkerhedskopi fra udtynding) slettes straks, og rutens titel, beskrivelse, delingslink og positioner ryddes. Der bevares kun en tom markering, så personer med et gammelt link kan se, at ruten er slettet. Billeder i din billedsamling bliver liggende, til du sletter din konto (eller beder os fjerne dem).</li>
+        <li><strong>Sletter du din konto:</strong> alle dine ruter og billeder (inklusive miniaturer) slettes, og din e-mail, dit navn og din adgangskode fjernes med det samme.</li>
+        <li><strong>Sikkerhedsnoter (IP-adresser ved login m.m.):</strong> slettes automatisk efter 30 dage.</li>
+        <li><strong>Serverens adgangslog:</strong> 3 måneder.</li>
+        <li><strong>Anmeldelser:</strong> så længe det er nødvendigt for at behandle henvendelsen.</li>
+        <li><strong>Sikkerhedskopier:</strong> Der tages en daglig sikkerhedskopi af serveren, som gemmes i 3 måneder. Data, du har slettet, kan derfor ligge i sikkerhedskopierne i op til 3 måneder, hvorefter de er væk. Sikkerhedskopierne bruges kun til at genskabe tjenesten efter en fejl.</li>
+    </ul>
+
+    <h2>7. Dine rettigheder</h2>
+    <p>Du har efter GDPR ret til:</p>
+    <ul>
+        <li><strong>Indsigt og dataportabilitet:</strong> Under din profil kan du selv hente alle dine data (<em>Download alle mine data</em>) som en ZIP-fil med dine GPX-filer, billeder og oplysninger om din konto.</li>
+        <li><strong>Berigtigelse:</strong> Du kan selv rette dit navn og din e-mail i din profil.</li>
+        <li><strong>Sletning:</strong> Du kan selv slette enkelte ruter og hele din konto. Vil du have et enkelt billede fjernet, kan du skrive til os.</li>
+        <li><strong>Begrænsning og indsigelse:</strong> Du kan bede os begrænse behandlingen eller gøre indsigelse mod den, når den bygger på vores legitime interesse.</li>
+        <li><strong>Tilbagekaldelse af samtykke:</strong> Fx ved at gøre en rute privat eller fjerne data som puls fra en fil.</li>
+    </ul>
+    <p>
+        Skriv til <a href="mailto:info@mitspor.dk">info@mitspor.dk</a>, hvis du vil bruge dine rettigheder. Vi svarer senest inden for en måned.
+        Er du utilfreds med, hvordan vi behandler dine oplysninger, kan du klage til
+        <a href="https://www.datatilsynet.dk" target="_blank" rel="noopener">Datatilsynet</a>.
+    </p>
+
+    <h2>8. Sikkerhed</h2>
+    <p>
+        Sitet bruger krypteret forbindelse (HTTPS). Adgangskoder gemmes kun som hash. Gentagne mislykkede login-forsøg bremses,
+        og private ruter kan ikke ses uden login eller delingslink. Ingen løsning er dog fuldstændig sikker,
+        så vælg en adgangskode, du ikke bruger andre steder.
+    </p>
+
+    <h2>9. Ændringer</h2>
+    <p>
+        Vi opdaterer politikken, når tjenesten eller reglerne ændrer sig. Datoen øverst viser, hvornår den sidst er ændret.
+    </p>
+
+</article>
+
+</div>
+</main>
+
+</body>
+</html>

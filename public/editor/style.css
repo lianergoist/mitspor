@@ -1,0 +1,832 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  display: flex;
+  flex-direction: column; /* Gør hele siden til en fleksibel kolonne */
+}
+
+html {
+  /* Se samme kommentar i assets/style.css — forhindrer mobile browsere i
+     at "font-booste" enkelte elementer forskelligt. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Toolbaren har samme udseende som topbaren på rutens side (route-view.php):
+   hvid baggrund, hvide knapper, samme størrelser, pilen til venstre og
+   handlingsknapperne til venstre ved siden af pilen og Hjælp til højre. */
+#toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 20px;
+  background: rgba(255, 255, 255, 0.97);
+  color: #1e293b;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 14px;
+  flex-shrink: 0; /* Sørger for, at toolbaren altid beholder sin fulde højde */
+}
+
+#toolbar a {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+/* Samme pil som i kontrolpanelet og på rutens side (assets/style.css) */
+#toolbar a.back-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1;
+  padding: 0 6px 3px;
+  -webkit-text-stroke: 0.7px currentColor;
+  text-decoration: none;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Gem / Fortryd / Gendan / Vis side står til venstre ved siden af pilen;
+   kun Hjælp skubbes helt ud til højre. */
+.toolbar-group-help {
+  margin-left: auto;
+}
+
+/* Hjælp-knappen: kun teksten på computer, kun ikonet på mobil. */
+#btn-help .help-icon {
+  display: none;
+}
+
+#toolbar select,
+#toolbar input[type="text"] {
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #1e293b;
+}
+
+#toolbar input[type="text"] {
+  width: 160px;
+}
+
+#toolbar select {
+  font-size: 14px;
+  width: 220px;
+  max-width: 45vw;
+}
+
+#toolbar button {
+  padding: 9px 14px;
+  min-height: 40px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #1e293b;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+#toolbar button:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+/* Monokrome linjeikoner (Gem, Vis side): arver knappens tekstfarve, så de
+   følger både almindelig, deaktiveret og rød/grøn Gem-tilstand — også i
+   dialogernes blå Gem-knapper. */
+/* Ikonerne i toolbaren har sidens blå farve; teksten i knapperne er mørk.
+   Gem-knappen er hvid på rød/grøn baggrund, så dér følger ikonet teksten. */
+#toolbar button .tb-icon,
+#toolbar button .help-icon {
+  color: #2563eb;
+}
+#btn-save-server.save-dirty .tb-icon,
+#btn-save-server.save-clean .tb-icon {
+  color: #ffffff;
+}
+
+.tb-icon {
+  display: inline-block;
+  vertical-align: -3px; /* i dialogknapper (ikke flex): ligger på tekstens linje */
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#toolbar button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Visuelt hint om at et klik på kortet nu sætter et waypoint, i
+   stedet for at tegne på ruten. */
+#map.waypoint-mode-cursor,
+.leaflet-container.waypoint-mode-cursor {
+  cursor: crosshair;
+}
+
+/* Waypoint-tilstand-knappen — ligger som en Leaflet-kontrol på selve
+   kortet (øverst til venstre, ved siden af zoom-knapperne), i stedet
+   for i værktøjslinjen, så den er tydeligt synlig lige der hvor man
+   klikker. Leaflet stakker som udgangspunkt kontroller i samme hjørne
+   LODRET — denne regel gør det øverste venstre hjørne til en vandret
+   række i stedet, så knappen flugter med zoom-knapperne. */
+.leaflet-top.leaflet-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-left: 10px; /* samme afstand fra kortets kant, som Leaflet normalt selv giver den første kontrol */
+}
+.leaflet-top.leaflet-left .leaflet-control {
+  margin-left: 0; /* gap ovenfor styrer nu den vandrette afstand */
+}
+.waypoint-mode-map-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  white-space: nowrap;
+}
+.waypoint-mode-map-btn:hover {
+  background: #f8fafc;
+}
+.waypoint-mode-map-btn[aria-pressed="true"] {
+  background: #eff6ff;
+  border-color: #2563eb;
+  color: #1d4ed8;
+}
+
+.help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1;
+  color: inherit;
+}
+
+#btn-save-server.save-dirty {
+  background: #b91c1c;
+  border-color: #991b1b;
+  color: #ffffff;
+}
+
+#btn-save-server.save-dirty:hover {
+  background: #dc2626;
+}
+
+#btn-save-server.save-clean {
+  background: #15803d;
+  border-color: #166534;
+  color: #ffffff;
+}
+
+#btn-save-server.save-clean:hover {
+  background: #16a34a;
+}
+
+#map {
+  flex-grow: 1; /* Får kortet til automatisk at udfylde al restpladsen */
+  position: relative;
+  width: 100%;
+}
+
+#status {
+  flex-shrink: 0; /* Sørger for, at statuslinjen ikke presses sammen */
+  height: 26px;
+  line-height: 26px;
+  padding: 0 12px;
+  font-size: 12px;
+  color: #475569;
+  background: #f1f5f9;
+  border-top: 1px solid #cbd5e1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gpx-popup input[type="text"] {
+  width: 180px;
+  margin-bottom: 6px;
+  padding: 3px 5px;
+}
+
+.gpx-popup textarea {
+  width: 180px;
+  height: 50px;
+  margin-bottom: 6px;
+  padding: 3px 5px;
+  font-family: inherit;
+}
+
+.gpx-popup .popup-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.gpx-popup button {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #94a3b8;
+  background: #e2e8f0;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.gpx-popup button.danger {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+
+.gpx-popup button.primary {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1e3a8a;
+}
+
+.gpx-popup .wpt-links {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 6px;
+  max-width: 260px;
+}
+
+.gpx-popup .wpt-link-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 3px 5px;
+}
+
+.gpx-popup .wpt-link-item a {
+  flex-shrink: 0;
+  color: #1e3a8a;
+  text-decoration: none;
+}
+.gpx-popup .wpt-link-comment {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  padding: 3px 5px;
+  border: 1px solid #cbd5e1;
+  border-radius: 3px;
+}
+
+.gpx-popup button.small {
+  padding: 1px 6px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* Overskriv Leaflets hånd-markør med en pegefinger på kortet */
+.leaflet-grab {
+  cursor: pointer !important;
+}
+
+/* Sørg for at den stadig er en pegefinger, når man holder museknappen nede og panorerer */
+.leaflet-grab:active {
+  cursor: pointer !important;
+}
+
+#help-dialog,
+#meta-help-dialog {
+  max-width: 600px;
+  width: 90%;
+  max-height: 85vh; /* Sørger for, at boksen ikke bliver højere end skærmen */
+  overflow-y: auto; /* Tilføjer scrollbar hvis indholdet er for langt */
+  background: #f8fafc;
+  border: none;
+  border-radius: 8px;
+  padding: 0;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  color: #334155;
+}
+
+/* Mørk baggrund bag dialogboksen */
+#help-dialog::backdrop,
+#meta-help-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* ------------------------------ */
+/* Titellinje: viser hvilken rute der redigeres */
+/* ------------------------------ */
+#route-title-bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 6px 14px;
+  background: #f8fafc;
+  border-bottom: 1px solid #cbd5e1;
+  font-size: 13px;
+  color: #334155;
+}
+
+#route-title-bar strong {
+  font-weight: 600;
+  color: #475569;
+}
+
+#route-title-bar .truncate {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ------------------------------ */
+/* Redigér metadata-dialog — matcher udseendet på kontrolpanelets */
+/* tilsvarende dialog (assets/style.css' .modal-dialog) */
+/* ------------------------------ */
+.modal-dialog {
+  max-width: 380px;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  color: #1e293b;
+  position: relative;
+}
+.modal-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+.modal-dialog h2 {
+  margin: 0 0 14px;
+  font-size: 18px;
+}
+/* Nogle dialoger (billeddialogen) skal kunne blive bredere end de
+   380px, der passer fint til metadata/waypoint-dialogerne. */
+.modal-dialog.images-dialog {
+  max-width: 480px;
+}
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0;
+}
+.modal-close:hover {
+  color: #0f172a;
+}
+.modal-close.meta-help-btn {
+  right: 44px;
+  font-weight: 600;
+}
+.link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: #2563eb;
+  cursor: pointer;
+  text-decoration: none;
+}
+.link-btn:hover {
+  text-decoration: underline;
+}
+.link-btn.danger {
+  color: #dc2626;
+}
+.modal-dialog .link-btn.danger {
+  display: block;
+  margin: 10px auto 0;
+}
+/* display:block ovenfor må ikke slå hidden-attributten ihjel — ellers vises
+   "Slet waypoint" også i dialogen for et NYT waypoint, som slet ikke findes endnu. */
+.modal-dialog .link-btn.danger[hidden] {
+  display: none;
+}
+.modal-errors {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+.modal-dialog .btn-primary {
+  margin-top: 14px;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: 1px solid #1d4ed8;
+  background: #2563eb;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+.modal-dialog .btn-primary:hover {
+  background: #1d4ed8;
+}
+.modal-dialog .btn-primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* ------------------------------ */
+/* Metadata-panel (rutens titel, aktivitet, synlighed) */
+/* ------------------------------ */
+#meta-panel,
+.modal-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 14px;
+}
+
+#meta-panel label,
+.modal-dialog-body label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+#meta-panel [hidden] {
+  display: none;
+}
+
+#meta-panel input[type="text"],
+#meta-panel textarea,
+#meta-panel select,
+.modal-dialog-body input[type="text"],
+.modal-dialog-body textarea,
+.modal-dialog-body select {
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #1e293b;
+}
+
+#meta-panel textarea,
+.modal-dialog-body textarea {
+  min-height: 60px;
+  resize: vertical;
+}
+
+#meta-panel fieldset {
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+
+#meta-panel legend {
+  font-size: 12px;
+  color: #64748b;
+  padding: 0 4px;
+}
+
+#meta-panel .checkbox-field,
+.modal-dialog-body .checkbox-field {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  font-weight: normal;
+  color: #1e293b;
+  font-size: 14px;
+}
+
+#meta-panel .notice-field {
+  font-size: 12px;
+  color: #7c2d12;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 0;
+}
+
+/* ------------------------------ */
+/* Billed-dialog (sortérbar liste med thumbnails + kommentarer) */
+/* ------------------------------ */
+.images-dialog-hint {
+  margin: 0;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.images-dialog-add-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.image-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+.image-picker-item {
+  position: relative;
+  cursor: pointer;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  overflow: hidden;
+  line-height: 0;
+  background: #f1f5f9;
+}
+.image-picker-item img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+.image-picker-item.picked {
+  border-color: #2563eb;
+}
+.image-picker-item.picked::after {
+  content: "✓";
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 13px;
+  line-height: 20px;
+  text-align: center;
+}
+.image-picker-empty {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.images-sortable-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.image-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fcfcfc;
+}
+
+.image-row-handle {
+  flex-shrink: 0;
+  cursor: grab;
+  font-size: 18px;
+  color: #94a3b8;
+  padding: 4px;
+  touch-action: none; /* Nødvendigt for at SortableJS kan overtage touch-drag korrekt */
+}
+.image-row-handle:active {
+  cursor: grabbing;
+}
+
+.image-row-thumb {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  background: #f1f5f9;
+}
+
+.image-row-comment {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 40px;
+  resize: vertical;
+  padding: 6px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #1e293b;
+}
+
+.image-row-remove {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: #fee2e2;
+  color: #991b1b;
+  cursor: pointer;
+  font-size: 13px;
+}
+.image-row-remove:hover {
+  background: #fecaca;
+}
+
+/* SortableJS' egne klasser under trækning */
+.image-row.sortable-ghost {
+  opacity: 0.4;
+}
+.image-row.sortable-chosen {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: #e2e8f0;
+  border-bottom: 1px solid #cbd5e1;
+  position: sticky; /* Får headeren til at blive i toppen, mens man scroller */
+  top: 0;
+}
+
+.dialog-header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.close-btn {
+  background: none !important;
+  border: none !important;
+  font-size: 20px;
+  cursor: pointer;
+  color: #64748b !important;
+  padding: 0 !important;
+}
+
+.close-btn:hover {
+  color: #0f172a !important;
+}
+
+.dialog-content {
+  padding: 20px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.dialog-content h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 15px;
+  color: #1e293b;
+}
+
+.dialog-content ul {
+  padding-left: 20px;
+  margin-bottom: 24px;
+}
+
+.dialog-content li {
+  margin-bottom: 6px;
+}
+
+/* Forhindr browseren i at overtage touch-bevægelser på markører —
+   KUN på touch-enheder. Denne regel må ikke ramme mus, da Leaflets
+   markør-trækning (og vores "klik = 0px-trækning"-logik) er bygget
+   oven på det samme drag-system, som touch-action ellers forstyrrer. */
+@media (pointer: coarse) {
+  .leaflet-marker-icon,
+  .leaflet-interactive {
+    touch-action: none !important;
+  }
+}
+
+/* Den usynlige, store berøringsflade (hitbox) */
+.touch-marker {
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Den synlige blå trackpoint-prik */
+.touch-marker .dot-track {
+  width: 14px;
+  height: 14px;
+  background-color: #3b82f6;
+  border: 2px solid #1e3a8a;
+  border-radius: 50%;
+  opacity: 0.9;
+}
+
+/* Den synlige orange waypoint-prik */
+.touch-marker .dot-wpt {
+  width: 16px;
+  height: 16px;
+  background-color: #f97316;
+  border: 2px solid #9a3412;
+  border-radius: 50%;
+  opacity: 0.95;
+}
+
+/* Lilla waypoint-prik: bruges når waypointet har mindst ét billedlink */
+.touch-marker .dot-wpt-img {
+  width: 16px;
+  height: 16px;
+  background-color: #a855f7;
+  border: 2px solid #6b21a8;
+  border-radius: 50%;
+  opacity: 0.95;
+}
+
+
+
+/* Responsivt design (til mobilskærme under 800px bredde) */
+@media (max-width: 800px) {
+  #toolbar button {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    justify-content: center; /* Centrerer ikonet */
+    font-size: 18px;         /* Ikonerne er lidt større på mobil */
+  }
+  
+  /* Skjul teksten, så kun ikonet er tilbage */
+  .btn-text {
+    display: none;
+  }
+  #btn-help .help-icon {
+    display: inline-flex;
+  }
+  #toolbar .tb-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  #toolbar {
+    padding: 6px 10px;
+  }
+
+  #route-title-bar {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+}
+

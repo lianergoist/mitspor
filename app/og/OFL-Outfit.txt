@@ -1,0 +1,5 @@
+Outfit-Medium.ttf and Outfit-ExtraBold.ttf are from the Outfit font family
+(c) The Outfit Project Authors (https://github.com/Outfitio/Outfit-Fonts),
+licensed under the SIL Open Font License, Version 1.1
+(https://openfontlicense.org). The fonts may be bundled and redistributed
+with this application; they may not be sold on their own.

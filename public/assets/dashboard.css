@@ -1,0 +1,214 @@
+/* Kontrolpanelet (flyttet ud af dashboard.php) */
+
+/* Logoet i topbaren (vises også på mobil) */
+#dashboard-topbar .brand-logo { height: 32px; width: 32px; } /* som på forsiden */
+.route-select { margin-right: 8px; vertical-align: middle; }
+.route-group { display: block; font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.group-order-list { list-style: none; margin: 6px 0 10px; padding: 0; max-height: 260px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius); }
+.group-order-list li { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-bottom: 1px solid var(--border); background: var(--surface); }
+.group-order-list li:last-child { border-bottom: none; }
+.group-order-list .grip { cursor: grab; color: var(--text-muted); user-select: none; }
+.group-order-list .go-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.group-order-list .go-private { font-size: 11px; color: var(--text-muted); }
+.group-order-list .go-move { padding: 0 6px; }
+.group-order-list li.sortable-ghost { opacity: .4; }
+.dialog-section { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--border); }
+.dialog-section h3 { margin: 0 0 6px; font-size: 15px; }
+.hint { color: var(--text-muted); font-size: 13px; margin: 4px 0 8px; }
+/* label/div med [hidden] skal virkelig skjules (andre regler sætter display) */
+#upload-title-label[hidden], #upload-group-fields[hidden], #group-create-new[hidden], #group-create-existing[hidden], .hint[hidden] { display: none; }
+
+/* ---------------------------------------------------------------
+   Liste (venstre) / værktøjer (højre)
+------------------------------------------------------------------ */
+/* 1080 px med 20 px padding giver 1040 px indhold. */
+.container { max-width: 1080px; }
+
+.hub {
+    display: grid;
+    /* Listen er lidt bredere end detaljerne (5:4), så lange titler ikke skæres af. */
+    grid-template-columns: minmax(0, 5fr) minmax(0, 4fr);
+    gap: 20px;
+    align-items: start;
+}
+.hub .card { margin-bottom: 0; }
+
+.hub-list .tabs { margin-bottom: 12px; padding: 3px; }
+.hub-list .tab-btn { flex: 1 1 auto; padding: 8px 6px; font-size: 13px; white-space: nowrap; }
+
+.hub-items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: calc(100vh - 260px);
+    overflow-y: auto;
+}
+.hub-items li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+    padding: 0 4px;
+}
+.hub-items li:last-child { border-bottom: none; }
+.hub-items li.selected { background: #eff6ff; box-shadow: inset 3px 0 0 var(--primary); }
+.hub-items .route-select { margin: 0; flex-shrink: 0; }
+
+.hub-item-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: left;
+    background: none;
+    border: none;
+    padding: 10px 4px;
+    font: inherit;
+    color: var(--text);
+    cursor: pointer;
+}
+.hub-item-main:hover .route-title { color: var(--primary); }
+.hub-item-main .route-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hub-item-sub { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.hub-detail { min-height: 220px; position: sticky; top: 16px; }
+.detail-panel[hidden] { display: none; }
+.detail-panel h2 { margin: 0 0 4px; font-size: 22px; overflow-wrap: anywhere; }
+.detail-summary { margin: 0 0 4px; color: var(--text); font-size: 14px; }
+.detail-meta { margin: 0 0 16px; color: var(--text-muted); font-size: 13px; }
+
+.detail-map {
+    height: 240px;
+    margin: 0 0 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--bg-deep);
+    z-index: 0;
+}
+.detail-map--empty { display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 14px; }
+
+/* Værktøjer: en enkelt kolonne, knapper under hinanden */
+.tool-list { display: flex; flex-direction: column; gap: 8px; }
+.tool-row { display: flex; align-items: center; gap: 8px; }
+.tool-row .tool { flex: 1 1 auto; min-width: 0; }
+.tool-help {
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+}
+.tool-help:hover { color: var(--primary); border-color: var(--primary); background: var(--bg); }
+#tool-help-body p { margin: 0 0 10px; font-size: 14px; line-height: 1.5; }
+#tool-help-body p:last-child { margin-bottom: 0; }
+.tool {
+    display: block;
+    text-align: left;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-size: 14px;
+    text-decoration: none;
+    cursor: pointer;
+}
+.tool:hover { background: var(--bg); border-color: #cbd5e1; }
+.tool.danger { color: var(--danger); }
+
+.hub-back { display: none; margin-bottom: 12px; }
+#hub-placeholder[hidden] { display: none; }
+
+/* Computer: listen og detaljepanelet fylder skærmens højde (--hub-height sættes i dashboard.js) */
+@media (min-width: 801px) {
+    .hub-list {
+        height: var(--hub-height, auto);
+        display: flex;
+        flex-direction: column;
+    }
+    .hub-list .tab-panel:not([hidden]) {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+    .hub-items { flex: 1 1 auto; min-height: 0; max-height: none; }
+    .hub-detail {
+        height: var(--hub-height, auto);
+        overflow-y: auto;
+        position: static;
+    }
+}
+
+/* Mobil: liste og detalje vises efter hinanden (master-detail) */
+@media (max-width: 800px) {
+    .hub { grid-template-columns: minmax(0, 1fr); }
+    .hub .hub-detail { display: none; position: static; }
+    .hub.hub--detail-open .hub-detail { display: block; }
+    .hub.hub--detail-open .hub-list { display: none; }
+    .hub-back { display: inline-block; }
+    .hub-items { max-height: none; }
+    .detail-map { height: 200px; }
+    #hub-placeholder { display: none; }
+}
+
+/* ---------------------------------------------------------------
+   Værktøjsdialoger (udtynd, datafelter)
+------------------------------------------------------------------ */
+.tool-thin-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.tool-wide { max-width: 480px; }
+
+.data-fields-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px;
+    margin-bottom: 12px;
+}
+.data-fields-tab {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    background: none;
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+.data-fields-tab:hover { color: var(--text); }
+.data-fields-tab.active { color: #fff; background: var(--primary); }
+[data-fields-panel][hidden] { display: none; }
+
+.data-fields-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 50vh;
+    overflow-y: auto;
+}
+#tool-fields-list { gap: 0; margin-top: 12px; }
+.data-field-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+.data-field-row:first-child { border-top: 1px solid var(--border); padding-top: 12px; }
+.data-field-row .checkbox-field { flex: 1; min-width: 0; }
+.data-field-row .link-btn { flex-shrink: 0; font-size: 15px; padding: 2px 4px; }
+.data-field-note { flex: 1; color: var(--text-muted); }
+.data-field-note small { font-size: 12px; }
+#tool-fields-save { margin-top: 14px; }

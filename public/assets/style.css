@@ -1,0 +1,1034 @@
+/* ---------------------------------------------------------------
+   Foreløbigt, funktionelt stylesheet — til struktur, ikke det
+   endelige visuelle design. Genbruges af dashboard, rutevisning og
+   forsiden.
+------------------------------------------------------------------ */
+
+:root {
+    --bg: #f8fafc;
+    --bg-deep: #edf1f6;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --danger: #dc2626;
+    --danger-dark: #b91c1c;
+    --success: #16a34a;
+    --success-dark: #15803d;
+    --radius: 8px;
+}
+
+* { box-sizing: border-box; }
+
+html {
+    /* Forhindrer at mobile browsere (iOS Safari, Opera Mobile m.fl.)
+       automatisk forstørrer tekststørrelsen forskelligt for visuelt
+       ens elementer ("font boosting") — det er det, der har fået fx
+       .btn-primary-knapper til at fremstå højere end andre .btn'er
+       med identisk CSS. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg-deep);
+    color: var(--text);
+    line-height: 1.5;
+}
+
+a { color: var(--primary); }
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border-bottom: 1px solid var(--border);
+}
+
+/* Kontrolpanelets topbar ligger ikke oven på noget farverigt (i
+   modsætning til fx forsidens kort) — gennemsigtighed giver derfor
+   ingen synlig effekt der og ser bare lyst/hvidt ud. Den får i stedet
+   en solid, tydeligt tonet baggrund, som editorens toolbar. */
+#dashboard-topbar {
+    background: #eef1f5;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.topbar .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 18px;
+}
+.brand-logo {
+    height: 32px;
+    width: auto;
+    display: block;
+}
+
+/* Tilbage-pilen til venstre i topbaren — ens i kontrolpanelet, på rutens
+   side og i editoren (editor/style.css har samme regel). */
+.back-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1;
+    padding: 0 6px 3px;
+    -webkit-text-stroke: 0.7px currentColor; /* gør pilen tydeligere fed, også i skrifttyper uden fed pil */
+    text-decoration: none;
+}
+
+/* Monokrom linjeikon (SVG): arver tekstfarven via currentColor. */
+.tb-icon {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Lille cirkel med "?" — bruges som hjælp-ikon i knapper. */
+.help-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1.5px solid currentColor;
+    font-weight: 700;
+    font-size: 12px;
+    line-height: 1;
+    color: inherit;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 20px;
+}
+
+.layout {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+}
+
+.sidebar h2 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    margin: 0 0 10px;
+}
+
+.sidebar dl {
+    margin: 0 0 16px;
+}
+.sidebar dt {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+.sidebar dd {
+    margin: 0 0 8px;
+    font-size: 14px;
+}
+
+.sidebar nav a {
+    display: block;
+    padding: 8px 0;
+    text-decoration: none;
+    color: var(--text);
+    border-top: 1px solid var(--border);
+    font-size: 14px;
+}
+.sidebar nav a:first-child { border-top: none; }
+.sidebar nav a.danger { color: var(--danger); }
+
+.main {
+    flex: 1;
+    min-width: 0;
+}
+
+.card {
+    background: #fcfcfc;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.actions-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    text-decoration: none;
+    font-size: 14px;
+    cursor: pointer;
+}
+.btn[hidden] { display: none; }
+.btn:hover { background: var(--bg); }
+
+.btn-primary {
+    background: var(--primary);
+    border-color: var(--primary-dark);
+    color: #fff;
+}
+.btn-primary:hover { background: var(--primary-dark); }
+
+#route-search {
+    padding: 9px 12px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 14px;
+}
+#route-search {
+    width: 220px;
+}
+
+.btn-danger {
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #991b1b;
+}
+
+.search-toggle-btn {
+    display: none;
+}
+
+.topbar-filters {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.route-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.route-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+}
+.route-list li:last-child { border-bottom: none; }
+
+.route-title { font-weight: 600; }
+.route-visibility {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-left: 6px;
+}
+
+.route-actions {
+    display: flex;
+    gap: 10px;
+    font-size: 13px;
+}
+.route-actions a.danger { color: var(--danger); }
+
+.link-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    color: var(--primary);
+    cursor: pointer;
+    text-decoration: none;
+}
+.link-btn:hover { text-decoration: underline; }
+.link-btn.danger { color: var(--danger); }
+
+.tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 4px;
+    margin-bottom: 16px;
+}
+.tab-btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: calc(var(--radius) - 2px);
+    background: none;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+.tab-btn:hover { color: var(--text); background: rgba(15, 23, 42, 0.04); }
+.tab-btn.active {
+    color: #fff;
+    background: var(--primary);
+}
+.tab-panel[hidden] { display: none; }
+
+.segmented-filter {
+    display: flex;
+    gap: 2px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 3px;
+}
+.segmented-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: calc(var(--radius) - 2px);
+    background: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+.segmented-btn:hover { color: var(--text); background: rgba(15, 23, 42, 0.04); }
+.segmented-btn.active {
+    color: #fff;
+    background: var(--primary);
+}
+
+.icon-edit-btn {
+    background: none;
+    border: none;
+    padding: 2px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text-muted);
+}
+.icon-edit-btn:hover { color: var(--primary); }
+
+.inline-edit-panel {
+    margin: 10px 0 16px;
+    padding: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.inline-edit-panel[hidden] {
+    display: none;
+}
+.inline-edit-panel label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+.inline-edit-panel input {
+    padding: 7px 9px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+}
+.inline-edit-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.checkbox-field {
+    flex-direction: row !important;
+    align-items: center;
+    gap: 6px;
+    font-weight: normal !important;
+}
+.notice-field {
+    font-size: 12px;
+    color: #7c2d12;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: 4px;
+    padding: 8px 10px;
+}
+.modal-dialog fieldset {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.modal-dialog legend {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 0 4px;
+}
+.modal-dialog textarea {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    min-height: 60px;
+}
+.modal-dialog select {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.empty-state {
+    color: var(--text-muted);
+    text-align: center;
+    padding: 40px 0;
+}
+
+/* ---------------------------------------------------------------
+   Fuldskærms-kortvisning (route-view.php / forsiden)
+------------------------------------------------------------------ */
+.map-page {
+    height: 100vh;
+    height: 100dvh; /* korrigerer for mobilbrowseres upålidelige 100vh (adresselinje-problemet) */
+    position: relative;
+}
+.map-page .topbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    padding: 9px 20px; /* ~20% lavere end den almindelige topbar (12px) */
+}
+.map-page .topbar .btn {
+    padding: 9px 14px;
+    min-height: 40px; /* behageligt at ramme, både med mus og finger */
+}
+/* Ikonerne i topbaren er SVG'er (ikke tegn/emojis), så de ser ens ud overalt,
+   og de har sidens blå farve — teksten i knapperne forbliver mørk. */
+.map-page .topbar .btn > svg {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+}
+.map-page .topbar .btn > svg,
+.map-page .topbar .btn > .help-icon {
+    color: var(--primary);
+}
+.map-page #map {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    /* Højden følger top/bottom (ikke height: 100%) — ellers ignoreres
+       'bottom', og kortet krymper ikke, når grafpanelet åbnes. Så ligger
+       zoom-knapperne skjult bag panelet i stedet for over det. */
+    height: auto;
+    transition: bottom 0.15s ease;
+}
+.map-page.graphs-open #map {
+    bottom: 20%;
+}
+.map-page.graphs-open .scrubber {
+    bottom: calc(20% + 16px);
+}
+
+#graphs-panel {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 20%;
+    z-index: 900;
+    background: rgba(255, 255, 255, 0.97);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.15);
+    padding: 6px 12px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+#graphs-panel[hidden] {
+    display: none;
+}
+.graph-tabs {
+    flex-shrink: 0;
+    display: flex;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+.graph-tabs[hidden] {
+    display: none;
+}
+.graph-tab {
+    padding: 3px 10px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.graph-tab.active {
+    background: var(--primary);
+    border-color: var(--primary-dark);
+    color: #fff;
+}
+#graph-stats {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+}
+#graph-chart-wrap {
+    position: relative;
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+}
+#graph-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+#graph-gridlines line {
+    stroke: var(--border);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+}
+#graph-gridline-labels {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+#graph-gridline-labels span {
+    position: absolute;
+    left: 2px;
+    transform: translateY(-50%);
+    font-size: 10px;
+    line-height: 1;
+    color: var(--text-muted);
+    background: rgba(255,255,255,0.8);
+    padding: 1px 3px;
+    border-radius: 2px;
+}
+#graph-area { fill: rgba(37, 99, 235, 0.15); stroke: none; }
+#graph-line { fill: none; stroke: #2563eb; stroke-width: 2; vector-effect: non-scaling-stroke; }
+#graph-marker { stroke: #dc2626; stroke-width: 2; vector-effect: non-scaling-stroke; }
+
+.map-overlay-panel {
+    position: absolute;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(4px);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    padding: 10px 14px;
+    font-size: 13px;
+    z-index: 500;
+}
+
+.map-icon-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.92);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    text-decoration: none;
+    font-size: 18px;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.scrubber {
+    position: absolute;
+    left: 50%;
+    bottom: 16px;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    background: rgba(255,255,255,0.92);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    padding: 8px 10px;
+    z-index: 500;
+}
+.scrubber[hidden] {
+    display: none;
+}
+.scrubber button {
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 6px;
+    background: #f1f5f9;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+.scrubber button img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    pointer-events: none;
+}
+.scrubber button:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ---------------------------------------------------------------
+   Waypoint-prikker på rutevisningen
+------------------------------------------------------------------ */
+.waypoint-dot-icon {
+    width: 16px;
+    height: 16px;
+    background: #e74c3c;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    cursor: pointer;
+}
+.waypoint-dot-icon-img {
+    width: 16px;
+    height: 16px;
+    background: #a855f7;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    cursor: pointer;
+}
+.route-marker-icon {
+    width: 16px;
+    height: 16px;
+    background: #2563eb;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+}
+
+.route-start-icon {
+    width: 10px;
+    height: 10px;
+    background: #16a34a;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+}
+
+.route-end-icon {
+    width: 10px;
+    height: 10px;
+    background: #dc2626;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+}
+
+/* ---------------------------------------------------------------
+   Waypoint-billedvisning (centreret modal)
+------------------------------------------------------------------ */
+.wpt-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+.wpt-modal[hidden] { display: none; }
+.wpt-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+}
+.wpt-modal-box {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: #fff;
+    border-radius: 10px;
+    padding: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    box-sizing: border-box;
+    width: clamp(280px, 65vw, 980px);
+    max-width: 92vw;
+    max-height: 92vh;
+    overflow: auto;
+}
+.wpt-modal-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.5);
+    color: #fff;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+}
+.wpt-modal-close:hover { background: rgba(0,0,0,0.75); }
+.wpt-popup-images {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    border-radius: 6px;
+    overflow: hidden;
+    line-height: 0;
+}
+.wpt-popup-img {
+    display: block;
+    width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+    background: #000;
+}
+.wpt-img-prev, .wpt-img-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.45);
+    color: #fff;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+}
+.wpt-img-prev:hover, .wpt-img-next:hover { background: rgba(0,0,0,0.7); }
+.wpt-img-prev { left: 10px; }
+.wpt-img-next { right: 10px; }
+.wpt-img-counter {
+    position: absolute;
+    bottom: 10px;
+    right: 12px;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 0.85em;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+.wpt-popup-name { font-weight: bold; }
+.wpt-popup-desc { color: #333; white-space: pre-line; }
+.wpt-popup-img-caption {
+    color: #64748b;
+    font-size: 0.9em;
+    font-style: italic;
+    margin-top: 4px;
+}
+
+/* ---------------------------------------------------------------
+   Generisk modal-dialog (fx login-boksen på forsiden)
+------------------------------------------------------------------ */
+.modal-dialog {
+    border: none;
+    border-radius: var(--radius);
+    padding: 24px;
+    width: 340px;
+    max-width: 90vw;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+.modal-dialog::backdrop {
+    background: rgba(0,0,0,0.5);
+}
+
+/* Bred variant med gråt header-panel — matcher hjælpe-dialogen i GPX-editoren */
+#dashboard-help-dialog,
+#about-dialog,
+#route-help-dialog {
+    border: none;
+    border-radius: var(--radius);
+    padding: 0;
+    width: 600px;
+    max-width: 90vw;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+#dashboard-help-dialog::backdrop,
+#about-dialog::backdrop,
+#route-help-dialog::backdrop {
+    background: rgba(0,0,0,0.5);
+}
+.dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: #e2e8f0;
+    border-bottom: 1px solid #cbd5e1;
+    position: sticky;
+    top: 0;
+}
+.dialog-header h2 {
+    margin: 0;
+    font-size: 18px;
+}
+.close-btn {
+    background: none !important;
+    border: none !important;
+    font-size: 20px;
+    cursor: pointer;
+    color: #64748b !important;
+    padding: 0 !important;
+}
+.close-btn:hover {
+    color: #0f172a !important;
+}
+.dialog-content {
+    padding: 20px;
+    font-size: 14px;
+    line-height: 1.6;
+}
+.dialog-content p {
+    margin: 0 0 12px;
+}
+.dialog-content p:last-child {
+    margin-bottom: 0;
+}
+.modal-dialog h2 {
+    margin: 0 0 14px;
+    font-size: 18px;
+}
+.modal-dialog form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.modal-dialog form[hidden] {
+    display: none;
+}
+.modal-dialog label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+.modal-dialog input[type="text"],
+.modal-dialog input[type="email"],
+.modal-dialog input[type="password"] {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+}
+.modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 50%;
+    background: var(--bg);
+    font-size: 16px;
+    cursor: pointer;
+}
+.modal-errors {
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+    color: #991b1b;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.icon-btn {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--surface);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0;
+}
+.icon-btn:hover { background: var(--bg); }
+.icon-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: var(--primary);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.modal-dialog dl {
+    margin: 0 0 16px;
+}
+.modal-dialog dt {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 8px;
+}
+.modal-dialog dd {
+    margin: 0;
+    font-size: 14px;
+}
+.dialog-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.dialog-nav a,
+.dialog-nav button {
+    display: block;
+    width: 100%;
+    padding: 8px 0;
+    text-decoration: none;
+    color: var(--text);
+    background: none;
+    border: none;
+    border-top: 1px solid var(--border);
+    border-radius: 0;
+    font-size: 14px;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.dialog-nav a:first-child,
+.dialog-nav button:first-child { border-top: none; }
+.dialog-nav a.danger,
+.dialog-nav button.danger { color: var(--danger); }
+
+/* ---------------------------------------------------------------
+   Responsivt design (mobilskærme under 800px bredde). Delt af
+   forsiden, kontrolpanelet og rutevisningen.
+------------------------------------------------------------------ */
+@media (max-width: 800px) {
+    .topbar {
+        flex-wrap: wrap;
+    }
+
+    /* "← MitSpor" bliver bare "←", og "Kontrolpanel"-titlen ved
+       siden af skjules — der er ikke plads til begge dele ved siden
+       af profil/log ud/hjælp-knapperne på en smal skærm. */
+    .brand-text,
+    .brand-secondary {
+        display: none;
+    }
+
+    /* Filterknapper + søgefelt rykkes ned på deres egen linje under
+       resten af topbaren, i stedet for at blive klemt sammen med den. */
+    .topbar-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        flex: 1 1 100%;
+        order: 3;
+        margin-top: 8px;
+    }
+    /* Søgefeltet vises ikke direkte på mobil — kun søge-ikonet, som
+       åbner (og fokuserer) feltet ved klik. */
+    #route-search {
+        display: none;
+        flex: 1 1 100%;
+        width: auto;
+        min-width: 0;
+        order: 1;
+    }
+    #route-search.search-open {
+        display: block;
+    }
+    .search-toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        background: var(--bg);
+        font-size: 16px;
+        cursor: pointer;
+        margin-left: auto;
+    }
+
+    /* Rutelisten i kontrolpanelet: hver rute-handling på sin egen
+       linje, i stedet for at blive klemt sammen vandret. */
+    .route-list li {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .route-actions {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+}
