@@ -993,6 +993,21 @@ a { color: var(--primary); }
         order: 3;
         margin-top: 8px;
     }
+    /* Filterknapperne fylder den plads, der er tilbage ved siden af
+       søge-ikonet, og må krympe (teksten bryder om), så ikonet altid
+       står på samme linje — også ved større systemtekst (fx i appens
+       Android-WebView, der følger telefonens tekststørrelse).
+       flex-basis 0 er nødvendig: med "auto" ville linjen stadig bryde
+       efter knappernes fulde tekstbredde. */
+    .segmented-filter {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+    .segmented-btn {
+        flex: 1 1 auto;
+        padding: 6px 8px;
+        white-space: normal;
+    }
     /* Søgefeltet vises ikke direkte på mobil — kun søge-ikonet, som
        åbner (og fokuserer) feltet ved klik. */
     #route-search {

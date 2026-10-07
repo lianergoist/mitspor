@@ -58,7 +58,7 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
     <meta name="twitter:card" content="summary_large_image">
 
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/style.css?v=8">
+    <link rel="stylesheet" href="assets/style.css?v=13">
     <style>
         html, body { height: 100%; margin: 0; }
         .start-dot { width: 11px; height: 11px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 3px rgba(0,0,0,.55); }
