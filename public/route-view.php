@@ -145,7 +145,7 @@ if ($route['visibility'] === 'public') {
     <meta name="twitter:image" content="<?= htmlspecialchars($ogImageUrl, ENT_QUOTES, 'UTF-8') ?>">
 
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/style.css?v=12">
+    <link rel="stylesheet" href="assets/style.css?v=15">
     <style>
         html, body { height: 100%; margin: 0; }
         .info-panel { top: 80px; left: 12px; max-width: 320px; }
@@ -174,6 +174,8 @@ if ($route['visibility'] === 'public') {
            grundlinje — og en knap med et ikon forrest (SVG har ingen tekstgrundlinje)
            hamler da ikke op med en ren tekstknap som Hjælp, der så ender for lavt. */
         .topbar-buttons { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+        /* Samme lysegrå topbar som i kontrolpanelet og editoren. */
+        .map-page .topbar { background: #eef1f5; backdrop-filter: none; -webkit-backdrop-filter: none; }
         /* Hjælp-knappen: kun teksten på computer, kun ikonet på mobil (se ≤600 px-blokken). */
         #btn-open-route-help .help-icon { display: none; }
         /* Smalle skærme: "Opret konto" står også i login-dialogen, så knappen skjules her,
@@ -214,10 +216,10 @@ if ($route['visibility'] === 'public') {
             .brand-name { display: none; }
             .map-page .topbar {
                 position: relative;
-                background: transparent;
+                background: #eef1f5; /* lysegrå som i kontrolpanelet og editoren */
                 backdrop-filter: none;
                 -webkit-backdrop-filter: none;
-                border-bottom: 0;
+                border-bottom: 1px solid var(--border);
                 padding: 6px 10px;
                 gap: 6px;
             }
