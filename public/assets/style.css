@@ -67,6 +67,12 @@ a { color: var(--primary); }
     width: auto;
     display: block;
 }
+/* Appens ikon (S-formet spor på navy, kopi af mobile/assets/ikon.svg)
+   har afrundede hjørner som på telefonens startskærm. */
+.brand-logo-app {
+    width: 32px;
+    border-radius: 7px;
+}
 
 /* Tilbage-pilen til venstre i topbaren — ens i kontrolpanelet, på rutens
    side og i editoren (editor/style.css har samme regel). */
