@@ -852,8 +852,10 @@
 
     function updateSelectionUi() {
         var n = Object.keys(selected).length;
-        countEl.textContent = n;
-        btnGroup.hidden = n === 0;
+        // Knappen står altid i topbaren, men er kun aktiv, når noget er valgt.
+        countEl.textContent = ' (' + n + ')';
+        countEl.hidden = n === 0;
+        btnGroup.disabled = n === 0;
     }
 
     document.querySelectorAll('.route-select').forEach(function (cb) {

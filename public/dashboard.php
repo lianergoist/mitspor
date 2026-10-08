@@ -51,24 +51,30 @@ $groups = group_list_for_user($pdo, $userId);
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mit kontrolpanel</title>
-    <link rel="stylesheet" href="assets/style.css?v=15">
+    <link rel="stylesheet" href="assets/style.css?v=22">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/dashboard.css?v=7">
+    <link rel="stylesheet" href="assets/dashboard.css?v=10">
 </head>
 <body>
 
 <div class="topbar" id="dashboard-topbar">
-    <a href="index.php" class="brand" title="Til forsiden" aria-label="Til forsiden MitSpor">
+    <a href="index.php" class="brand" title="Til forsiden" aria-label="Til forsiden">
         <span class="back-arrow" aria-hidden="true">&larr;</span>
-        <img src="grafik/mitspor_50x50.png" alt="MitSpor" class="brand-logo">
     </a>
+    <div class="topbar-filters">
+        <div class="action-group" role="group" aria-label="Ruter">
+            <button type="button" id="btn-open-upload" class="action-group-btn"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>Upload<span class="label-long"> GPX</span></button>
+            <a href="editor/?new=1" class="action-group-btn"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Tegn<span class="label-long"> ny</span> rute</a>
+            <button type="button" id="btn-group-selected" class="action-group-btn" disabled title="Sæt kryds ved ruter i listen for at gruppere dem"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg>Gruppér<span class="label-long"> valgte</span><span id="group-selected-count" hidden></span></button>
+        </div>
+    </div>
     <div class="topbar-actions">
         <button type="button" id="btn-open-profile" class="icon-btn" title="Profil og konto" aria-label="Profil og konto"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
         <form method="post" action="logout.php">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
-            <button type="submit" class="btn">Log ud</button>
+            <button type="submit" class="btn" title="Log ud" aria-label="Log ud"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M16 11h6"/><path d="M19 8l3 3-3 3"/></svg><span class="tb-label">Log ud</span></button>
         </form>
-        <button type="button" id="btn-open-dashboard-help" class="btn">Hjælp</button>
+        <button type="button" id="btn-open-dashboard-help" class="btn" title="Hjælp" aria-label="Hjælp"><span class="help-icon" aria-hidden="true">?</span><span class="tb-label">Hjælp</span></button>
     </div>
 </div>
 
@@ -344,14 +350,6 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
 
 ?>
 <div class="container dashboard-container">
-
-    <div class="actions-row">
-        <div class="action-group" role="group" aria-label="Ny rute">
-            <button type="button" id="btn-open-upload" class="action-group-btn"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>Upload GPX</button>
-            <a href="editor/?new=1" class="action-group-btn"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Tegn ny rute</a>
-        </div>
-        <button type="button" id="btn-group-selected" class="btn" hidden>Gruppér valgte (<span id="group-selected-count">0</span>)</button>
-    </div>
 
     <div class="hub" id="hub" data-tile-max-zoom="<?= (int) TILE_MAX_ZOOM ?>">
         <div class="hub-list card">
@@ -823,7 +821,7 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
 <script src="assets/route-meta-dialog.js?v=2"></script>
 <script src="assets/gpx-field-labels.js?v=3"></script>
 <script src="assets/gpx-tools.js?v=1"></script>
-<script src="assets/dashboard.js?v=6"></script>
+<script src="assets/dashboard.js?v=7"></script>
 <script src="assets/dashboard-tools.js?v=2"></script>
 <script src="assets/activity-marker.js?v=1"></script>
 <script src="assets/dashboard-map.js?v=5"></script>
