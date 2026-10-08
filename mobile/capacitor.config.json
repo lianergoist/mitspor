@@ -3,6 +3,7 @@
   "appName": "MitSpor",
   "webDir": "www",
   "android": {
-    "allowMixedContent": false
+    "allowMixedContent": false,
+    "useLegacyBridge": true
   }
 }

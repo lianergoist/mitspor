@@ -10,10 +10,14 @@
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",
+    "@capacitor/app": "^8.1.2",
     "@capacitor/core": "^8.5.2",
+    "@capacitor/filesystem": "^8.1.4",
     "@capacitor/inappbrowser": "^4.0.3",
     "@capacitor/ios": "^8.5.2",
-    "@capacitor/network": "^8.0.1"
+    "@capacitor/network": "^8.0.1",
+    "@capacitor/share": "^8.0.3",
+    "@capgo/background-geolocation": "^8.4.8"
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",

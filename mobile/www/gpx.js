@@ -1,0 +1,71 @@
+// GPX og afstande for optageren.
+//
+// Et punkt er et array: [bredde, længde, højde|null, tid (ms), nøjagtighed (m), segment].
+// Arrays fylder mindre end objekter, både i hukommelsen og i punkter.jsonl.
+(function () {
+    'use strict';
+
+    var JORDRADIUS_M = 6371008.8;
+
+    function rad(grader) {
+        return grader * Math.PI / 180;
+    }
+
+    // Afstand i meter mellem to punkter (haversine).
+    function afstand(lat1, lon1, lat2, lon2) {
+        var dLat = rad(lat2 - lat1);
+        var dLon = rad(lon2 - lon1);
+        var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        return 2 * JORDRADIUS_M * Math.asin(Math.min(1, Math.sqrt(a)));
+    }
+
+    function xml(tekst) {
+        return String(tekst)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function trkpt(p) {
+        var linje = '      <trkpt lat="' + p[0].toFixed(7) + '" lon="' + p[1].toFixed(7) + '">';
+        if (p[2] !== null && isFinite(p[2])) {
+            linje += '<ele>' + p[2].toFixed(1) + '</ele>';
+        }
+        return linje + '<time>' + new Date(p[3]).toISOString() + '</time></trkpt>\n';
+    }
+
+    // Laver hele GPX-filen. Et nyt segment (fx efter genoptagelse) giver en ny <trkseg>.
+    function lav(navn, startTid, punkter) {
+        var dele = [
+            '<?xml version="1.0" encoding="UTF-8"?>\n',
+            '<gpx version="1.1" creator="MitSpor-app" xmlns="http://www.topografix.com/GPX/1/1">\n',
+            '  <metadata><name>' + xml(navn) + '</name><time>' + new Date(startTid).toISOString() + '</time></metadata>\n',
+            '  <trk>\n    <name>' + xml(navn) + '</name>\n'
+        ];
+        var segment = null;
+
+        punkter.forEach(function (p) {
+            if (p[5] !== segment) {
+                if (segment !== null) {
+                    dele.push('    </trkseg>\n');
+                }
+                dele.push('    <trkseg>\n');
+                segment = p[5];
+            }
+            dele.push(trkpt(p));
+        });
+        if (segment !== null) {
+            dele.push('    </trkseg>\n');
+        }
+        dele.push('  </trk>\n</gpx>\n');
+
+        return dele.join('');
+    }
+
+    window.MitSporGpx = {
+        afstand: afstand,
+        lav: lav
+    };
+})();

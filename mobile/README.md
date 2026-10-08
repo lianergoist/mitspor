@@ -12,6 +12,24 @@ iOS- og Android-app til mitspor.dk. App-id: `dk.mitspor.app`.
 - `android/` og `ios/` er de native projekter (genereret af Capacitor, i git).
   iOS bruger Swift Package Manager (ingen CocoaPods).
 
+## Optageren
+
+Startsidens "Optag tur" åbner GPS-optageren (`www/optager.js`, `www/lager.js`,
+`www/gpx.js`). Den bruger `@capgo/background-geolocation` (gratis, MPL-2.0),
+der på Android kører som foreground service med synlig notifikation. Der
+kræves ikke tilladelse til placering "hele tiden".
+
+- **Smart-mode:** punkter med nøjagtighed dårligere end 30 m kasseres, og
+  minimumsafstanden følger farten (5 m til fods, 10 m på cykel, 20 m i bil).
+  Spring over 250 km/t kasseres som GPS-fejl.
+- **Lagring:** appens private mappe, `optagelser/<id>/`. Hvert punkt føjes
+  straks til `punkter.jsonl`, og GPX-filen skrives mindst hvert minut og ved
+  stop. `<id>` er en UUID og bruges senere som `client_upload_id`.
+- **Afbrudt tur:** stopper appen midt i en optagelse, tilbydes den at blive
+  fortsat (nyt `<trkseg>`) eller afsluttet ved næste opstart.
+- **Deling:** "Del GPX" åbner telefonens delemenu.
+- Optagelsen stopper af sig selv, før GPX-filen når 10 MB.
+
 Ændringer på mitspor.dk kræver intet nyt app-build. Ændringer i `www/`,
 plugins eller native kode kræver et nyt build.
 
