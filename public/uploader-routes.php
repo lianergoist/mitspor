@@ -48,7 +48,8 @@ $routes = $stmt->fetchAll();
 <html lang="da">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/png" href="grafik/mitspor_50x50.png">
+    <link rel="icon" type="image/svg+xml" href="/grafik/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/grafik/favicon-32.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($referring['display_name'], ENT_QUOTES, 'UTF-8') ?>s offentlige ruter</title>
     <link rel="stylesheet" href="assets/style.css?v=8">

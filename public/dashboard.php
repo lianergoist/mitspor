@@ -47,7 +47,8 @@ $groups = group_list_for_user($pdo, $userId);
 <html lang="da">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/png" href="grafik/mitspor_50x50.png">
+    <link rel="icon" type="image/svg+xml" href="/grafik/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/grafik/favicon-32.png">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mit kontrolpanel</title>
