@@ -209,8 +209,6 @@ if ($route['visibility'] === 'public') {
            grundlinje — og en knap med et ikon forrest (SVG har ingen tekstgrundlinje)
            hamler da ikke op med en ren tekstknap som Hjælp, der så ender for lavt. */
         .topbar-buttons { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
-        /* Hjælp-knappen: kun teksten på computer, kun ikonet på mobil (se ≤600 px-blokken). */
-        #btn-open-route-help .help-icon { display: none; }
         /* Smalle skærme: "← MitSpor" bliver bare "←" (som på forsiden og i kontrolpanelet på mobil). */
         @media (max-width: 520px) {
             .topbar-guest .brand-name { display: none; }
@@ -248,7 +246,6 @@ if ($route['visibility'] === 'public') {
             .map-page .topbar .brand { padding: 0; }
             /* Grafer og Download er kun ikoner på mobil, så topbaren holdes på én linje. */
             .btn-label { display: none; }
-            #btn-open-route-help .help-icon { display: inline-flex; }
             .topbar-buttons { flex: 1 1 0; min-width: 0; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
             .map-page .topbar .btn { padding: 6px 12px; font-size: 14px; min-height: 40px; }
 
