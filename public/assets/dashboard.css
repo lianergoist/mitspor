@@ -33,10 +33,6 @@
 }
 .hub .card { margin-bottom: 0; }
 
-/* "Gruppér valgte" er den eneste knap i rækken over listen; rækken
-   fylder intet, når knappen er skjult. */
-.actions-row:not(:has(.btn:not([hidden]))) { display: none; }
-
 .hub-list .tabs { margin-bottom: 12px; padding: 3px; }
 .hub-list .tab-btn { flex: 1 1 auto; padding: 8px 6px; font-size: 13px; white-space: nowrap; }
 

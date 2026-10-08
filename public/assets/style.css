@@ -487,6 +487,15 @@ a { color: var(--primary); }
     background: var(--bg);
     min-height: 40px;
 }
+#dashboard-topbar .action-group-btn { color: var(--text-muted); }
+#dashboard-topbar .action-group-btn:hover { color: var(--text); background: rgba(15, 23, 42, 0.04); }
+/* "Gruppér valgte" er tonet ned, indtil der er sat kryds ved en rute. */
+#dashboard-topbar .action-group-btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+    background: none;
+    color: var(--text-muted);
+}
 /* Ikonerne i topbaren er SVG'er (ikke tegn/emojis), så de ser ens ud overalt,
    og de har sidens blå farve — teksten i knapperne forbliver mørk. */
 .map-page .topbar .btn > svg {
@@ -1065,8 +1074,12 @@ a { color: var(--primary); }
     #dashboard-topbar .action-group-btn {
         flex: 1 1 auto;
         justify-content: center;
-        padding: 6px 8px;
+        gap: 4px;
+        padding: 6px 4px;
     }
+    /* Kortere knaptekster på mobil ("Upload", "Tegn rute", "Gruppér"), så de tre
+       knapper kan stå på én linje, også ved større systemtekst. */
+    #dashboard-topbar .label-long { display: none; }
     /* Kontrolpanelets faner (Alle/Spor/Ruter/Grupper) deler bredden og
        må bryde teksten om — ellers stikker den sidste fane ud over
        kanten på en smal skærm. */
