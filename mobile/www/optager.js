@@ -38,6 +38,8 @@
     var tilbageKnap = document.getElementById('optag-tilbage');
     var startKnap = document.getElementById('optag-start');
     var stopKnap = document.getElementById('optag-stop');
+    var pauseKnap = document.getElementById('optag-pause');
+    var genoptagKnap = document.getElementById('optag-genoptag');
     var tidFelt = document.getElementById('optag-tid');
     var afstandFelt = document.getElementById('optag-afstand');
     var punkterFelt = document.getElementById('optag-punkter');
@@ -50,8 +52,9 @@
     var listeFelt = document.getElementById('optag-liste');
     var tomFelt = document.getElementById('optag-tom');
 
-    // Den aktive optagelse.
+    // Den aktive optagelse. aktiv er sand, også når den holder pause.
     var aktiv = false;
+    var pauset = false;
     var meta = null;
     var punkter = [];
     var sidst = null;
@@ -98,6 +101,13 @@
         return Math.floor(min / 60) + ' t ' + (min % 60) + ' min';
     }
 
+    // Tid i bevægelse: fra start til nu (eller slut) minus pauserne.
+    // meta.pauseMs er de afsluttede pauser, meta.pauseStart en igangværende.
+    function koretid(m, nu) {
+        var pause = (m.pauseMs || 0) + (m.pauseStart ? nu - m.pauseStart : 0);
+        return nu - m.start - pause;
+    }
+
     // ---------- Visning ----------
 
     function visView(optag) {
@@ -107,16 +117,18 @@
     }
 
     function opdaterTal() {
-        tidFelt.textContent = meta ? ur(Date.now() - meta.start) : '0:00:00';
+        tidFelt.textContent = meta ? ur(koretid(meta, Date.now())) : '0:00:00';
         afstandFelt.textContent = km(meta ? meta.afstandM : 0);
         punkterFelt.textContent = String(punkter.length);
     }
 
     function opdaterKnapper() {
         startKnap.hidden = aktiv;
+        pauseKnap.hidden = !aktiv || pauset;
+        genoptagKnap.hidden = !aktiv || !pauset;
         stopKnap.hidden = !aktiv;
         startKnap.disabled = !!afbrudt;
-        aabnKnap.textContent = aktiv ? 'Optagelse i gang' : 'Optag tur';
+        aabnKnap.textContent = !aktiv ? 'Optag tur' : (pauset ? 'Optagelse på pause' : 'Optagelse i gang');
         afbrudtBoks.hidden = !afbrudt || aktiv;
         if (afbrudt) {
             afbrudtTekst.textContent = afbrudt.navn + ' blev ikke afsluttet. Vil du fortsætte optagelsen eller afslutte og gemme den?';
@@ -126,7 +138,7 @@
     function visListe() {
         return Lager.alle().then(function (liste) {
             var faerdige = liste.filter(function (m) { return m.status === 'afsluttet'; });
-            afbrudt = aktiv ? null : (liste.filter(function (m) { return m.status === 'optager'; })[0] || null);
+            afbrudt = aktiv ? null : (liste.filter(function (m) { return m.status === 'optager' || m.status === 'pause'; })[0] || null);
             opdaterKnapper();
 
             listeFelt.textContent = '';
@@ -147,7 +159,7 @@
 
         var info = document.createElement('div');
         info.className = 'tur-info';
-        info.textContent = km(m.afstandM) + ' · ' + varighed((m.slut || m.start) - m.start) + ' · ' + m.antalPunkter + ' punkter';
+        info.textContent = km(m.afstandM) + ' · ' + varighed(koretid(m, m.slut || m.start)) + ' · ' + m.antalPunkter + ' punkter';
 
         var knapper = document.createElement('div');
         knapper.className = 'tur-knapper';
@@ -225,7 +237,7 @@
 
     // Smart-mode: afgør, om et punkt skal gemmes.
     function modtag(pos) {
-        if (!aktiv) {
+        if (!aktiv || pauset) {
             return;
         }
 
@@ -301,11 +313,14 @@
         Lager.opret()
             .then(function (ny) {
                 meta = ny;
+                meta.pauseMs = 0;
+                meta.pauseStart = null;
                 punkter = [];
                 sidst = null;
                 segment = 0;
                 sidstGpx = Date.now();
                 aktiv = true;
+                pauset = false;
                 opdaterTal();
                 opdaterKnapper();
                 startUr();
@@ -320,26 +335,40 @@
             });
     }
 
-    // Fortsætter en optagelse, der blev afbrudt. Punkterne efter
-    // afbrydelsen kommer i et nyt segment, så der ikke tegnes en lige streg
-    // hen over hullet.
+    // Henter en optagelse, der ikke blev afsluttet, ind som den aktive.
+    // Punkterne efter afbrydelsen kommer i et nyt segment, så der ikke
+    // tegnes en lige streg hen over hullet.
+    function indlaes(m) {
+        return Lager.hentPunkter(m.id).then(function (gemte) {
+            meta = m;
+            meta.pauseMs = meta.pauseMs || 0;
+            meta.pauseStart = meta.pauseStart || null;
+            punkter = gemte;
+            sidst = gemte.length ? gemte[gemte.length - 1] : null;
+            segment = sidst ? sidst[5] + 1 : 0;
+            meta.antalPunkter = punkter.length;
+            meta.afstandM = samletAfstand(punkter);
+            sidstGpx = Date.now();
+            afbrudt = null;
+            aktiv = true;
+        });
+    }
+
+    // Fortsætter en optagelse, der blev afbrudt af et nedbrud eller en genstart.
     function fortsaet() {
         var m = afbrudt;
         if (!m || aktiv) {
             return;
         }
         visFejl('');
-        Lager.hentPunkter(m.id)
-            .then(function (gemte) {
-                meta = m;
-                punkter = gemte;
-                sidst = gemte.length ? gemte[gemte.length - 1] : null;
-                segment = sidst ? sidst[5] + 1 : 0;
-                meta.antalPunkter = punkter.length;
-                meta.afstandM = samletAfstand(punkter);
-                sidstGpx = Date.now();
-                afbrudt = null;
-                aktiv = true;
+        indlaes(m)
+            .then(function () {
+                if (meta.pauseStart) {
+                    meta.pauseMs += Date.now() - meta.pauseStart;
+                    meta.pauseStart = null;
+                }
+                meta.status = 'optager';
+                pauset = false;
                 opdaterTal();
                 opdaterKnapper();
                 startUr();
@@ -350,6 +379,41 @@
             });
     }
 
+    // Pause: GPS'en slukkes (og dermed notifikationen), så batteriet spares.
+    // Tilstanden gemmes, så pausen overlever, at appen bliver lukket.
+    function pause() {
+        if (!aktiv || pauset) {
+            return;
+        }
+        pauset = true;
+        meta.status = 'pause';
+        meta.pauseStart = Date.now();
+        gpsFelt.textContent = 'Pause';
+        opdaterKnapper();
+        opdaterTal();
+        BG.stop().catch(function () {});
+        gemGpx();
+    }
+
+    // Efter en pause starter et nyt segment, så pausen ikke giver en lige
+    // streg i GPX-filen eller tæller med i afstanden.
+    function genoptag() {
+        if (!aktiv || !pauset) {
+            return;
+        }
+        meta.pauseMs += Date.now() - meta.pauseStart;
+        meta.pauseStart = null;
+        meta.status = 'optager';
+        if (sidst) {
+            segment = sidst[5] + 1;
+        }
+        pauset = false;
+        opdaterKnapper();
+        var kopi = Object.assign({}, meta);
+        iKoe(function () { return Lager.gemMeta(kopi); });
+        startGps();
+    }
+
     // Afslutter den aktive optagelse og gemmer GPX-filen.
     // stille: ingen besked, hvis turen er tom (fx når adgang til placering mangler).
     function stop(stille) {
@@ -357,13 +421,17 @@
         var bgStop = BG.stop().catch(function () {});
         if (!aktiv || !meta) {
             aktiv = false;
+            pauset = false;
             opdaterKnapper();
             return bgStop;
         }
         aktiv = false;
         var m = meta;
         m.status = 'afsluttet';
-        m.slut = sidst ? sidst[3] : Date.now();
+        // Stoppes der under en pause, slutter turen, da pausen begyndte.
+        m.slut = pauset ? m.pauseStart : Date.now();
+        m.pauseStart = null;
+        pauset = false;
         gpsFelt.textContent = '–';
 
         return bgStop
@@ -401,7 +469,9 @@
         Lager.hentPunkter(m.id)
             .then(function (gemte) {
                 m.status = 'afsluttet';
-                m.slut = gemte.length ? gemte[gemte.length - 1][3] : m.start;
+                // Afbrudt under en pause: turen sluttede, da pausen begyndte.
+                m.slut = m.pauseStart || (gemte.length ? gemte[gemte.length - 1][3] : m.start);
+                m.pauseStart = null;
                 m.afstandM = samletAfstand(gemte);
                 afbrudt = null;
                 return afslut(m, gemte);
@@ -444,6 +514,8 @@
     });
     tilbageKnap.addEventListener('click', function () { visView(false); });
     startKnap.addEventListener('click', start);
+    pauseKnap.addEventListener('click', pause);
+    genoptagKnap.addEventListener('click', genoptag);
     stopKnap.addEventListener('click', function () {
         if (window.confirm('Stop og gem optagelsen?')) {
             stop();
@@ -464,16 +536,26 @@
         }
     });
     App.addListener('resume', function () {
-        if (aktiv) {
+        if (aktiv && !pauset) {
             opdaterTal();
         }
     });
 
     // Ved opstart kører der ingen optagelse i denne side. Stop en eventuel
-    // GPS-tjeneste fra en tidligere proces; en afbrudt tur tilbydes i stedet
-    // at blive fortsat.
+    // GPS-tjeneste fra en tidligere proces. En tur på pause hentes ind igen
+    // på pause; en afbrudt tur tilbydes at blive fortsat.
     BG.stop().catch(function () {});
     visListe().then(function () {
+        if (afbrudt && afbrudt.status === 'pause') {
+            return indlaes(afbrudt).then(function () {
+                pauset = true;
+                gpsFelt.textContent = 'Pause';
+                opdaterTal();
+                opdaterKnapper();
+                startUr();
+                visView(true);
+            });
+        }
         if (afbrudt) {
             visView(true);
         }
