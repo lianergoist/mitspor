@@ -19,12 +19,18 @@ Startsidens "Optag tur" åbner GPS-optageren (`www/optager.js`, `www/lager.js`,
 der på Android kører som foreground service med synlig notifikation. Der
 kræves ikke tilladelse til placering "hele tiden".
 
-- **Smart-mode:** punkter med nøjagtighed dårligere end 30 m kasseres, og
-  minimumsafstanden følger farten (5 m til fods, 10 m på cykel, 20 m i bil).
-  Spring over 250 km/t kasseres som GPS-fejl.
+- **Smart-mode:** optagelsen venter, til GPS'en har haft en nøjagtighed på
+  15 m eller bedre tre gange i træk (også efter en pause). Derefter gemmes
+  alle punkter med nøjagtighed på 20 m eller bedre og mindst 3 m imellem
+  (spring over 250 km/t kasseres). GPX-filen laves af et renset spor
+  (`www/spor.js`): position og højde udglattes med et Kalman-filter
+  (frem og tilbage), og Douglas-Peucker fjerner punkter på lige strækninger
+  (tolerance 3 m, dog mindst ét punkt pr. 50 m). Afstand og antal punkter
+  på skærmen er for det rensede spor.
 - **Lagring:** appens private mappe, `optagelser/<id>/`. Hvert punkt føjes
   straks til `punkter.jsonl`, og GPX-filen skrives mindst hvert minut og ved
-  stop. `<id>` er en UUID og bruges senere som `client_upload_id`.
+  stop. De rå punkter beholdes, så GPX-filen kan laves igen med andre
+  indstillinger. `<id>` er en UUID og bruges senere som `client_upload_id`.
 - **Afbrudt tur:** stopper appen midt i en optagelse, tilbydes den at blive
   fortsat eller afsluttet ved næste opstart. Sporet fortsætter, hvor det slap.
 - **Pause:** GPS'en og notifikationen slukkes under pausen. Uret viser tid i

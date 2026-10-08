@@ -13,24 +13,21 @@
     var Capacitor = window.capacitorExports.Capacitor;
     var Lager = window.MitSporLager;
     var Gpx = window.MitSporGpx;
+    var Spor = window.MitSporSpor;
 
-    // Smart-mode: punkter med dårligere nøjagtighed kasseres, og
-    // minimumsafstanden mellem punkter følger farten.
-    var MAX_NOEJAGTIGHED_M = 30;
+    // Smart-mode: alle brugbare GPS-punkter gemmes i punkter.jsonl, og
+    // GPX-filen laves af det rensede spor (spor.js).
+    var MAX_NOEJAGTIGHED_M = 20;
+    // Før første punkt (og efter en pause) skal nøjagtigheden have været
+    // mindst så god flere gange i træk. Retter skæve starter.
+    var START_NOEJAGTIGHED_M = 15;
+    var START_ANTAL = 3;
+    var MIN_AFSTAND_M = 3;             // rå punkter tættere end dette springes over
     var MAX_FART_MS = 70;              // spring over 250 km/t er GPS-fejl
+    var RENS_INTERVAL_MS = 15 * 1000;  // afstand og punkter på skærmen
     var GPX_INTERVAL_MS = 60 * 1000;
     // Hold GPX-filen et stykke under MAX_UPLOAD_SIZE_BYTES (10 MB) på sitet.
     var MAX_GPX_BYTES = 9.5 * 1024 * 1024;
-
-    function minAfstand(fart) {
-        if (fart < 2.5) {
-            return 5;    // gang og løb
-        }
-        if (fart < 8) {
-            return 10;   // cykel
-        }
-        return 20;       // bil, tog, båd
-    }
 
     var visStart = document.getElementById('view-start');
     var visOptag = document.getElementById('view-optag');
@@ -60,6 +57,10 @@
     var sidst = null;
     var segment = 0;
     var sidstGpx = 0;
+    var sidstRens = 0;
+    var renset = [];       // det rensede spor, som det så ud ved sidste rensning
+    var klar = false;      // har GPS'en fundet et præcist signal?
+    var godeITraek = 0;
     var urTimer = null;
     var afbrudt = null;   // en optagelse, der ikke blev afsluttet (nedbrud/genstart)
 
@@ -119,7 +120,7 @@
     function opdaterTal() {
         tidFelt.textContent = meta ? ur(koretid(meta, Date.now())) : '0:00:00';
         afstandFelt.textContent = km(meta ? meta.afstandM : 0);
-        punkterFelt.textContent = String(punkter.length);
+        punkterFelt.textContent = String(meta ? meta.antalPunkter : 0);
     }
 
     function opdaterKnapper() {
@@ -186,8 +187,6 @@
 
     // ---------- Optagelse ----------
 
-    // meta.json gemmes kun hvert minut, så efter en afbrydelse regnes
-    // afstanden igen ud fra punkterne.
     function samletAfstand(liste) {
         var sum = 0;
         for (var i = 1; i < liste.length; i++) {
@@ -201,14 +200,24 @@
         urTimer = setInterval(opdaterTal, 1000);
     }
 
+    // Renser sporet og opdaterer afstand og antal punkter ud fra det rensede spor.
+    function rensNu() {
+        renset = Spor.rens(punkter);
+        meta.afstandM = samletAfstand(renset);
+        meta.antalPunkter = renset.length;
+        opdaterTal();
+    }
+
     function startGps() {
+        klar = false;
+        godeITraek = 0;
         gpsFelt.textContent = 'Venter på GPS-signal …';
         return BG.start({
             backgroundTitle: 'MitSpor optager din tur',
             backgroundMessage: 'Tryk for at åbne MitSpor.',
             requestPermissions: true,
             stale: false,
-            distanceFilter: 5
+            distanceFilter: 2
         }, function (position, fejl) {
             if (fejl) {
                 gpsFejl(fejl);
@@ -233,7 +242,8 @@
         gpsFelt.textContent = 'GPS-fejl: ' + (fejl.message || fejl.code || 'ukendt');
     }
 
-    // Smart-mode: afgør, om et punkt skal gemmes.
+    // Smart-mode: afgør, om et rå punkt skal gemmes. Udglatning og
+    // forenkling sker først, når GPX-filen laves.
     function modtag(pos) {
         if (!aktiv || pauset) {
             return;
@@ -241,28 +251,29 @@
 
         var noejagtighed = Math.round(pos.accuracy);
         if (!(noejagtighed <= MAX_NOEJAGTIGHED_M)) {
+            godeITraek = 0;
             gpsFelt.textContent = 'Svagt GPS-signal (±' + noejagtighed + ' m)';
             return;
+        }
+        if (!klar) {
+            godeITraek = noejagtighed <= START_NOEJAGTIGHED_M ? godeITraek + 1 : 0;
+            if (godeITraek < START_ANTAL) {
+                gpsFelt.textContent = 'Venter på præcist GPS-signal (±' + noejagtighed + ' m)';
+                return;
+            }
+            klar = true;
         }
         gpsFelt.textContent = 'GPS: ±' + noejagtighed + ' m';
 
         var tid = pos.time || Date.now();
-        var afstand = 0;
 
         if (sidst && tid <= sidst[3]) {
             return;
         }
-        if (sidst && sidst[5] === segment) {
-            afstand = Gpx.afstand(sidst[0], sidst[1], pos.latitude, pos.longitude);
+        if (sidst) {
+            var afstand = Gpx.afstand(sidst[0], sidst[1], pos.latitude, pos.longitude);
             var sekunder = Math.max(1, (tid - sidst[3]) / 1000);
-            var fart = (typeof pos.speed === 'number' && pos.speed >= 0) ? pos.speed : afstand / sekunder;
-
-            if (afstand / sekunder > MAX_FART_MS) {
-                return;
-            }
-            // Kræv mindst en halv nøjagtighed som afstand, så GPS-støj ved
-            // stilstand ikke bliver til punkter.
-            if (afstand < Math.max(minAfstand(fart), noejagtighed / 2)) {
+            if (afstand / sekunder > MAX_FART_MS || afstand < MIN_AFSTAND_M) {
                 return;
             }
         }
@@ -273,23 +284,25 @@
 
         punkter.push(punkt);
         sidst = punkt;
-        meta.afstandM += afstand;
-        meta.antalPunkter = punkter.length;
-        opdaterTal();
 
         iKoe(function () { return Lager.tilfoejPunkt(id, punkt); });
 
-        // Skrives ud fra punkternes egen tid, så det også sker, når
+        // Styres af punkternes egen tid, så det også sker, når
         // JavaScript-timere bremses i baggrunden.
         if (tid - sidstGpx >= GPX_INTERVAL_MS) {
             sidstGpx = tid;
+            sidstRens = tid;
             gemGpx();
+        } else if (tid - sidstRens >= RENS_INTERVAL_MS) {
+            sidstRens = tid;
+            rensNu();
         }
     }
 
     function gemGpx() {
         var m = meta;
-        var gpx = Gpx.lav(m.navn, m.start, punkter);
+        rensNu();
+        var gpx = Gpx.lav(m.navn, m.start, renset);
         if (gpx.length > MAX_GPX_BYTES) {
             stop().then(function () {
                 window.alert('Turen er nu så lang, at GPX-filen nærmer sig grænsen på 10 MB. Optagelsen er stoppet og gemt. Start en ny optagelse for at fortsætte.');
@@ -317,6 +330,8 @@
                 sidst = null;
                 segment = 0;
                 sidstGpx = Date.now();
+                sidstRens = 0;
+                renset = [];
                 aktiv = true;
                 pauset = false;
                 opdaterTal();
@@ -343,9 +358,9 @@
             punkter = gemte;
             sidst = gemte.length ? gemte[gemte.length - 1] : null;
             segment = sidst ? sidst[5] : 0;
-            meta.antalPunkter = punkter.length;
-            meta.afstandM = samletAfstand(punkter);
+            rensNu();
             sidstGpx = Date.now();
+            sidstRens = 0;
             afbrudt = null;
             aktiv = true;
         });
@@ -447,8 +462,10 @@
                 }
             });
         }
-        var gpx = Gpx.lav(m.navn, m.start, liste);
-        m.antalPunkter = liste.length;
+        var ren = Spor.rens(liste);
+        var gpx = Gpx.lav(m.navn, m.start, ren);
+        m.afstandM = samletAfstand(ren);
+        m.antalPunkter = ren.length;
         return iKoe(function () {
             return Lager.gemGpx(m, gpx).then(function () { return Lager.gemMeta(m); });
         });
@@ -465,7 +482,6 @@
                 // Afbrudt under en pause: turen sluttede, da pausen begyndte.
                 m.slut = m.pauseStart || (gemte.length ? gemte[gemte.length - 1][3] : m.start);
                 m.pauseStart = null;
-                m.afstandM = samletAfstand(gemte);
                 afbrudt = null;
                 return afslut(m, gemte);
             })
