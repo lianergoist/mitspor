@@ -53,16 +53,6 @@ a { color: var(--primary); }
     border-bottom: 1px solid var(--border);
 }
 
-/* Kontrolpanelets topbar ligger ikke oven på noget farverigt (i
-   modsætning til fx forsidens kort) — gennemsigtighed giver derfor
-   ingen synlig effekt der og ser bare lyst/hvidt ud. Den får i stedet
-   en solid, tydeligt tonet baggrund, som editorens toolbar. */
-#dashboard-topbar {
-    background: #eef1f5;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-}
-
 .topbar .brand {
     display: inline-flex;
     align-items: center;
@@ -492,10 +482,9 @@ a { color: var(--primary); }
     min-height: 40px; /* behageligt at ramme, både med mus og finger */
 }
 /* "Upload GPX" / "Tegn ny rute" i kontrolpanelets topbar: samme højde
-   som forsidens filterrække (søge-knappen er 40px), og rammen har
-   topbarens egen baggrund, ligesom filterknapperne på forsiden. */
+   og farve som forsidens filterrække (søge-knappen er 40px). */
 #dashboard-topbar .action-group {
-    background: transparent;
+    background: var(--bg);
     min-height: 40px;
 }
 /* Ikonerne i topbaren er SVG'er (ikke tegn/emojis), så de ser ens ud overalt,

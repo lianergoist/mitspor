@@ -51,7 +51,7 @@ $groups = group_list_for_user($pdo, $userId);
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mit kontrolpanel</title>
-    <link rel="stylesheet" href="assets/style.css?v=17">
+    <link rel="stylesheet" href="assets/style.css?v=18">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
     <link rel="stylesheet" href="assets/dashboard.css?v=8">
 </head>
