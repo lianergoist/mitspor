@@ -51,9 +51,9 @@ $groups = group_list_for_user($pdo, $userId);
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mit kontrolpanel</title>
-    <link rel="stylesheet" href="assets/style.css?v=15">
+    <link rel="stylesheet" href="assets/style.css?v=17">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/dashboard.css?v=7">
+    <link rel="stylesheet" href="assets/dashboard.css?v=8">
 </head>
 <body>
 
@@ -62,6 +62,12 @@ $groups = group_list_for_user($pdo, $userId);
         <span class="back-arrow" aria-hidden="true">&larr;</span>
         <img src="grafik/mitspor_50x50.png" alt="MitSpor" class="brand-logo">
     </a>
+    <div class="topbar-filters">
+        <div class="action-group" role="group" aria-label="Ny rute">
+            <button type="button" id="btn-open-upload" class="action-group-btn"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>Upload GPX</button>
+            <a href="editor/?new=1" class="action-group-btn"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Tegn ny rute</a>
+        </div>
+    </div>
     <div class="topbar-actions">
         <button type="button" id="btn-open-profile" class="icon-btn" title="Profil og konto" aria-label="Profil og konto"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
         <form method="post" action="logout.php">
@@ -346,10 +352,6 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
 <div class="container dashboard-container">
 
     <div class="actions-row">
-        <div class="action-group" role="group" aria-label="Ny rute">
-            <button type="button" id="btn-open-upload" class="action-group-btn"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>Upload GPX</button>
-            <a href="editor/?new=1" class="action-group-btn"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Tegn ny rute</a>
-        </div>
         <button type="button" id="btn-group-selected" class="btn" hidden>Gruppér valgte (<span id="group-selected-count">0</span>)</button>
     </div>
 

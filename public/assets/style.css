@@ -481,9 +481,22 @@ a { color: var(--primary); }
     -webkit-backdrop-filter: blur(4px);
     padding: 9px 20px; /* ~20% lavere end den almindelige topbar (12px) */
 }
-.map-page .topbar .btn {
+/* Kontrolpanelets topbar har samme mål som forsidens, så de to
+   topbarer er lige høje (også når de bryder i to rækker på mobil). */
+#dashboard-topbar {
+    padding: 9px 20px;
+}
+.map-page .topbar .btn,
+#dashboard-topbar .btn {
     padding: 9px 14px;
     min-height: 40px; /* behageligt at ramme, både med mus og finger */
+}
+/* "Upload GPX" / "Tegn ny rute" i kontrolpanelets topbar: samme højde
+   som forsidens filterrække (søge-knappen er 40px), og rammen har
+   topbarens egen baggrund, ligesom filterknapperne på forsiden. */
+#dashboard-topbar .action-group {
+    background: transparent;
+    min-height: 40px;
 }
 /* Ikonerne i topbaren er SVG'er (ikke tegn/emojis), så de ser ens ud overalt,
    og de har sidens blå farve — teksten i knapperne forbliver mørk. */
@@ -1052,6 +1065,18 @@ a { color: var(--primary); }
         flex: 1 1 auto;
         padding: 6px 8px;
         white-space: normal;
+    }
+    /* Kontrolpanelets "Upload GPX" / "Tegn ny rute" fylder rækken som
+       forsidens filterknapper. */
+    #dashboard-topbar .action-group {
+        flex: 1 1 0;
+        min-width: 0;
+        flex-wrap: nowrap;
+    }
+    #dashboard-topbar .action-group-btn {
+        flex: 1 1 auto;
+        justify-content: center;
+        padding: 6px 8px;
     }
     /* Kontrolpanelets faner (Alle/Spor/Ruter/Grupper) deler bredden og
        må bryde teksten om — ellers stikker den sidste fane ud over

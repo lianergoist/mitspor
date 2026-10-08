@@ -33,6 +33,10 @@
 }
 .hub .card { margin-bottom: 0; }
 
+/* "Gruppér valgte" er den eneste knap i rækken over listen; rækken
+   fylder intet, når knappen er skjult. */
+.actions-row:not(:has(.btn:not([hidden]))) { display: none; }
+
 .hub-list .tabs { margin-bottom: 12px; padding: 3px; }
 .hub-list .tab-btn { flex: 1 1 auto; padding: 8px 6px; font-size: 13px; white-space: nowrap; }
 
@@ -159,6 +163,14 @@
     .hub.hub--detail-open .hub-list { display: none; }
     .hub-back { display: inline-block; }
     .hub-items { max-height: none; }
+    /* Mindre luft omkring og inde i listen, så der er plads til titlerne. */
+    .dashboard-container { padding: 10px 8px; }
+    .hub .card { padding: 10px; }
+    .hub-list .tabs { gap: 2px; margin-bottom: 6px; }
+    .hub-list .tab-btn { padding: 6px 2px; font-size: 12px; }
+    .hub-item-main { padding: 7px 2px; }
+    .hub-item-main .route-title { font-size: 15px; }
+    .hub-item-sub { font-size: 11px; }
     .detail-map { height: 200px; }
     #hub-placeholder { display: none; }
 }
