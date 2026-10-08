@@ -58,7 +58,7 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
     <meta name="twitter:card" content="summary_large_image">
 
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/style.css?v=13">
+    <link rel="stylesheet" href="assets/style.css?v=22">
     <style>
         html, body { height: 100%; margin: 0; }
         .start-dot { width: 11px; height: 11px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 3px rgba(0,0,0,.55); }
@@ -82,18 +82,18 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
             <button type="button" id="btn-toggle-search" class="search-toggle-btn" aria-label="Søg i offentlige ruter" title="Søg i offentlige ruter">🔍</button>
         </div>
 
-        <div>
+        <div class="topbar-actions">
             <?php if ($loggedIn): ?>
-                <a href="dashboard.php" class="btn btn-primary">Kontrolpanel</a>
-                <form method="post" action="logout.php" style="display: inline;">
+                <a href="dashboard.php" class="btn" title="Kontrolpanel" aria-label="Kontrolpanel"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg><span class="tb-label">Kontrolpanel</span></a>
+                <form method="post" action="logout.php">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
-                    <button type="submit" class="btn">Log ud</button>
+                    <button type="submit" class="btn" title="Log ud" aria-label="Log ud"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M16 11h6"/><path d="M19 8l3 3-3 3"/></svg><span class="tb-label">Log ud</span></button>
                 </form>
             <?php else: ?>
-                <button type="button" id="btn-open-register" class="btn btn-primary">Opret konto</button>
-                <button type="button" id="btn-open-login" class="btn">Log ind</button>
+                <button type="button" id="btn-open-register" class="btn" title="Opret konto" aria-label="Opret konto"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M19 8v6"/><path d="M16 11h6"/></svg><span class="tb-label">Opret konto</span></button>
+                <button type="button" id="btn-open-login" class="btn" title="Log ind" aria-label="Log ind"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M22 11h-6"/><path d="M19 8l-3 3 3 3"/></svg><span class="tb-label">Log ind</span></button>
             <?php endif; ?>
-            <button type="button" id="btn-open-about" class="btn">Hjælp</button>
+            <button type="button" id="btn-open-about" class="btn" title="Hjælp" aria-label="Hjælp"><span class="help-icon" aria-hidden="true">?</span><span class="tb-label">Hjælp</span></button>
         </div>
     </div>
 

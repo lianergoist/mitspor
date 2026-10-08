@@ -51,16 +51,15 @@ $groups = group_list_for_user($pdo, $userId);
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mit kontrolpanel</title>
-    <link rel="stylesheet" href="assets/style.css?v=19">
+    <link rel="stylesheet" href="assets/style.css?v=22">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/dashboard.css?v=9">
+    <link rel="stylesheet" href="assets/dashboard.css?v=10">
 </head>
 <body>
 
 <div class="topbar" id="dashboard-topbar">
-    <a href="index.php" class="brand" title="Til forsiden" aria-label="Til forsiden MitSpor">
+    <a href="index.php" class="brand" title="Til forsiden" aria-label="Til forsiden">
         <span class="back-arrow" aria-hidden="true">&larr;</span>
-        <img src="grafik/mitspor_50x50.png" alt="MitSpor" class="brand-logo">
     </a>
     <div class="topbar-filters">
         <div class="action-group" role="group" aria-label="Ruter">
@@ -73,9 +72,9 @@ $groups = group_list_for_user($pdo, $userId);
         <button type="button" id="btn-open-profile" class="icon-btn" title="Profil og konto" aria-label="Profil og konto"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
         <form method="post" action="logout.php">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
-            <button type="submit" class="btn">Log ud</button>
+            <button type="submit" class="btn" title="Log ud" aria-label="Log ud"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M16 11h6"/><path d="M19 8l3 3-3 3"/></svg><span class="tb-label">Log ud</span></button>
         </form>
-        <button type="button" id="btn-open-dashboard-help" class="btn">Hjælp</button>
+        <button type="button" id="btn-open-dashboard-help" class="btn" title="Hjælp" aria-label="Hjælp"><span class="help-icon" aria-hidden="true">?</span><span class="tb-label">Hjælp</span></button>
     </div>
 </div>
 

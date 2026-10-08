@@ -211,11 +211,8 @@ if ($route['visibility'] === 'public') {
         .topbar-buttons { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
         /* Hjælp-knappen: kun teksten på computer, kun ikonet på mobil (se ≤600 px-blokken). */
         #btn-open-route-help .help-icon { display: none; }
-        /* Smalle skærme: "Opret konto" står også i login-dialogen, så knappen skjules her,
-           for at topbaren ikke skal ombrydes til to linjer og dække kortet. */
+        /* Smalle skærme: "← MitSpor" bliver bare "←" (som på forsiden og i kontrolpanelet på mobil). */
         @media (max-width: 520px) {
-            .topbar-register { display: none; }
-            /* ...og "← MitSpor" bliver bare "←" (som på forsiden og i kontrolpanelet på mobil). */
             .topbar-guest .brand-name { display: none; }
         }
         .group-nav { margin: 0 0 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
@@ -346,8 +343,8 @@ if ($route['visibility'] === 'public') {
                 <a href="editor/?route=<?= htmlspecialchars($route['public_id'], ENT_QUOTES, 'UTF-8') ?>" class="btn" title="Redigér punkter, billeder og waypoints i editoren" aria-label="Editor"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg><span class="btn-label">Editor</span></a>
             <?php endif; ?>
             <?php if (!$loggedIn): ?>
-                <button type="button" id="btn-open-register" class="btn btn-primary topbar-register">Opret konto</button>
-                <button type="button" id="btn-open-login" class="btn">Log ind</button>
+                <button type="button" id="btn-open-register" class="btn" title="Opret konto" aria-label="Opret konto"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M19 8v6"/><path d="M16 11h6"/></svg><span class="btn-label">Opret konto</span></button>
+                <button type="button" id="btn-open-login" class="btn" title="Log ind" aria-label="Log ind"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M22 11h-6"/><path d="M19 8l-3 3 3 3"/></svg><span class="btn-label">Log ind</span></button>
             <?php endif; ?>
             <button type="button" id="btn-open-route-help" class="btn" title="Hjælp og vejledning" aria-label="Hjælp"><span class="help-icon" aria-hidden="true">?</span><span class="btn-label">Hjælp</span></button>
         </div>

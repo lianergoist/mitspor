@@ -498,13 +498,16 @@ a { color: var(--primary); }
 }
 /* Ikonerne i topbaren er SVG'er (ikke tegn/emojis), så de ser ens ud overalt,
    og de har sidens blå farve — teksten i knapperne forbliver mørk. */
-.map-page .topbar .btn > svg {
+.map-page .topbar .btn > svg,
+#dashboard-topbar .btn > svg {
     width: 18px;
     height: 18px;
     flex: 0 0 auto;
 }
 .map-page .topbar .btn > svg,
-.map-page .topbar .btn > .help-icon {
+.map-page .topbar .btn > .help-icon,
+#dashboard-topbar .btn > svg,
+#dashboard-topbar .btn > .help-icon {
     color: var(--primary);
 }
 .map-page #map {
@@ -1076,6 +1079,14 @@ a { color: var(--primary); }
         justify-content: center;
         gap: 4px;
         padding: 6px 4px;
+    }
+    /* Forsidens og kontrolpanelets topbar-knapper (Kontrolpanel, Log ind,
+       Log ud, Hjælp) viser kun ikonet på mobil, som på rutens side. */
+    .tb-label { display: none; }
+    .map-page .topbar .btn:has(.tb-label),
+    #dashboard-topbar .btn:has(.tb-label) {
+        padding: 6px 12px;
+        justify-content: center;
     }
     /* Kortere knaptekster på mobil ("Upload", "Tegn rute", "Gruppér"), så de tre
        knapper kan stå på én linje, også ved større systemtekst. */

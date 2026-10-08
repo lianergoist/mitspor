@@ -128,6 +128,21 @@ html {
   stroke-linejoin: round;
 }
 
+/* Hjælp-ikonet: lille cirkel med "?", som på rutens side (assets/style.css). */
+.help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1;
+  color: #2563eb;
+}
+
 #toolbar button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
@@ -792,9 +807,10 @@ html {
 
 /* Responsivt design (til mobilskærme under 800px bredde) */
 @media (max-width: 800px) {
-  /* Redigeringsknapperne viser kun ikonet på mobil (Hjælp beholder teksten),
-     med samme luft om ikonet som på rutens side. */
-  #toolbar .tool-group button {
+  /* Knapperne viser kun ikonet på mobil, med samme luft om ikonet som på
+     rutens side. */
+  #toolbar .tool-group button,
+  #toolbar #btn-help {
     padding: 0 10px;
     justify-content: center; /* Centrerer ikonet */
   }

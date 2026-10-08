@@ -53,7 +53,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <title>GPX-editor</title>
 
 <link rel="stylesheet" href="../vendor/leaflet/leaflet.css" />
-<link rel="stylesheet" href="style.css?v=32" />
+<link rel="stylesheet" href="style.css?v=33" />
 </head>
 <body>
 
@@ -74,9 +74,9 @@ if ($initialRouteId === '' && !$isNewRoute) {
     <button id="btn-view-page" title="Vis rutens side" aria-label="Vis side" disabled><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg><span class="btn-text">Vis side</span></button>
   </div>
 
-  <!-- "Hjælp" som almindelig tekstknap, som på forsiden og i kontrolpanelet. -->
+  <!-- "Hjælp" med samme ?-ikon som på rutens side, forsiden og i kontrolpanelet. -->
   <div class="toolbar-group toolbar-group-help">
-    <button id="btn-help" title="Hjælp &amp; Vejledning">Hjælp</button>
+    <button id="btn-help" title="Hjælp &amp; Vejledning" aria-label="Hjælp"><span class="help-icon" aria-hidden="true">?</span><span class="btn-text">Hjælp</span></button>
   </div>
 </div>
 
