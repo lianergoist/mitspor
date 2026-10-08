@@ -16,15 +16,16 @@ html {
 
 /* Toolbaren følger topbaren i kontrolpanelet og på rutens side: pil til
    venstre, redigeringsknapperne som separate knapper lige efter pilen, og
-   en almindelig "Hjælp"-tekstknap til højre. Samme lysegrå baggrund som
-   kontrolpanelets topbar (#dashboard-topbar). */
+   en almindelig "Hjælp"-tekstknap til højre. Samme farve og højde som
+   topbaren på forsiden og i kontrolpanelet: hvid med 85 % dækning over
+   sidens lysegrå baggrund (--bg-deep i assets/style.css) giver #fcfdfe. */
 #toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  padding: 11px 20px; /* 63px høj i alt, som kontrolpanelets topbar */
-  background: #eef1f5;
+  padding: 9px 20px; /* 59px høj i alt (40px knapper), som kontrolpanelets topbar */
+  background: #fcfdfe;
   color: #1e293b;
   border-bottom: 1px solid #e2e8f0;
   font-size: 14px;
