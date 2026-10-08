@@ -130,3 +130,159 @@ body {
 .start-footer a {
     color: var(--text-muted);
 }
+/* ---------- Optageren ---------- */
+
+[hidden] {
+    display: none !important;
+}
+
+:root {
+    --danger: #dc2626;
+    --danger-dark: #b91c1c;
+}
+
+.optag {
+    padding-top: calc(env(safe-area-inset-top) + 16px);
+}
+
+.optag-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.optag-header h1 {
+    margin: 0;
+    font-size: 22px;
+    color: var(--brand);
+}
+
+.link-btn {
+    padding: 8px 4px;
+    border: 0;
+    background: none;
+    color: var(--primary);
+    font: inherit;
+    font-size: 17px;
+    cursor: pointer;
+}
+
+.notice,
+.fejl {
+    margin: 0 0 16px;
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    background: var(--warning-bg);
+    color: var(--warning-text);
+    font-size: 15px;
+}
+
+.notice p {
+    margin: 0 0 12px;
+}
+
+.notice-knapper,
+.tur-knapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.fejl {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.btn-small {
+    display: inline-block;
+    width: auto;
+    min-height: 44px;
+    padding: 10px 14px;
+    font-size: 15px;
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: #ffffff;
+}
+
+.btn-danger:active {
+    background: var(--danger-dark);
+}
+
+.tur-knapper .btn-danger {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--danger);
+}
+
+.optag-tal {
+    margin-bottom: 20px;
+    padding: 20px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    text-align: center;
+}
+
+.optag-tid {
+    font-size: 44px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--brand);
+}
+
+.optag-raekke {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 32px;
+    margin: 12px 0;
+}
+
+.optag-vaerdi {
+    display: block;
+    font-size: 22px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.optag-label,
+.optag-gps {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.ture {
+    margin-top: 32px;
+}
+
+.ture h2 {
+    margin: 0 0 12px;
+    font-size: 18px;
+}
+
+.ture-liste {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.tur {
+    margin-bottom: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+
+.tur-navn {
+    font-weight: 600;
+}
+
+.tur-info {
+    margin: 4px 0 10px;
+    font-size: 14px;
+    color: var(--text-muted);
+}
