@@ -26,11 +26,10 @@ kræves ikke tilladelse til placering "hele tiden".
   straks til `punkter.jsonl`, og GPX-filen skrives mindst hvert minut og ved
   stop. `<id>` er en UUID og bruges senere som `client_upload_id`.
 - **Afbrudt tur:** stopper appen midt i en optagelse, tilbydes den at blive
-  fortsat (nyt `<trkseg>`) eller afsluttet ved næste opstart.
+  fortsat eller afsluttet ved næste opstart. Sporet fortsætter, hvor det slap.
 - **Pause:** GPS'en og notifikationen slukkes under pausen. Uret viser tid i
-  bevægelse (uden pauser). Efter pausen starter et nyt `<trkseg>`, så pausen
-  hverken giver en lige streg eller tæller med i afstanden. En tur på pause
-  er stadig på pause, hvis appen lukkes og åbnes igen.
+  bevægelse (uden pauser). Efter pausen fortsætter sporet, hvor det slap. En
+  tur på pause er stadig på pause, hvis appen lukkes og åbnes igen.
 - **Deling:** "Del GPX" åbner telefonens delemenu.
 - Optagelsen stopper af sig selv, før GPX-filen når 10 MB.
 

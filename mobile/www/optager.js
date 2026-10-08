@@ -187,13 +187,11 @@
     // ---------- Optagelse ----------
 
     // meta.json gemmes kun hvert minut, så efter en afbrydelse regnes
-    // afstanden igen ud fra punkterne. Hullet mellem segmenter tæller ikke.
+    // afstanden igen ud fra punkterne.
     function samletAfstand(liste) {
         var sum = 0;
         for (var i = 1; i < liste.length; i++) {
-            if (liste[i][5] === liste[i - 1][5]) {
-                sum += Gpx.afstand(liste[i - 1][0], liste[i - 1][1], liste[i][0], liste[i][1]);
-            }
+            sum += Gpx.afstand(liste[i - 1][0], liste[i - 1][1], liste[i][0], liste[i][1]);
         }
         return sum;
     }
@@ -336,8 +334,7 @@
     }
 
     // Henter en optagelse, der ikke blev afsluttet, ind som den aktive.
-    // Punkterne efter afbrydelsen kommer i et nyt segment, så der ikke
-    // tegnes en lige streg hen over hullet.
+    // Sporet fortsætter, hvor det slap (samme segment).
     function indlaes(m) {
         return Lager.hentPunkter(m.id).then(function (gemte) {
             meta = m;
@@ -345,7 +342,7 @@
             meta.pauseStart = meta.pauseStart || null;
             punkter = gemte;
             sidst = gemte.length ? gemte[gemte.length - 1] : null;
-            segment = sidst ? sidst[5] + 1 : 0;
+            segment = sidst ? sidst[5] : 0;
             meta.antalPunkter = punkter.length;
             meta.afstandM = samletAfstand(punkter);
             sidstGpx = Date.now();
@@ -395,8 +392,7 @@
         gemGpx();
     }
 
-    // Efter en pause starter et nyt segment, så pausen ikke giver en lige
-    // streg i GPX-filen eller tæller med i afstanden.
+    // Efter en pause fortsætter sporet, hvor det slap.
     function genoptag() {
         if (!aktiv || !pauset) {
             return;
@@ -404,9 +400,6 @@
         meta.pauseMs += Date.now() - meta.pauseStart;
         meta.pauseStart = null;
         meta.status = 'optager';
-        if (sidst) {
-            segment = sidst[5] + 1;
-        }
         pauset = false;
         opdaterKnapper();
         var kopi = Object.assign({}, meta);
