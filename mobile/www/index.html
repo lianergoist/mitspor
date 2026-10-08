@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="app.css">
 </head>
 <body>
-    <main class="start">
+    <main class="start" id="view-start">
         <header class="start-header">
             <img src="img/ikon.png" alt="" class="start-logo" width="96" height="96">
             <h1>MitSpor</h1>
@@ -23,9 +23,7 @@
         <nav class="start-actions">
             <button type="button" class="btn btn-primary" id="open-site">Åbn mitspor.dk</button>
 
-            <!-- Optageren laves i trin 3 (lokal GPS-optagelse, virker uden net). -->
-            <button type="button" class="btn btn-secondary" disabled aria-describedby="record-note">Optag tur</button>
-            <p class="start-note" id="record-note">Optagelse af ture kommer i en senere version.</p>
+            <button type="button" class="btn btn-secondary" id="open-recorder">Optag tur</button>
         </nav>
 
         <footer class="start-footer">
@@ -33,10 +31,56 @@
         </footer>
     </main>
 
+    <!-- Optageren: lokal GPS-optagelse, virker uden net. -->
+    <main class="start optag" id="view-optag" hidden>
+        <header class="optag-header">
+            <button type="button" class="link-btn" id="optag-tilbage">‹ Tilbage</button>
+            <h1>Optag tur</h1>
+        </header>
+
+        <div class="notice" id="optag-afbrudt" hidden>
+            <p id="optag-afbrudt-tekst"></p>
+            <div class="notice-knapper">
+                <button type="button" class="btn btn-primary btn-small" id="optag-fortsaet">Fortsæt optagelsen</button>
+                <button type="button" class="btn btn-secondary btn-small" id="optag-afslut">Afslut og gem</button>
+            </div>
+        </div>
+
+        <p class="fejl" id="optag-fejl" role="alert" hidden></p>
+
+        <section class="optag-tal" aria-live="polite">
+            <div class="optag-tid" id="optag-tid">0:00:00</div>
+            <div class="optag-raekke">
+                <div><span class="optag-vaerdi" id="optag-afstand">0,00 km</span><span class="optag-label">Afstand</span></div>
+                <div><span class="optag-vaerdi" id="optag-punkter">0</span><span class="optag-label">Punkter</span></div>
+            </div>
+            <div class="optag-gps" id="optag-gps">–</div>
+        </section>
+
+        <nav class="start-actions">
+            <button type="button" class="btn btn-primary" id="optag-start">Start optagelse</button>
+            <button type="button" class="btn btn-danger" id="optag-stop" hidden>Stop og gem</button>
+            <p class="start-note">Optagelsen fortsætter, når skærmen er slukket. Så længe den kører, vises en notifikation.</p>
+        </nav>
+
+        <section class="ture">
+            <h2>Gemte ture</h2>
+            <p class="start-note" id="optag-tom">Ingen gemte ture endnu.</p>
+            <ul class="ture-liste" id="optag-liste"></ul>
+        </section>
+    </main>
+
     <script src="vendor/capacitor.js"></script>
     <script src="vendor/inappbrowser.js"></script>
     <script src="vendor/network.js"></script>
+    <script src="vendor/app.js"></script>
+    <script src="vendor/share.js"></script>
+    <script src="vendor/filesystem.js"></script>
+    <script src="vendor/background-geolocation.js"></script>
     <script src="config.js"></script>
     <script src="app.js"></script>
+    <script src="gpx.js"></script>
+    <script src="lager.js"></script>
+    <script src="optager.js"></script>
 </body>
 </html>
