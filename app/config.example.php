@@ -54,6 +54,11 @@ define('API_UPLOAD_RATE_LIMIT_MAX_ATTEMPTS', 30);
 define('API_UPLOAD_RATE_LIMIT_WINDOW_SECONDS', 3600); // 1 time
 // Origins der får CORS-headere (Capacitor-appen på iOS/Android).
 define('API_CORS_ALLOWED_ORIGINS', ['capacitor://localhost', 'https://localhost']);
+// Engangskoder, der forbinder login i appen og på sitet (app/app_login.php):
+// levetid i sekunder og antal koder pr. bruger/IP inden for tidsvinduet.
+define('APP_LOGIN_CODE_TTL_SECONDS', 60);
+define('APP_LOGIN_CODE_RATE_LIMIT_MAX_ATTEMPTS', 60);
+define('APP_LOGIN_CODE_RATE_LIMIT_WINDOW_SECONDS', 3600); // 1 time
 
 // --- Udtynding af punkter ---
 // Foreslå udtynding, hvis den typiske (median) logningsfrekvens er

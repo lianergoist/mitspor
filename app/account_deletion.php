@@ -70,6 +70,7 @@ function delete_account(PDO $pdo, array $user): void
     $pdo->prepare('DELETE FROM email_change_tokens WHERE user_id = :uid')->execute(['uid' => $userId]);
     // App-tokens (mobil-API'et) slettes helt, ikke bare tilbagekaldes.
     $pdo->prepare('DELETE FROM api_tokens WHERE user_id = :uid')->execute(['uid' => $userId]);
+    $pdo->prepare('DELETE FROM app_login_codes WHERE user_id = :uid')->execute(['uid' => $userId]);
 
     // --- Anonymisér og deaktivér selve kontoen ---
     // E-mailen gøres unik med et suffiks, så adressen i teorien kan

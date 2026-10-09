@@ -111,6 +111,13 @@ window.MitSporAuth = (function () {
             })
                 .then(function (res) { return res.json(); })
                 .then(function (data) {
+                    if (data.success && data.app_forbind) {
+                        // I appen: forbi /app-forbind.php, så appen også logges ind.
+                        var dele = data.app_forbind.split('#');
+                        window.location.href = dele[0] + '?til=' +
+                            encodeURIComponent(window.location.pathname + window.location.search) + '#' + dele[1];
+                        return;
+                    }
                     if (data.success) {
                         window.location.reload();
                         return;
