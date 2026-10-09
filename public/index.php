@@ -59,7 +59,7 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
     <meta name="twitter:card" content="summary_large_image">
 
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/style.css?v=22">
+    <link rel="stylesheet" href="assets/style.css?v=23">
     <style>
         html, body { height: 100%; margin: 0; }
         .start-dot { width: 11px; height: 11px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 3px rgba(0,0,0,.55); }
@@ -70,7 +70,7 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
 
 <div class="map-page">
 
-    <div class="topbar">
+    <div class="topbar" id="index-topbar">
         <span class="brand"><img src="grafik/mitspor_50x50.png" alt="" class="brand-logo"><span class="brand-text">MitSpor</span></span>
 
         <div class="topbar-filters">
@@ -80,7 +80,7 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
                 <button type="button" class="segmented-btn" data-filter="category:land">Ruter på land</button>
             </div>
             <input type="text" id="route-search" placeholder="Søg i offentlige ruter...">
-            <button type="button" id="btn-toggle-search" class="search-toggle-btn" aria-label="Søg i offentlige ruter" title="Søg i offentlige ruter">🔍</button>
+            <button type="button" id="btn-toggle-search" class="search-toggle-btn" aria-label="Søg i offentlige ruter" title="Søg i offentlige ruter"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg></button>
         </div>
 
         <div class="topbar-actions">
@@ -116,12 +116,12 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
     </dialog>
 
     <?php if (isset($_GET['deleted'])): ?>
-        <div class="map-overlay-panel" style="top: 66px; left: 50%; transform: translateX(-50%);">
+        <div class="map-overlay-panel" style="top: calc(var(--topbar-height, 58px) + 8px); left: 50%; transform: translateX(-50%);">
             Din konto er blevet slettet.
         </div>
     <?php endif; ?>
 
-    <div id="search-results-panel" class="map-overlay-panel" style="top: 66px; left: 12px; right: 12px; max-height: 70vh; overflow-y: auto; padding: 14px 16px;" hidden>
+    <div id="search-results-panel" class="map-overlay-panel" style="top: calc(var(--topbar-height, 58px) + 8px); left: 12px; right: 12px; max-height: calc(100% - var(--topbar-height, 58px) - 24px); overflow-y: auto; padding: 14px 16px;" hidden>
         <div id="search-results-header" style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;"></div>
         <ul id="search-results-list" class="route-list"></ul>
     </div>
@@ -449,6 +449,22 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
         });
     });
 
+    // ---------- Topbarens højde ----------
+    // Topbaren ligger oven på kortet og er en, to eller tre linjer høj
+    // (filterknapper og åbent søgefelt på mobil og tablet). Søgeresultaterne
+    // og andre bokse lægges lige under den via --topbar-height.
+    var indexTopbar = document.getElementById('index-topbar');
+    var mapPage = document.querySelector('.map-page');
+    function syncTopbarHeight() {
+        mapPage.style.setProperty('--topbar-height', indexTopbar.offsetHeight + 'px');
+    }
+    syncTopbarHeight();
+    if (window.ResizeObserver) {
+        new ResizeObserver(syncTopbarHeight).observe(indexTopbar);
+    } else {
+        window.addEventListener('resize', syncTopbarHeight);
+    }
+
     // ---------- Søgning ----------
     var searchInput = document.getElementById('route-search');
     var resultsPanel = document.getElementById('search-results-panel');
@@ -462,6 +478,7 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
     if (btnToggleSearch) {
         btnToggleSearch.addEventListener('click', function () {
             searchInput.classList.toggle('search-open');
+            syncTopbarHeight(); // til browsere uden ResizeObserver
             if (searchInput.classList.contains('search-open')) {
                 searchInput.focus();
             }
