@@ -71,9 +71,9 @@
 
 .hub-detail { min-height: 220px; position: sticky; top: 16px; }
 .detail-panel[hidden] { display: none; }
-.detail-panel h2 { margin: 0 0 4px; font-size: 22px; overflow-wrap: anywhere; }
-.detail-summary { margin: 0 0 4px; color: var(--text); font-size: 14px; }
-.detail-meta { margin: 0 0 16px; color: var(--text-muted); font-size: 13px; }
+.detail-panel h2 { margin: 0 0 4px; font-size: 18px; line-height: 1.3; overflow-wrap: anywhere; }
+.detail-summary { margin: 0 0 2px; color: var(--text); font-size: 13px; }
+.detail-meta { margin: 0 0 12px; color: var(--text-muted); font-size: 12px; }
 
 .detail-map {
     height: 240px;
@@ -111,20 +111,20 @@
 .tool {
     display: block;
     text-align: left;
-    padding: 10px 14px;
+    padding: 8px 12px;
     border: 1px solid var(--border);
     border-radius: var(--radius);
     background: var(--surface);
     color: var(--text);
     font: inherit;
-    font-size: 14px;
+    font-size: 13px;
     text-decoration: none;
     cursor: pointer;
 }
 .tool:hover { background: var(--bg); border-color: #cbd5e1; }
 .tool.danger { color: var(--danger); }
 
-.hub-back { display: none; margin-bottom: 12px; }
+.hub-back { display: none; margin-bottom: 8px; font-size: 13px; }
 #hub-placeholder[hidden] { display: none; }
 
 /* Computer: listen og detaljepanelet fylder skærmens højde (--hub-height sættes i dashboard.js) */
