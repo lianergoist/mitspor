@@ -568,7 +568,7 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
 </script>
 <?php if (!$loggedIn): ?>
 <script src="assets/genindlaes.js?v=1"></script>
-<script src="assets/auth-dialogs.js?v=2"></script>
+<script src="assets/auth-dialogs.js?v=3"></script>
 <script>MitSporAuth.init({ handleUrl: true });</script>
 <?php endif; ?>
 

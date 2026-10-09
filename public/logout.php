@@ -3,11 +3,19 @@ declare(strict_types=1);
 
 session_start();
 
+require_once __DIR__ . '/../app/db.php';
 require_once __DIR__ . '/../app/csrf.php';
 require_once __DIR__ . '/../app/app_login.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (csrf_validate($_POST['csrf_token'] ?? null)) {
+        // I appens WebView logges appen også ud: dens token (hash som tok i
+        // user-agent) tilbagekaldes, hvis det hører til denne bruger.
+        $tokenHash = app_ua_param('tok');
+        if ($tokenHash !== null && !empty($_SESSION['user_id'])) {
+            app_token_revoke_by_hash(get_db(), (int) $_SESSION['user_id'], $tokenHash);
+        }
+
         $_SESSION = [];
 
         // Ryd selve session-cookien, hvis browseren bruger cookies til sessionen
@@ -25,12 +33,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         session_destroy();
-
-        // I appens WebView: forbi en side, appen genkender, så appen også logger ud.
-        if (is_app_request()) {
-            header('Location: /app-logget-ud.php');
-            exit;
-        }
     }
 
     header('Location: login.php');
