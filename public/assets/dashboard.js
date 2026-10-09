@@ -668,7 +668,11 @@
             .then(function (res) { return res.json(); })
             .then(function (data) {
                 if (data.success) {
-                    window.location.reload();
+                    // Luk dialogen med det samme, og hent siden igen med en
+                    // almindelig navigation: i appens WebView sker der intet
+                    // ved window.location.reload().
+                    dialog.close();
+                    window.location.replace(window.location.pathname + window.location.search);
                     return;
                 }
                 errorsEl.textContent = (data.errors && data.errors.join(' ')) || 'Der skete en fejl. Prøv igen.';

@@ -823,7 +823,7 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
 <script src="assets/route-meta-dialog.js?v=2"></script>
 <script src="assets/gpx-field-labels.js?v=3"></script>
 <script src="assets/gpx-tools.js?v=1"></script>
-<script src="assets/dashboard.js?v=7"></script>
+<script src="assets/dashboard.js?v=8"></script>
 <script src="assets/dashboard-tools.js?v=2"></script>
 <script src="assets/activity-marker.js?v=1"></script>
 <script src="assets/dashboard-map.js?v=5"></script>
