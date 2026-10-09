@@ -208,10 +208,17 @@
         opdaterTal();
     }
 
+    // Viser GPS-status. Mens der ventes på et præcist signal (før første
+    // punkt og efter en pause), får teksten gul baggrund.
+    function visGps(tekst) {
+        gpsFelt.textContent = tekst;
+        gpsFelt.classList.toggle('optag-gps--venter', aktiv && !pauset && !klar);
+    }
+
     function startGps() {
         klar = false;
         godeITraek = 0;
-        gpsFelt.textContent = 'Venter på GPS-signal …';
+        visGps('Venter på GPS-signal …');
         return BG.start({
             backgroundTitle: 'MitSpor optager din tur',
             backgroundMessage: 'Tryk for at åbne MitSpor.',
@@ -231,7 +238,7 @@
 
     function gpsFejl(fejl) {
         if (fejl.code === 'NOT_AUTHORIZED') {
-            gpsFelt.textContent = 'Ingen adgang til placering';
+            visGps('Ingen adgang til placering');
             stop(true).then(function () {
                 if (window.confirm('MitSpor skal have adgang til din placering for at optage ture.\n\nVil du åbne indstillingerne?')) {
                     BG.openSettings();
@@ -239,7 +246,7 @@
             });
             return;
         }
-        gpsFelt.textContent = 'GPS-fejl: ' + (fejl.message || fejl.code || 'ukendt');
+        visGps('GPS-fejl: ' + (fejl.message || fejl.code || 'ukendt'));
     }
 
     // Smart-mode: afgør, om et rå punkt skal gemmes. Udglatning og
@@ -252,18 +259,18 @@
         var noejagtighed = Math.round(pos.accuracy);
         if (!(noejagtighed <= MAX_NOEJAGTIGHED_M)) {
             godeITraek = 0;
-            gpsFelt.textContent = 'Svagt GPS-signal (±' + noejagtighed + ' m)';
+            visGps('Svagt GPS-signal (±' + noejagtighed + ' m)');
             return;
         }
         if (!klar) {
             godeITraek = noejagtighed <= START_NOEJAGTIGHED_M ? godeITraek + 1 : 0;
             if (godeITraek < START_ANTAL) {
-                gpsFelt.textContent = 'Venter på præcist GPS-signal (±' + noejagtighed + ' m)';
+                visGps('Venter på præcist GPS-signal (±' + noejagtighed + ' m)');
                 return;
             }
             klar = true;
         }
-        gpsFelt.textContent = 'GPS: ±' + noejagtighed + ' m';
+        visGps('GPS: ±' + noejagtighed + ' m');
 
         var tid = pos.time || Date.now();
 
@@ -400,7 +407,7 @@
         pauset = true;
         meta.status = 'pause';
         meta.pauseStart = Date.now();
-        gpsFelt.textContent = 'Pause';
+        visGps('Pause');
         opdaterKnapper();
         opdaterTal();
         BG.stop().catch(function () {});
@@ -440,7 +447,7 @@
         m.slut = pauset ? m.pauseStart : Date.now();
         m.pauseStart = null;
         pauset = false;
-        gpsFelt.textContent = '–';
+        visGps('–');
 
         return bgStop
             .then(function () { return afslut(m, punkter, stille); })
@@ -558,7 +565,7 @@
         if (afbrudt && afbrudt.status === 'pause') {
             return indlaes(afbrudt).then(function () {
                 pauset = true;
-                gpsFelt.textContent = 'Pause';
+                visGps('Pause');
                 opdaterTal();
                 opdaterKnapper();
                 startUr();
