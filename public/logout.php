@@ -4,6 +4,7 @@ declare(strict_types=1);
 session_start();
 
 require_once __DIR__ . '/../app/csrf.php';
+require_once __DIR__ . '/../app/app_login.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (csrf_validate($_POST['csrf_token'] ?? null)) {
@@ -24,6 +25,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         session_destroy();
+
+        // I appens WebView: forbi en side, appen genkender, så appen også logger ud.
+        if (is_app_request()) {
+            header('Location: /app-logget-ud.php');
+            exit;
+        }
     }
 
     header('Location: login.php');
