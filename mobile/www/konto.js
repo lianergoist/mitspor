@@ -14,6 +14,9 @@
     // Ikke-hemmelige oplysninger må gerne ligge i localStorage.
     var AKTIVITETER_NOEGLE = 'mitspor-aktiviteter';
     var SIDSTE_AKTIVITET_NOEGLE = 'mitspor-sidste-aktivitet';
+    // Sat ved log ud: næste gang sitet åbnes, ryddes WebView'ets cookies,
+    // så brugeren også er logget ud dér.
+    var RYD_WEB_NOEGLE = 'mitspor-ryd-web';
 
     var login = null;      // { token, navn } eller null
     var hentet = null;     // promise for det gemte login
@@ -92,21 +95,55 @@
         return Capacitor.getPlatform() === 'ios' ? 'MitSpor-app (iOS)' : 'MitSpor-app (Android)';
     }
 
+    // Fælles for login med adgangskode og med engangskode fra sitet.
+    // Et tidligere token (fx en anden konto) tilbagekaldes på sitet.
+    function modtagToken(svar) {
+        if (!svar.data.success || !svar.data.token) {
+            throw new Error(svar.data.error || 'Login mislykkedes. Prøv igen.');
+        }
+        var gammelt = login;
+        return gem({ token: svar.data.token, navn: svar.data.display_name || '' }).then(function () {
+            if (gammelt && gammelt.token !== svar.data.token) {
+                api('logout.php', { method: 'POST', token: gammelt.token }).catch(function () {});
+            }
+            // Aktivitetstyperne hentes nu, så de er der, når en tur skal
+            // uploades uden net.
+            return hentAktiviteter().catch(function () {});
+        });
+    }
+
     function logInd(email, kode) {
         var body = new URLSearchParams();
         body.append('email', email);
         body.append('password', kode);
         body.append('device_name', enhedsnavn());
 
-        return api('login.php', { method: 'POST', body: body }).then(function (svar) {
-            if (!svar.data.success || !svar.data.token) {
-                throw new Error(svar.data.error || 'Login mislykkedes. Prøv igen.');
+        return api('login.php', { method: 'POST', body: body }).then(modtagToken);
+    }
+
+    // Brugeren har logget ind på sitet i appens WebView: veksl sitets
+    // engangskode (fra /app-forbind.php) til et token.
+    function vekslKode(engangskode) {
+        var body = new URLSearchParams();
+        body.append('code', engangskode);
+        body.append('device_name', enhedsnavn());
+
+        return api('exchange-code.php', { method: 'POST', body: body }).then(modtagToken);
+    }
+
+    // Engangskode, der logger appens WebView ind på sitet (/app-login.php).
+    // Svarer med null, hvis det ikke kan lade sig gøre lige nu.
+    function webLoginKode() {
+        return hent().then(function (nu) {
+            if (!nu) {
+                return null;
             }
-            return gem({ token: svar.data.token, navn: svar.data.display_name || '' });
-        }).then(function () {
-            // Aktivitetstyperne hentes nu, så de er der, når en tur skal
-            // uploades uden net.
-            return hentAktiviteter().catch(function () {});
+            return api('web-login-code.php', { method: 'POST', token: nu.token, timeout: 10000 }).then(function (svar) {
+                if (svar.status === 401) {
+                    return glem().then(function () { return null; });
+                }
+                return svar.data.success ? svar.data.code : null;
+            }, function () { return null; });
         });
     }
 
@@ -114,6 +151,7 @@
     // sitet, hvis der er net. (Uden net udløber det af sig selv.)
     function logUd() {
         var gammelt = login;
+        gemLokalt(RYD_WEB_NOEGLE, true);
         return glem().then(function () {
             if (gammelt) {
                 return api('logout.php', { method: 'POST', token: gammelt.token }).catch(function () {});
@@ -165,6 +203,10 @@
         hent: hent,
         logInd: logInd,
         logUd: logUd,
+        vekslKode: vekslKode,
+        webLoginKode: webLoginKode,
+        skalRydWeb: function () { return laesLokalt(RYD_WEB_NOEGLE) === true; },
+        webRyddet: function () { gemLokalt(RYD_WEB_NOEGLE, false); },
         glem: glem,
         api: api,
         hentAktiviteter: hentAktiviteter,

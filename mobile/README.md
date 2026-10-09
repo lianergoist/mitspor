@@ -59,6 +59,25 @@ Under "Gemte ture" kan hver tur uploades (`www/upload.js`,
 - Aktivitetstyperne hentes ved login og gemmes (localStorage), så en tur
   kan sættes i kø uden net.
 
+## Fælles login i appen og på sitet
+
+Appen og sitet i WebView'et er logget ind med samme konto
+(`www/app.js`, `www/konto.js`; på sitet `app/app_login.php`).
+
+- WebView'et får "MitSporApp" i user-agent, så sitet ved, at det kører i appen.
+- **Appen → sitet:** er appen logget ind, henter den en engangskode
+  (`/api/v1/web-login-code.php`) og åbner `/app-login.php#kode=…&til=…`,
+  der logger sitet ind og går videre til siden.
+- **Sitet → appen:** login på sitet i appen går forbi
+  `/app-forbind.php#kode=…`. Appen ser adressen
+  (`browserPageNavigationCompleted`) og veksler koden til et token
+  (`/api/v1/exchange-code.php`).
+- **Log ud:** log ud på sitet går forbi `/app-logget-ud.php`, og appen
+  logger også ud. Log ud i appen rydder WebView'ets cookies, næste gang
+  sitet åbnes.
+- Koderne står efter `#`, så de ikke kommer i serverens adgangslog. De
+  gælder i 60 sekunder og kan bruges én gang.
+
 Ændringer på mitspor.dk kræver intet nyt app-build. Ændringer i `www/`,
 plugins eller native kode kræver et nyt build.
 
