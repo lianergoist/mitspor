@@ -691,8 +691,9 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
 
         <label>
             Indtast rutens navn for at bekræfte
-            <input type="text" name="confirm_title" id="delete-route-confirm-title" required autocomplete="off">
+            <input type="text" name="confirm_title" id="delete-route-confirm-title" required autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
         </label>
+        <p class="hint" id="delete-route-mismatch" hidden>Navnet skal skrives præcis som ovenfor, med samme store og små bogstaver.</p>
 
         <button type="submit" class="btn btn-danger" id="delete-route-submit-btn" disabled>Slet ruten permanent</button>
     </form>
@@ -822,7 +823,7 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
 <script src="assets/route-meta-dialog.js?v=2"></script>
 <script src="assets/gpx-field-labels.js?v=3"></script>
 <script src="assets/gpx-tools.js?v=1"></script>
-<script src="assets/dashboard.js?v=7"></script>
+<script src="assets/dashboard.js?v=8"></script>
 <script src="assets/dashboard-tools.js?v=2"></script>
 <script src="assets/activity-marker.js?v=1"></script>
 <script src="assets/dashboard-map.js?v=5"></script>
