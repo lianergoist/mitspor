@@ -105,6 +105,25 @@
         openSite('/privatlivspolitik.php');
     });
 
+    // Appens lokale skærme er <main>-elementer. Kun én vises ad gangen.
+    function visSide(id) {
+        Array.prototype.forEach.call(document.querySelectorAll('body > main'), function (side) {
+            side.hidden = side.id !== id;
+        });
+        window.scrollTo(0, 0);
+    }
+
+    function aktivSide() {
+        var side = document.querySelector('body > main:not([hidden])');
+        return side ? side.id : null;
+    }
+
+    window.MitSporApp = {
+        aabnSite: openSite,
+        visSide: visSide,
+        aktivSide: aktivSide
+    };
+
     Network.addListener('networkStatusChange', function (status) {
         showOnlineState(status.connected);
     });

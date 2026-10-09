@@ -39,6 +39,26 @@ kræves ikke tilladelse til placering "hele tiden".
 - **Deling:** "Del GPX" åbner telefonens delemenu.
 - Optagelsen stopper af sig selv, før GPX-filen når 10 MB.
 
+## Upload til mitspor.dk (offline-kø)
+
+Under "Gemte ture" kan hver tur uploades (`www/upload.js`,
+`www/upload-visning.js`, `www/konto.js`).
+
+- **Login:** appen logger ind via `/api/v1/login.php` og får et token, der
+  sendes i headeren `X-Api-Token`. Tokenet gemmes i Keychain/Keystore med
+  `capacitor-secure-storage-plugin` (MIT), aldrig i localStorage, og
+  adgangskoden gemmes ikke. "Log ud" tilbagekalder tokenet på sitet.
+- **Upload:** brugeren vælger titel og aktivitet, og turen sættes i kø
+  (`meta.upload` i `meta.json`). Turen uploades som privat med turens id som
+  `client_upload_id`, så et nyt forsøg aldrig giver en dublet.
+- **Køen** sendes ved opstart, når nettet kommer tilbage, når appen vækkes,
+  efter login og hvert minut, mens appen er åben. Uden net venter turen.
+  Serverfejl (5xx, 429) prøves igen med stigende pause (30 s til 30 min).
+  Afviser sitet turen (fx ugyldig GPX eller kvote), vises fejlen, og turen
+  kan uploades igen. Er tokenet udløbet, bliver turen i køen til næste login.
+- Aktivitetstyperne hentes ved login og gemmes (localStorage), så en tur
+  kan sættes i kø uden net.
+
 Ændringer på mitspor.dk kræver intet nyt app-build. Ændringer i `www/`,
 plugins eller native kode kræver et nyt build.
 
