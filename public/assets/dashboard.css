@@ -84,6 +84,13 @@
     background: var(--bg-deep);
     z-index: 0;
 }
+/* Copyright-teksten i minikortet: mindre end Leaflets standard (12px),
+   så den passer til det lille kort. Flaget i "Leaflet" skalerer med. */
+.detail-map .leaflet-control-attribution {
+    font-size: 9px;
+    line-height: 1.4;
+    padding: 0 4px;
+}
 .detail-map--empty { display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 14px; }
 
 /* Værktøjer: en enkelt kolonne, knapper under hinanden */
