@@ -17,15 +17,15 @@
     var privacyLink = document.getElementById('open-privacy');
     var offlineNotice = document.getElementById('offline-notice');
 
-    function webViewOptions(rydCookies) {
+    function webViewOptions(rydCookies, userAgent) {
         // Tag pluginets standardværdier, og ret dem, der betyder noget for os.
         var options = Object.assign({}, browser.DefaultWebViewOptions, {
             // Standard er true — så ville brugeren blive logget ud hver gang.
             // Kun lige efter log ud i appen ryddes cookies, så sitet også logges ud.
             clearCache: rydCookies,
             clearSessionCache: rydCookies,
-            // "MitSporApp" fortæller sitet, at det kører i appen (fælles login).
-            customWebViewUserAgent: navigator.userAgent + ' MitSporApp/1',
+            // "MitSporApp/2 (…)" fortæller sitet, at det kører i appen (fælles login).
+            customWebViewUserAgent: userAgent,
             showURL: false,
             showToolbar: true,
             showNavigationButtons: true,
@@ -69,16 +69,74 @@
             .finally(function () { clearTimeout(timer); });
     }
 
-    // Adressen, WebView'et åbnes med. Er appen logget ind, går vejen forbi
-    // /app-login.php med en engangskode, så sitet logges ind med samme konto.
-    function siteUrl(path) {
+    // ---------- Fælles login med sitet (se app/app_login.php på sitet) ----------
+    //
+    // Appen sender oplysningerne i WebView'ets user-agent, så der ikke skal
+    // vises mellemsider: "MitSporApp/2 (par=…; tok=…; kode=…)".
+    //   kode: engangskode, der logger sitet ind (/app-login.php omdirigerer straks)
+    //   par:  SHA-256 af en hemmelighed; logger brugeren ind på sitet, kan appen
+    //         veksle hemmeligheden til et token
+    //   tok:  SHA-256 af appens token; log ud på sitet tilbagekalder det
+
+    // Hemmeligheden for det WebView, der er åbent nu (ny for hver åbning).
+    var parHemmelighed = null;
+    var veksler = false;
+
+    function hex(bytes) {
+        return Array.prototype.map.call(bytes, function (b) { return (b + 0x100).toString(16).slice(1); }).join('');
+    }
+
+    // SHA-256 som hex, eller null hvis browseren ikke kan.
+    function sha256(tekst) {
+        try {
+            return window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(tekst))
+                .then(function (buffer) { return hex(new Uint8Array(buffer)); })
+                .catch(function () { return null; });
+        } catch (e) {
+            return Promise.resolve(null);
+        }
+    }
+
+    // Adresse og user-agent til WebView'et. Er appen logget ind, går vejen
+    // forbi /app-login.php, så sitet logges ind med samme konto.
+    function forbered(path) {
         var Konto = window.MitSporKonto;
-        return Konto.webLoginKode().then(function (kode) {
-            if (!kode) {
-                return config.siteUrl + path;
-            }
-            return config.siteUrl + '/app-login.php#kode=' + kode + '&til=' + encodeURIComponent(path);
+        var hemmelighed = hex(window.crypto.getRandomValues(new Uint8Array(32)));
+
+        return Promise.all([Konto.webLoginKode(), Konto.hent()]).then(function (svar) {
+            var kode = svar[0];
+            var login = svar[1];
+            return Promise.all([sha256(hemmelighed), login ? sha256(login.token) : null]).then(function (hashes) {
+                var dele = [];
+                if (hashes[0]) {
+                    dele.push('par=' + hashes[0]);
+                    parHemmelighed = hemmelighed;
+                }
+                if (hashes[1]) {
+                    dele.push('tok=' + hashes[1]);
+                }
+                if (kode) {
+                    dele.push('kode=' + kode);
+                }
+                return {
+                    url: kode ? config.siteUrl + '/app-login.php?til=' + encodeURIComponent(path) : config.siteUrl + path,
+                    userAgent: navigator.userAgent + ' MitSporApp/2' + (dele.length ? ' (' + dele.join('; ') + ')' : '')
+                };
+            });
         });
+    }
+
+    // Har brugeren logget ind på sitet i WebView'et, får appen et token for
+    // hemmeligheden. Indtil da svarer sitet 401. Spørges efter hver side.
+    function proevVeksling() {
+        var hemmelighed = parHemmelighed;
+        if (!hemmelighed || veksler) {
+            return Promise.resolve();
+        }
+        veksler = true;
+        return window.MitSporKonto.vekslKode(hemmelighed)
+            .catch(function () {})
+            .finally(function () { veksler = false; });
     }
 
     function openSite(path) {
@@ -101,9 +159,9 @@
 
                 var Konto = window.MitSporKonto;
                 var ryd = Konto.skalRydWeb();
-                return siteUrl(path)
-                    .then(function (url) {
-                        return browser.InAppBrowser.openInWebView({ url: url, options: webViewOptions(ryd) });
+                return forbered(path)
+                    .then(function (aabning) {
+                        return browser.InAppBrowser.openInWebView({ url: aabning.url, options: webViewOptions(ryd, aabning.userAgent) });
                     })
                     .then(function () {
                         if (ryd) {
@@ -147,42 +205,22 @@
         aktivSide: aktivSide
     };
 
-    // Login og log ud på sitet i WebView'et: sitet går forbi
-    // /app-forbind.php#kode=… (login) eller /app-logget-ud.php (log ud),
-    // så appen kan følge med.
-    var brugteKoder = {};
-
-    function sideIndlaest(data) {
-        var adresse;
-        try {
-            adresse = new URL(data && data.url ? data.url : '');
-        } catch (e) {
-            return;
-        }
-        if (adresse.origin !== new URL(config.siteUrl).origin) {
-            return;
-        }
-
+    // Når WebView'et lukkes: er appens token tilbagekaldt (brugeren loggede
+    // ud på sitet), glemmer appen det; hentAktiviteter() opdager 401. Derefter
+    // et sidste forsøg på veksling, hvis brugeren loggede ind på sitet.
+    function webLukket() {
         var Konto = window.MitSporKonto;
-        if (adresse.pathname === '/app-forbind.php') {
-            var kode = new URLSearchParams(adresse.hash.slice(1)).get('kode');
-            if (kode && !brugteKoder[kode]) {
-                brugteKoder[kode] = true;
-                Konto.vekslKode(kode).catch(function () {
-                    // Koden virkede ikke: appen kan stadig logges ind i optageren.
-                });
-            }
-        } else if (adresse.pathname === '/app-logget-ud.php') {
-            Konto.hent().then(function (nu) {
-                if (nu) {
-                    Konto.logUd();
-                }
-            });
-        }
+        Konto.hent()
+            .then(function (nu) {
+                return nu ? Konto.hentAktiviteter().catch(function () {}) : null;
+            })
+            .then(proevVeksling)
+            .then(function () { parHemmelighed = null; });
     }
 
     if (Capacitor.isNativePlatform()) {
-        browser.InAppBrowser.addListener('browserPageNavigationCompleted', sideIndlaest);
+        browser.InAppBrowser.addListener('browserPageNavigationCompleted', proevVeksling);
+        browser.InAppBrowser.addListener('browserClosed', webLukket);
     }
 
     Network.addListener('networkStatusChange', function (status) {

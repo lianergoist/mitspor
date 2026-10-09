@@ -64,19 +64,22 @@ Under "Gemte ture" kan hver tur uploades (`www/upload.js`,
 Appen og sitet i WebView'et er logget ind med samme konto
 (`www/app.js`, `www/konto.js`; på sitet `app/app_login.php`).
 
-- WebView'et får "MitSporApp" i user-agent, så sitet ved, at det kører i appen.
-- **Appen → sitet:** er appen logget ind, henter den en engangskode
-  (`/api/v1/web-login-code.php`) og åbner `/app-login.php#kode=…&til=…`,
-  der logger sitet ind og går videre til siden.
-- **Sitet → appen:** login på sitet i appen går forbi
-  `/app-forbind.php#kode=…`. Appen ser adressen
-  (`browserPageNavigationCompleted`) og veksler koden til et token
+Der vises ingen mellemsider: appen sender oplysningerne i WebView'ets
+user-agent, `MitSporApp/2 (par=…; tok=…; kode=…)`.
+
+- **Appen → sitet (`kode`):** er appen logget ind, henter den en engangskode
+  (`/api/v1/web-login-code.php`) og åbner `/app-login.php?til=…`, der logger
+  sitet ind og omdirigerer straks.
+- **Sitet → appen (`par`):** appen laver en ny hemmelighed, hver gang sitet
+  åbnes, og sender dens SHA-256. Logger brugeren ind på sitet, kobles hashen
+  til kontoen. Efter hver side (`browserPageNavigationCompleted`) og når
+  sitet lukkes, prøver appen at veksle hemmeligheden til et token
   (`/api/v1/exchange-code.php`).
-- **Log ud:** log ud på sitet går forbi `/app-logget-ud.php`, og appen
-  logger også ud. Log ud i appen rydder WebView'ets cookies, næste gang
-  sitet åbnes.
-- Koderne står efter `#`, så de ikke kommer i serverens adgangslog. De
-  gælder i 60 sekunder og kan bruges én gang.
+- **Log ud (`tok`):** appen sender SHA-256 af sit token. Log ud på sitet
+  tilbagekalder tokenet; appen opdager det, når sitet lukkes. Log ud i appen
+  rydder WebView'ets cookies, næste gang sitet åbnes.
+- user-agent kommer i serverens adgangslog, så der sendes kun hashes og en
+  kode, der bruges ved første forespørgsel og gælder i 60 sekunder.
 
 Ændringer på mitspor.dk kræver intet nyt app-build. Ændringer i `www/`,
 plugins eller native kode kræver et nyt build.

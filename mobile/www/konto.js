@@ -121,11 +121,12 @@
         return api('login.php', { method: 'POST', body: body }).then(modtagToken);
     }
 
-    // Brugeren har logget ind på sitet i appens WebView: veksl sitets
-    // engangskode (fra /app-forbind.php) til et token.
-    function vekslKode(engangskode) {
+    // Har brugeren logget ind på sitet i appens WebView, har sitet koblet
+    // hashen af hemmeligheden (par i user-agent) til kontoen: veksl
+    // hemmeligheden til et token. Ellers afvises promiset (401).
+    function vekslKode(hemmelighed) {
         var body = new URLSearchParams();
-        body.append('code', engangskode);
+        body.append('code', hemmelighed);
         body.append('device_name', enhedsnavn());
 
         return api('exchange-code.php', { method: 'POST', body: body }).then(modtagToken);
