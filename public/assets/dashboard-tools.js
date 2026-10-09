@@ -122,7 +122,7 @@
                     }).then(function () { return true; });
                 })
                 .then(function (saved) {
-                    if (saved) window.location.reload();
+                    if (saved) window.MitSporGenindlaes();
                 })
                 .catch(function (e) {
                     setText(statusEl, "");
@@ -389,7 +389,7 @@
             setBusy(true);
             setText(statusEl, "Gemmer…");
             saveRoute(params)
-                .then(function () { window.location.reload(); })
+                .then(function () { window.MitSporGenindlaes(); })
                 .catch(function (e) {
                     setText(statusEl, "");
                     setText(errorsEl, e.message || "Der skete en fejl. Prøv igen.");

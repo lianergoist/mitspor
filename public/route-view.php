@@ -1465,7 +1465,8 @@ if ($route['visibility'] === 'public') {
 
 <?php if (!$loggedIn): ?>
 <?php render_auth_dialogs(); ?>
-<script src="assets/auth-dialogs.js?v=1"></script>
+<script src="assets/genindlaes.js?v=1"></script>
+<script src="assets/auth-dialogs.js?v=2"></script>
 <script>MitSporAuth.init({ handleUrl: false });</script>
 <?php endif; ?>
 
