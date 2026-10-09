@@ -67,9 +67,58 @@
 
         <section class="ture">
             <h2>Gemte ture</h2>
+            <p class="konto">
+                <span id="optag-konto-tekst"></span>
+                <button type="button" class="link-btn" id="optag-konto-knap"></button>
+            </p>
             <p class="start-note" id="optag-tom">Ingen gemte ture endnu.</p>
             <ul class="ture-liste" id="optag-liste"></ul>
         </section>
+    </main>
+
+    <!-- Login i appen (giver et token til upload af ture). -->
+    <main class="start optag" id="view-login" hidden>
+        <header class="optag-header">
+            <button type="button" class="link-btn" id="login-tilbage">‹ Tilbage</button>
+            <h1>Log ind</h1>
+        </header>
+
+        <p class="formular-intro">Log ind med din konto på mitspor.dk for at uploade dine ture.</p>
+        <p class="fejl" id="login-fejl" role="alert" hidden></p>
+
+        <form class="formular" id="login-form" novalidate>
+            <label for="login-email">E-mail</label>
+            <input type="email" id="login-email" autocomplete="username" autocapitalize="off" spellcheck="false" required>
+            <label for="login-kode">Adgangskode</label>
+            <input type="password" id="login-kode" autocomplete="current-password" required>
+            <button type="submit" class="btn btn-primary" id="login-knap">Log ind</button>
+        </form>
+
+        <p class="start-note formular-links">
+            <a href="#" id="login-glemt">Glemt adgangskode?</a><br>
+            <a href="#" id="login-opret">Opret en konto på mitspor.dk</a>
+        </p>
+    </main>
+
+    <!-- Upload af en gemt tur: titel og aktivitet, derefter i kø. -->
+    <main class="start optag" id="view-upload" hidden>
+        <header class="optag-header">
+            <button type="button" class="link-btn" id="upload-tilbage">‹ Tilbage</button>
+            <h1>Upload tur</h1>
+        </header>
+
+        <p class="formular-intro" id="upload-tur"></p>
+        <p class="fejl" id="upload-fejl" role="alert" hidden></p>
+
+        <form class="formular" id="upload-form" novalidate>
+            <label for="upload-titel">Titel</label>
+            <input type="text" id="upload-titel" maxlength="200" required>
+            <label for="upload-aktivitet">Aktivitet</label>
+            <select id="upload-aktivitet" required></select>
+            <button type="submit" class="btn btn-primary" id="upload-knap">Upload</button>
+        </form>
+
+        <p class="start-note">Turen uploades som privat. Du kan gøre den offentlig på mitspor.dk. Er du ikke på nettet, sendes den, når du er det igen.</p>
     </main>
 
     <script src="vendor/capacitor.js"></script>
@@ -79,11 +128,15 @@
     <script src="vendor/share.js"></script>
     <script src="vendor/filesystem.js"></script>
     <script src="vendor/background-geolocation.js"></script>
+    <script src="vendor/secure-storage.js"></script>
     <script src="config.js"></script>
     <script src="app.js"></script>
     <script src="gpx.js"></script>
     <script src="spor.js"></script>
     <script src="lager.js"></script>
+    <script src="konto.js"></script>
+    <script src="upload.js"></script>
+    <script src="upload-visning.js"></script>
     <script src="optager.js"></script>
 </body>
 </html>

@@ -39,6 +39,45 @@ kræves ikke tilladelse til placering "hele tiden".
 - **Deling:** "Del GPX" åbner telefonens delemenu.
 - Optagelsen stopper af sig selv, før GPX-filen når 10 MB.
 
+## Upload til mitspor.dk (offline-kø)
+
+Under "Gemte ture" kan hver tur uploades (`www/upload.js`,
+`www/upload-visning.js`, `www/konto.js`).
+
+- **Login:** appen logger ind via `/api/v1/login.php` og får et token, der
+  sendes i headeren `X-Api-Token`. Tokenet gemmes i Keychain/Keystore med
+  `capacitor-secure-storage-plugin` (MIT), aldrig i localStorage, og
+  adgangskoden gemmes ikke. "Log ud" tilbagekalder tokenet på sitet.
+- **Upload:** brugeren vælger titel og aktivitet, og turen sættes i kø
+  (`meta.upload` i `meta.json`). Turen uploades som privat med turens id som
+  `client_upload_id`, så et nyt forsøg aldrig giver en dublet.
+- **Køen** sendes ved opstart, når nettet kommer tilbage, når appen vækkes,
+  efter login og hvert minut, mens appen er åben. Uden net venter turen.
+  Serverfejl (5xx, 429) prøves igen med stigende pause (30 s til 30 min).
+  Afviser sitet turen (fx ugyldig GPX eller kvote), vises fejlen, og turen
+  kan uploades igen. Er tokenet udløbet, bliver turen i køen til næste login.
+- Aktivitetstyperne hentes ved login og gemmes (localStorage), så en tur
+  kan sættes i kø uden net.
+
+## Fælles login i appen og på sitet
+
+Appen og sitet i WebView'et er logget ind med samme konto
+(`www/app.js`, `www/konto.js`; på sitet `app/app_login.php`).
+
+- WebView'et får "MitSporApp" i user-agent, så sitet ved, at det kører i appen.
+- **Appen → sitet:** er appen logget ind, henter den en engangskode
+  (`/api/v1/web-login-code.php`) og åbner `/app-login.php#kode=…&til=…`,
+  der logger sitet ind og går videre til siden.
+- **Sitet → appen:** login på sitet i appen går forbi
+  `/app-forbind.php#kode=…`. Appen ser adressen
+  (`browserPageNavigationCompleted`) og veksler koden til et token
+  (`/api/v1/exchange-code.php`).
+- **Log ud:** log ud på sitet går forbi `/app-logget-ud.php`, og appen
+  logger også ud. Log ud i appen rydder WebView'ets cookies, næste gang
+  sitet åbnes.
+- Koderne står efter `#`, så de ikke kommer i serverens adgangslog. De
+  gælder i 60 sekunder og kan bruges én gang.
+
 Ændringer på mitspor.dk kræver intet nyt app-build. Ændringer i `www/`,
 plugins eller native kode kræver et nyt build.
 

@@ -17,7 +17,8 @@
     "@capacitor/ios": "^8.5.2",
     "@capacitor/network": "^8.0.1",
     "@capacitor/share": "^8.0.3",
-    "@capgo/background-geolocation": "^8.4.8"
+    "@capgo/background-geolocation": "^8.4.8",
+    "capacitor-secure-storage-plugin": "^0.13.0"
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",

@@ -124,6 +124,25 @@
             });
     }
 
+    function laesGpx(meta) {
+        return laes(sti(meta.id, meta.gpxFil));
+    }
+
+    // Læser meta.json igen, lader aendr() rette i den og gemmer den.
+    // Er turen slettet imens, gemmes intet, og svaret er null.
+    function opdaterMeta(id, aendr) {
+        return laes(sti(id, 'meta.json'))
+            .then(function (tekst) { return JSON.parse(tekst); })
+            .catch(function () { return null; })
+            .then(function (meta) {
+                if (!meta) {
+                    return null;
+                }
+                aendr(meta);
+                return gemMeta(meta).then(function () { return meta; });
+            });
+    }
+
     function gpxUri(meta) {
         return Filesystem.getUri({ path: sti(meta.id, meta.gpxFil), directory: DIR })
             .then(function (svar) { return svar.uri; });
@@ -160,6 +179,8 @@
         tilfoejPunkt: tilfoejPunkt,
         hentPunkter: hentPunkter,
         gemGpx: gemGpx,
+        laesGpx: laesGpx,
+        opdaterMeta: opdaterMeta,
         gpxUri: gpxUri,
         alle: alle,
         slet: sletOptagelse

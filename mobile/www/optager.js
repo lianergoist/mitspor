@@ -14,6 +14,9 @@
     var Lager = window.MitSporLager;
     var Gpx = window.MitSporGpx;
     var Spor = window.MitSporSpor;
+    var Konto = window.MitSporKonto;
+    var Upload = window.MitSporUpload;
+    var UploadVisning = window.MitSporUploadVisning;
 
     // Smart-mode: alle brugbare GPS-punkter gemmes i punkter.jsonl, og
     // GPX-filen laves af det rensede spor (spor.js).
@@ -29,8 +32,6 @@
     // Hold GPX-filen et stykke under MAX_UPLOAD_SIZE_BYTES (10 MB) på sitet.
     var MAX_GPX_BYTES = 9.5 * 1024 * 1024;
 
-    var visStart = document.getElementById('view-start');
-    var visOptag = document.getElementById('view-optag');
     var aabnKnap = document.getElementById('open-recorder');
     var tilbageKnap = document.getElementById('optag-tilbage');
     var startKnap = document.getElementById('optag-start');
@@ -63,6 +64,7 @@
     var godeITraek = 0;
     var urTimer = null;
     var afbrudt = null;   // en optagelse, der ikke blev afsluttet (nedbrud/genstart)
+    var logget = false;   // er brugeren logget ind i appen?
 
     // Skrivninger køres én ad gangen, i den rækkefølge de kommer.
     var koe = Promise.resolve();
@@ -112,9 +114,7 @@
     // ---------- Visning ----------
 
     function visView(optag) {
-        visStart.hidden = optag;
-        visOptag.hidden = !optag;
-        window.scrollTo(0, 0);
+        window.MitSporApp.visSide(optag ? 'view-optag' : 'view-start');
     }
 
     function opdaterTal() {
@@ -162,27 +162,73 @@
         info.className = 'tur-info';
         info.textContent = km(m.afstandM) + ' · ' + varighed(koretid(m, m.slut || m.start)) + ' · ' + m.antalPunkter + ' punkter';
 
+        var status = document.createElement('div');
+        status.className = 'tur-upload' + (m.upload && m.upload.status === 'uploadet' ? ' tur-upload--ok' : '');
+        status.textContent = uploadTekst(m);
+        status.hidden = !status.textContent;
+
         var knapper = document.createElement('div');
         knapper.className = 'tur-knapper';
+        var u = m.upload;
+        var sendes = Upload.igang() === m.id;
 
-        var del = document.createElement('button');
-        del.type = 'button';
-        del.className = 'btn btn-secondary btn-small';
-        del.textContent = 'Del GPX';
-        del.addEventListener('click', function () { delGpx(m); });
+        if (!u || u.status === 'fejl') {
+            knapper.appendChild(knap('Upload', 'btn-primary', function () { UploadVisning.aabn(m); }));
+        } else if (u.status === 'koe' && u.fejl && logget && !sendes) {
+            knapper.appendChild(knap('Prøv igen nu', 'btn-secondary', function () {
+                Upload.saetIKoe(m.id, u.titel, u.aktivitet);
+            }));
+        } else if (u.status === 'uploadet' && u.url) {
+            knapper.appendChild(knap('Vis på mitspor.dk', 'btn-secondary', function () {
+                window.MitSporApp.aabnSite(u.url);
+            }));
+        }
+        knapper.appendChild(knap('Del GPX', 'btn-secondary', function () { delGpx(m); }));
+        knapper.appendChild(knap('Slet', 'btn-danger', function () { sletTur(m); })).disabled = sendes;
 
-        var slet = document.createElement('button');
-        slet.type = 'button';
-        slet.className = 'btn btn-danger btn-small';
-        slet.textContent = 'Slet';
-        slet.addEventListener('click', function () { sletTur(m); });
-
-        knapper.appendChild(del);
-        knapper.appendChild(slet);
         li.appendChild(navn);
         li.appendChild(info);
+        li.appendChild(status);
         li.appendChild(knapper);
         return li;
+    }
+
+    function knap(tekst, klasse, handling) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'btn btn-small ' + klasse;
+        b.textContent = tekst;
+        b.addEventListener('click', handling);
+        return b;
+    }
+
+    function uploadTekst(m) {
+        var u = m.upload;
+        if (!u) {
+            return '';
+        }
+        if (u.status === 'koe') {
+            if (Upload.igang() === m.id) {
+                return 'Uploader …';
+            }
+            if (!logget) {
+                return 'Venter på upload. Log ind for at sende turen.';
+            }
+            if (u.fejl) {
+                return 'Upload mislykkedes, prøver igen senere: ' + u.fejl;
+            }
+            return 'Venter på upload. Turen sendes, når du er på nettet.';
+        }
+        if (u.status === 'fejl') {
+            return 'Ikke uploadet: ' + u.fejl;
+        }
+        if (u.status === 'uploadet') {
+            return 'Uploadet til mitspor.dk (privat)';
+        }
+        if (u.status === 'slettet') {
+            return 'Uploadet, men siden slettet på mitspor.dk';
+        }
+        return '';
     }
 
     // ---------- Optagelse ----------
@@ -516,7 +562,10 @@
     }
 
     function sletTur(m) {
-        if (!window.confirm('Slet "' + m.navn + '" fra telefonen?\n\nTure, der allerede er uploadet til mitspor.dk, bliver ikke slettet dér.')) {
+        var advarsel = m.uploadet
+            ? 'Turen bliver ikke slettet på mitspor.dk.'
+            : 'Turen er ikke uploadet til mitspor.dk og kan ikke hentes igen.';
+        if (!window.confirm('Slet "' + m.navn + '" fra telefonen?\n\n' + advarsel)) {
             return;
         }
         iKoe(function () { return Lager.slet(m.id); }).then(visListe);
@@ -543,7 +592,10 @@
     // Android-tilbageknappen: under optagelse lægges appen i baggrunden i
     // stedet for at blive lukket, så optagelsen ikke stopper.
     App.addListener('backButton', function () {
-        if (!visOptag.hidden) {
+        var side = window.MitSporApp.aktivSide();
+        if (side === 'view-login' || side === 'view-upload') {
+            visView(true);
+        } else if (side === 'view-optag') {
             visView(false);
         } else if (aktiv) {
             App.minimizeApp();
@@ -551,6 +603,16 @@
             App.exitApp();
         }
     });
+    // Opdatér listen, når en upload starter eller slutter, eller når
+    // brugeren logger ind eller ud.
+    function nytLogin(login) {
+        logget = !!login;
+        visListe();
+    }
+    Upload.onSkift(visListe);
+    Konto.onSkift(nytLogin);
+    Konto.hent().then(nytLogin);
+
     App.addListener('resume', function () {
         if (aktiv && !pauset) {
             opdaterTal();

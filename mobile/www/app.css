@@ -294,3 +294,72 @@ body {
     font-size: 14px;
     color: var(--text-muted);
 }
+
+/* ---------- Login og upload ---------- */
+
+.konto {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 8px;
+    margin: 0 0 12px;
+    font-size: 15px;
+    color: var(--text-muted);
+}
+
+.konto .link-btn {
+    padding: 4px 0;
+    font-size: 15px;
+}
+
+.formular-intro {
+    margin: 0 0 16px;
+    color: var(--text-muted);
+}
+
+.formular {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 20px;
+}
+
+.formular label {
+    font-weight: 600;
+}
+
+.formular input,
+.formular select {
+    width: 100%;
+    min-height: 48px;
+    margin-bottom: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-size: 17px;
+}
+
+.formular .btn {
+    margin-top: 6px;
+}
+
+.formular-links {
+    line-height: 2;
+}
+
+.formular-links a {
+    color: var(--primary);
+}
+
+.tur-upload {
+    margin: -4px 0 10px;
+    font-size: 14px;
+    color: var(--warning-text);
+}
+
+.tur-upload--ok {
+    color: #166534;
+}
