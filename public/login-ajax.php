@@ -38,12 +38,11 @@ if (!$result['success']) {
 session_regenerate_id(true);
 $_SESSION['user_id'] = $result['user_id'];
 
-// I appens WebView logges appen også ind: siden sendes forbi
-// /app-forbind.php med en engangskode efter #, som appen veksler til et token.
-if (is_app_request()) {
-    $code = app_login_code_create(get_db(), (int) $result['user_id'], 'web_til_app');
-    echo json_encode(['success' => true, 'app_forbind' => '/app-forbind.php#kode=' . $code]);
-    exit;
+// I appens WebView logges appen også ind: appens hash (par i user-agent)
+// kobles til kontoen, og appen henter selv et token (se app/app_login.php).
+$pairHash = app_ua_param('par');
+if ($pairHash !== null) {
+    app_login_pair(get_db(), (int) $result['user_id'], $pairHash);
 }
 
 echo json_encode(['success' => true]);

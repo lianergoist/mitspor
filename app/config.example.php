@@ -59,6 +59,8 @@ define('API_CORS_ALLOWED_ORIGINS', ['capacitor://localhost', 'https://localhost'
 define('APP_LOGIN_CODE_TTL_SECONDS', 60);
 define('APP_LOGIN_CODE_RATE_LIMIT_MAX_ATTEMPTS', 60);
 define('APP_LOGIN_CODE_RATE_LIMIT_WINDOW_SECONDS', 3600); // 1 time
+// Veksling i api/v1/exchange-code.php pr. IP (appen spørger efter hver sidevisning).
+define('APP_EXCHANGE_RATE_LIMIT_MAX_ATTEMPTS', 600);
 
 // --- Udtynding af punkter ---
 // Foreslå udtynding, hvis den typiske (median) logningsfrekvens er
