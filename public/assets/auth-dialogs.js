@@ -119,7 +119,7 @@ window.MitSporAuth = (function () {
                         return;
                     }
                     if (data.success) {
-                        window.location.reload();
+                        window.MitSporGenindlaes();
                         return;
                     }
                     loginErrors.textContent = data.error || 'Der skete en fejl. Prøv igen.';

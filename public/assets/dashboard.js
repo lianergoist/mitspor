@@ -243,7 +243,7 @@
             .then(function (res) { return res.json(); })
             .then(function (data) {
                 if (data.success) {
-                    window.location.reload();
+                    window.MitSporGenindlaes();
                     return;
                 }
                 metaErrors.textContent = (data.errors && data.errors.join(' ')) || 'Der skete en fejl. Prøv igen.';
@@ -404,7 +404,7 @@
         }
 
         if (!failure) {
-            window.location.reload();
+            window.MitSporGenindlaes();
             return;
         }
 
@@ -480,7 +480,7 @@
         }
     });
     dialog.addEventListener('close', function () {
-        if (needsReload) window.location.reload();
+        if (needsReload) window.MitSporGenindlaes();
     });
 
     // Foreslå filnavnet (uden .gpx) som titel, og gæt Rute/Spor ud fra om
@@ -555,7 +555,7 @@
                     return;
                 }
 
-                window.location.reload();
+                window.MitSporGenindlaes();
             })
             .catch(function () {
                 errorsEl.textContent = 'Der skete en fejl. Prøv igen.';
@@ -668,11 +668,9 @@
             .then(function (res) { return res.json(); })
             .then(function (data) {
                 if (data.success) {
-                    // Luk dialogen med det samme, og hent siden igen med en
-                    // almindelig navigation: i appens WebView sker der intet
-                    // ved window.location.reload().
+                    // Luk dialogen med det samme, og hent siden igen.
                     dialog.close();
-                    window.location.replace(window.location.pathname + window.location.search);
+                    window.MitSporGenindlaes();
                     return;
                 }
                 errorsEl.textContent = (data.errors && data.errors.join(' ')) || 'Der skete en fejl. Prøv igen.';
@@ -709,7 +707,7 @@
                 .then(function (res) { return res.json(); })
                 .then(function (data) {
                     if (data.success) {
-                        window.location.reload();
+                        window.MitSporGenindlaes();
                         return;
                     }
                     btn.disabled = false;
@@ -943,7 +941,7 @@
                 route_ids: ids.join(',')
             });
         request.then(function (data) {
-            if (data.success) { window.location.reload(); return; }
+            if (data.success) { window.MitSporGenindlaes(); return; }
             showErrors(createErrors, data);
         }).catch(function () { showErrors(createErrors, null); });
     });
@@ -1034,7 +1032,7 @@
     });
 
     function done(data) {
-        if (data.success) { window.location.reload(); return; }
+        if (data.success) { window.MitSporGenindlaes(); return; }
         showErrors(editErrors, data);
     }
     function failed() { showErrors(editErrors, null); }
@@ -1294,8 +1292,9 @@
 // ---------------------------------------------------------------
 // Går brugeren "tilbage" hertil (fx fra editoren), kan browseren genoprette
 // siden fra sin hurtigcache med den gamle liste. Indlæs den da igen, så
-// nye/ændrede ruter er med. Valget (#route:...) bevares i adressen.
+// nye/ændrede ruter er med. Valget (#route:...) bevares i adressen
+// (se assets/genindlaes.js).
 // ---------------------------------------------------------------
 window.addEventListener('pageshow', function (ev) {
-    if (ev.persisted) window.location.reload();
+    if (ev.persisted) window.MitSporGenindlaes();
 });
