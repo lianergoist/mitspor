@@ -623,10 +623,15 @@
     var routeIdField = document.getElementById('delete-route-id');
     var confirmField = document.getElementById('delete-route-confirm-title');
     var submitBtn = document.getElementById('delete-route-submit-btn');
+    var mismatchEl = document.getElementById('delete-route-mismatch');
     var expectedTitle = '';
 
+    // Mellemrum før og efter ignoreres (mobiltastaturer tilføjer ofte et
+    // mellemrum efter ordet); serveren trimmer også.
     function updateSubmitState() {
-        submitBtn.disabled = confirmField.value !== expectedTitle;
+        var typed = confirmField.value.trim();
+        submitBtn.disabled = typed !== expectedTitle;
+        mismatchEl.hidden = typed === '' || typed === expectedTitle;
     }
 
     document.querySelectorAll('[data-delete-route]').forEach(function (btn) {
