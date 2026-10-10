@@ -595,7 +595,7 @@
         var side = window.MitSporApp.aktivSide();
         if (side === 'view-login' || side === 'view-upload') {
             visView(true);
-        } else if (side === 'view-optag') {
+        } else if (side === 'view-optag' || side === 'view-intro') {
             visView(false);
         } else if (aktiv) {
             App.minimizeApp();
