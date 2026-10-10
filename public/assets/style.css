@@ -1174,6 +1174,11 @@ a { color: var(--primary); }
    forsiden, kontrolpanelet og rutevisningen.
 ------------------------------------------------------------------ */
 @media (max-width: 800px) {
+    /* Kortets copyright-linje lidt mindre end Leaflets 12px. */
+    .leaflet-control-attribution {
+        font-size: 10px;
+    }
+
     .topbar {
         flex-wrap: wrap;
     }
