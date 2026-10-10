@@ -69,5 +69,6 @@ workflows:
     publishing:
       app_store_connect:
         auth: integration
-        # Sendes til TestFlight (interne testere kræver ingen gennemgang hos Apple)
-        submit_to_testflight: true
+        # Bygningen lægges i TestFlight til interne testere. Ingen ekstern
+        # beta-gennemgang (den kræver testoplysninger i App Store Connect).
+        submit_to_testflight: false
