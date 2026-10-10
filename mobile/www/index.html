@@ -27,8 +27,38 @@
         </nav>
 
         <footer class="start-footer">
+            <a href="#" id="open-intro">Sådan virker appen</a>
+            <span aria-hidden="true">·</span>
             <a href="#" id="open-privacy">Privatlivspolitik</a>
         </footer>
+    </main>
+
+    <!-- Intro: vises første gang appen åbnes (www/intro.js). Udkast/pladsholder. -->
+    <main class="start" id="view-intro" hidden>
+        <header class="start-header">
+            <img src="img/ikon.png" alt="" class="start-logo" width="96" height="96">
+            <h1>Velkommen til MitSpor</h1>
+            <p class="start-tagline">Find, optag og del ture til vands og til lands.</p>
+        </header>
+
+        <ol class="intro-trin">
+            <li>
+                <h2>Se ruter på kortet</h2>
+                <p>"Åbn mitspor.dk" viser alle offentlige ruter. Du behøver ikke at logge ind for at kigge.</p>
+            </li>
+            <li>
+                <h2>Optag din tur</h2>
+                <p>"Optag tur" bruger telefonens GPS og virker også uden net. Optagelsen fortsætter, når skærmen er slukket.</p>
+            </li>
+            <li>
+                <h2>Upload og del</h2>
+                <p>Log ind, og upload turen til din profil. Uden net sendes den, når du er på nettet igen. Turen er privat, til du deler den.</p>
+            </li>
+        </ol>
+
+        <nav class="start-actions">
+            <button type="button" class="btn btn-primary" id="intro-videre">Kom i gang</button>
+        </nav>
     </main>
 
     <!-- Optageren: lokal GPS-optagelse, virker uden net. -->
@@ -131,6 +161,7 @@
     <script src="vendor/secure-storage.js"></script>
     <script src="config.js"></script>
     <script src="app.js"></script>
+    <script src="intro.js"></script>
     <script src="gpx.js"></script>
     <script src="spor.js"></script>
     <script src="lager.js"></script>

@@ -130,6 +130,55 @@ body {
 .start-footer a {
     color: var(--text-muted);
 }
+/* ---------- Intro (første gang appen åbnes) ---------- */
+
+.intro-trin {
+    margin: 0 0 32px;
+    padding: 0;
+    list-style: none;
+    counter-reset: trin;
+}
+
+.intro-trin li {
+    position: relative;
+    padding-left: 44px;
+    margin-bottom: 20px;
+    counter-increment: trin;
+}
+
+.intro-trin li::before {
+    content: counter(trin);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #ffffff;
+    font-weight: 700;
+    line-height: 30px;
+    text-align: center;
+}
+
+.intro-trin h2 {
+    margin: 2px 0 4px;
+    font-size: 18px;
+    color: var(--brand);
+}
+
+.intro-trin p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 15px;
+    line-height: 1.45;
+}
+
+.start-footer span {
+    margin: 0 6px;
+    color: var(--text-muted);
+}
+
 /* ---------- Optageren ---------- */
 
 [hidden] {
