@@ -40,8 +40,10 @@ $stmt = $pdo->query(
 // Etaper i en gruppe (fx en 14-dages tur) vises som ÉN post på kortet.
 $publicRoutes = group_collapse_overview($stmt->fetchAll());
 
-// Webintroen (velkomstboks og video) vises ikke i appen; appen har sin egen intro.
-$showIntro = !is_app_webview();
+// Webintroen (velkomstboks og video) vises først, når videoen ligger i
+// public/grafik/intro.mp4, og aldrig i appen (appen har sin egen intro).
+$introVideoFile = __DIR__ . '/grafik/intro.mp4';
+$showIntro = !is_app_webview() && is_file($introVideoFile);
 ?>
 <!DOCTYPE html>
 <html lang="da">
@@ -129,9 +131,7 @@ $showIntro = !is_app_webview();
             <button type="button" id="intro-video-close" class="close-btn" aria-label="Luk">&times;</button>
         </div>
         <div class="intro-video-frame">
-            <!-- Pladsholder: erstattes af videoen, når den er lavet, fx
-                 <video src="/grafik/intro.mp4" controls preload="none" playsinline></video> -->
-            <div class="intro-video-placeholder">Videoen er på vej.</div>
+            <video src="/grafik/intro.mp4?v=<?= (int) filemtime($introVideoFile) ?>" controls preload="none" playsinline></video>
         </div>
     </dialog>
 
