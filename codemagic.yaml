@@ -72,3 +72,42 @@ workflows:
         # Bygningen lægges i TestFlight til interne testere. Ingen ekstern
         # beta-gennemgang (den kræver testoplysninger i App Store Connect).
         submit_to_testflight: false
+
+  ios-adhoc:
+    name: iOS-testversion (ad hoc, til Diawi)
+    # Til iPhones, der ikke kan køre TestFlight (kræver iOS 16).
+    # Kun registrerede enheder kan installere bygningen.
+    instance_type: mac_mini_m2
+    max_build_duration: 30
+    integrations:
+      app_store_connect: mitspor
+    environment:
+      node: 22
+      xcode: latest
+      ios_signing:
+        # Ad hoc-profilen skal indeholde telefonens UDID og hentes igen,
+        # når der registreres nye enheder.
+        distribution_type: ad_hoc
+        bundle_identifier: dk.mitspor.app
+    scripts:
+      - name: Installér npm-pakker
+        script: |
+          cd mobile
+          npm ci
+      - name: Kopiér web-filer ind i iOS-projektet
+        script: |
+          cd mobile
+          npm run vendor
+          npx cap sync ios
+      - name: Brug signeringsprofilen i Xcode-projektet
+        script: xcode-project use-profiles
+      - name: Sæt build-nummer
+        script: |
+          cd mobile/ios/App
+          agvtool new-version -all "$BUILD_NUMBER"
+      - name: Byg IPA
+        script: |
+          xcode-project build-ipa --project mobile/ios/App/App.xcodeproj --scheme App
+    artifacts:
+      # IPA'en hentes fra Codemagic og uploades manuelt til diawi.com
+      - build/ios/ipa/*.ipa
