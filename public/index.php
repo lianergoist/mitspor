@@ -7,6 +7,7 @@ require_once __DIR__ . '/../app/db.php';
 require_once __DIR__ . '/../app/csrf.php';
 require_once __DIR__ . '/../app/route_groups.php';
 require_once __DIR__ . '/../app/auth_dialogs.php';
+require_once __DIR__ . '/../app/app_login.php';
 
 $loggedIn = !empty($_SESSION['user_id']);
 $displayName = null;
@@ -38,6 +39,9 @@ $stmt = $pdo->query(
 );
 // Etaper i en gruppe (fx en 14-dages tur) vises som ÉN post på kortet.
 $publicRoutes = group_collapse_overview($stmt->fetchAll());
+
+// Webintroen (velkomstboks og video) vises ikke i appen; appen har sin egen intro.
+$showIntro = !is_app_webview();
 ?>
 <!DOCTYPE html>
 <html lang="da">
@@ -59,7 +63,7 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
     <meta name="twitter:card" content="summary_large_image">
 
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/style.css?v=23">
+    <link rel="stylesheet" href="assets/style.css?v=24">
     <style>
         html, body { height: 100%; margin: 0; }
         .start-dot { width: 11px; height: 11px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 3px rgba(0,0,0,.55); }
@@ -94,6 +98,9 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
                 <button type="button" id="btn-open-register" class="btn" title="Opret konto" aria-label="Opret konto"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M19 8v6"/><path d="M16 11h6"/></svg><span class="tb-label">Opret konto</span></button>
                 <button type="button" id="btn-open-login" class="btn" title="Log ind" aria-label="Log ind"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M22 11h-6"/><path d="M19 8l-3 3 3 3"/></svg><span class="tb-label">Log ind</span></button>
             <?php endif; ?>
+            <?php if ($showIntro): ?>
+                <button type="button" id="btn-open-intro-video" class="btn" title="Sådan virker det" aria-label="Sådan virker det"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l5.5-3.5z"/></svg><span class="tb-label">Sådan virker det</span></button>
+            <?php endif; ?>
             <button type="button" id="btn-open-about" class="btn" title="Hjælp" aria-label="Hjælp"><span class="help-icon" aria-hidden="true">?</span><span class="tb-label">Hjælp</span></button>
         </div>
     </div>
@@ -114,6 +121,34 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
             <p>Har du spørgsmål eller kommentarer, er du velkommen til at skrive til <a href="mailto:info@mitspor.dk">info@mitspor.dk</a>.</p>
         </div>
     </dialog>
+
+    <?php if ($showIntro): ?>
+    <dialog id="intro-video-dialog">
+        <div class="dialog-header">
+            <h2>Sådan virker MitSpor</h2>
+            <button type="button" id="intro-video-close" class="close-btn" aria-label="Luk">&times;</button>
+        </div>
+        <div class="intro-video-frame">
+            <!-- Pladsholder: erstattes af videoen, når den er lavet, fx
+                 <video src="/grafik/intro.mp4" controls preload="none" playsinline></video> -->
+            <div class="intro-video-placeholder">Videoen er på vej.</div>
+        </div>
+    </dialog>
+
+    <?php if (!$loggedIn && !isset($_GET['deleted'])): ?>
+    <!-- Velkomstboks: vises første gang (skjult, til JS har tjekket localStorage). -->
+    <section id="intro-welcome" class="intro-welcome" aria-labelledby="intro-welcome-title" hidden>
+        <button type="button" id="intro-welcome-close" class="close-btn intro-welcome-close" aria-label="Luk">&times;</button>
+        <h2 id="intro-welcome-title">Find og del ruter til vands og til lands</h2>
+        <p>Se offentlige ruter på kortet uden at logge ind.</p>
+        <p>Upload dine GPX-spor, og få din egen profil. Det er gratis.</p>
+        <div class="intro-welcome-buttons">
+            <button type="button" id="intro-welcome-video" class="btn btn-primary">Se video (1 min)</button>
+            <button type="button" id="intro-welcome-explore" class="btn">Udforsk kortet</button>
+        </div>
+    </section>
+    <?php endif; ?>
+    <?php endif; ?>
 
     <?php if (isset($_GET['deleted'])): ?>
         <div class="map-overlay-panel" style="top: calc(var(--topbar-height, 58px) + 8px); left: 50%; transform: translateX(-50%);">
@@ -562,6 +597,49 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
     });
     aboutDialog.addEventListener('click', function (ev) {
         if (ev.target === aboutDialog) aboutDialog.close();
+    });
+})();
+
+// ---------- Intro: video og velkomstboks (ikke i appen) ----------
+(function () {
+    "use strict";
+    var videoDialog = document.getElementById('intro-video-dialog');
+    if (!videoDialog) return;
+
+    function openVideo() {
+        videoDialog.showModal();
+    }
+    function closeVideo() {
+        videoDialog.close();
+    }
+    // Videoen stopper, når vinduet lukkes (også med Esc).
+    videoDialog.addEventListener('close', function () {
+        var video = videoDialog.querySelector('video');
+        if (video) video.pause();
+    });
+    document.getElementById('btn-open-intro-video').addEventListener('click', openVideo);
+    document.getElementById('intro-video-close').addEventListener('click', closeVideo);
+    videoDialog.addEventListener('click', function (ev) {
+        if (ev.target === videoDialog) closeVideo();
+    });
+
+    var welcome = document.getElementById('intro-welcome');
+    if (!welcome) return;
+    var STORAGE_KEY = 'mitspor-intro-lukket';
+    var dismissed = false;
+    try { dismissed = localStorage.getItem(STORAGE_KEY) === '1'; } catch (e) {}
+    if (dismissed) return;
+    welcome.hidden = false;
+
+    function dismiss() {
+        welcome.hidden = true;
+        try { localStorage.setItem(STORAGE_KEY, '1'); } catch (e) {}
+    }
+    document.getElementById('intro-welcome-close').addEventListener('click', dismiss);
+    document.getElementById('intro-welcome-explore').addEventListener('click', dismiss);
+    document.getElementById('intro-welcome-video').addEventListener('click', function () {
+        dismiss();
+        openVideo();
     });
 })();
 

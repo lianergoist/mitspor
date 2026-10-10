@@ -42,6 +42,15 @@ if (!defined('APP_EXCHANGE_RATE_LIMIT_MAX_ATTEMPTS')) {
 }
 
 /**
+ * Kører siden i appens WebView? Appen tilføjer altid "MitSporApp/<n>" til
+ * user-agent. Kun til visning (fx at skjule webintroen), ikke til adgang.
+ */
+function is_app_webview(): bool
+{
+    return preg_match('/MitSporApp\/\d+/', (string) ($_SERVER['HTTP_USER_AGENT'] ?? '')) === 1;
+}
+
+/**
  * Værdi fra appens user-agent ("MitSporApp/2 (navn=værdi; …)"), eller null.
  * Alle værdier er 64 hex-tegn; alt andet afvises.
  */
