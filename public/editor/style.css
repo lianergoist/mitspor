@@ -807,6 +807,11 @@ html {
 
 /* Responsivt design (til mobilskærme under 800px bredde) */
 @media (max-width: 800px) {
+  /* Kortets copyright-linje lidt mindre end Leaflets 12px. */
+  .leaflet-control-attribution {
+    font-size: 10px;
+  }
+
   /* Knapperne viser kun ikonet på mobil, med samme luft om ikonet som på
      rutens side. */
   #toolbar .tool-group button,
