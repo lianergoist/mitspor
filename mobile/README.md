@@ -81,8 +81,8 @@ user-agent, `MitSporApp/3 (par=…; tok=…; kode=…)`.
 - user-agent kommer i serverens adgangslog, så der sendes kun hashes og en
   kode, der bruges ved første forespørgsel og gælder i 60 sekunder.
 
-WebView'et har ingen topbar. Fra `MitSporApp/3` viser sitet selv knappen
-"‹ Appen" nederst til venstre (`app/app_tilbage.php`). Den fører til
+WebView'et har ingen topbar. Fra `MitSporApp/3` viser sitet selv en smal linje
+øverst med "‹ Appen" (`app/app_tilbage.php`). Den fører til
 `/app-luk.php`, og når den side er indlæst, lukker appen WebView'et.
 Tilbage i sitets historik: swipe fra venstre kant (iOS) eller
 tilbageknappen (Android).

@@ -2,12 +2,12 @@
 declare(strict_types=1);
 
 /*
- * Knap tilbage til mobilappen.
+ * Linje med link tilbage til mobilappen.
  *
  * Fra MitSporApp/3 åbner appen sitet uden sin egen topbar med "Luk", så
- * sitet viser selv en lille knap. Den fører til /app-luk.php, og når den
- * side indlæses, lukker appen WebView'et. Ældre app-versioner har stadig
- * topbaren og får ikke knappen.
+ * sitet viser selv en smal linje øverst med "‹ Appen". Linket fører til
+ * /app-luk.php, og når den side indlæses, lukker appen WebView'et. Ældre
+ * app-versioner har stadig topbaren og får ikke linjen.
  */
 
 /**
@@ -24,9 +24,12 @@ function app_webview_version(): int
 }
 
 /**
- * Udskriv knappen (lige efter <body>). Gør intet uden for appen.
- * Stilen er med her, så knappen ser ens ud på alle sider, også dem
- * uden assets/style.css.
+ * Udskriv linjen (lige efter <body>). Gør intet uden for appen.
+ *
+ * Linjen ligger fast øverst, og siden skubbes ned med --app-linje (højden),
+ * så intet skjules bag den. Fuldskærmskortene (.map-page i
+ * assets/style.css) trækker samme højde fra. Stilen er med her, så linjen
+ * ser ens ud på alle sider, også dem uden assets/style.css.
  */
 function render_app_back_button(): void
 {
@@ -35,36 +38,53 @@ function render_app_back_button(): void
     }
     ?>
 <style>
-    .app-tilbage {
+    :root {
+        --app-linje: 34px;
+    }
+    html {
+        box-sizing: border-box;
+        padding-top: var(--app-linje);
+        scroll-padding-top: var(--app-linje);
+    }
+    .app-linje {
         position: fixed;
-        left: calc(env(safe-area-inset-left) + 10px);
-        bottom: calc(env(safe-area-inset-bottom) + 12px);
+        top: 0;
+        left: 0;
+        right: 0;
         /* Over Leaflets knapper (z-index 1000), under dialoger. */
         z-index: 1001;
+        box-sizing: border-box;
+        height: var(--app-linje);
+        display: flex;
+        align-items: center;
+        padding: 0 calc(env(safe-area-inset-right) + 8px) 0 calc(env(safe-area-inset-left) + 8px);
+        background: #f1f5f9;
+        border-bottom: 1px solid #e2e8f0;
+        font: 600 15px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .app-linje a {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
-        padding: 7px 12px 7px 9px;
-        border: 1px solid #e2e8f0;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.94);
-        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.18);
-        color: #1e293b;
-        font: 600 14px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        gap: 5px;
+        height: 100%;
+        padding: 0 8px;
+        color: #2563eb;
         text-decoration: none;
         -webkit-tap-highlight-color: transparent;
     }
-    .app-tilbage span {
-        font-size: 20px;
-        line-height: 14px;
+    .app-linje a span {
+        font-size: 22px;
+        line-height: 1;
+        margin-top: -2px;
     }
-    .app-tilbage:active {
-        background: #e2e8f0;
+    .app-linje a:active {
+        opacity: 0.6;
     }
     @media print {
-        .app-tilbage { display: none; }
+        html { padding-top: 0; }
+        .app-linje { display: none; }
     }
 </style>
-<a href="/app-luk.php" class="app-tilbage"><span aria-hidden="true">‹</span>Appen</a>
+<div class="app-linje"><a href="/app-luk.php"><span aria-hidden="true">‹</span>Appen</a></div>
     <?php
 }
