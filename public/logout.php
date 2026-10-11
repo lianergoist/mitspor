@@ -6,6 +6,7 @@ session_start();
 require_once __DIR__ . '/../app/db.php';
 require_once __DIR__ . '/../app/csrf.php';
 require_once __DIR__ . '/../app/app_login.php';
+require_once __DIR__ . '/../app/app_tilbage.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (csrf_validate($_POST['csrf_token'] ?? null)) {
@@ -49,6 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Log ud</title>
 </head>
 <body>
+<?php render_app_back_button(); ?>
 
 <h1>Log ud</h1>
 <p>Er du sikker på, at du vil logge ud?</p>

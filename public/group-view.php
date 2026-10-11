@@ -6,6 +6,7 @@ session_start();
 require_once __DIR__ . '/../app/db.php';
 require_once __DIR__ . '/../app/route_groups.php';
 require_once __DIR__ . '/../app/og_image.php';
+require_once __DIR__ . '/../app/app_tilbage.php';
 
 $pdo = get_db();
 $group = group_find($pdo, (string) ($_GET['id'] ?? ''));
@@ -117,6 +118,7 @@ $palette = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#0891b2', '#
     </style>
 </head>
 <body>
+<?php render_app_back_button(); ?>
 
 <div class="map-page">
 
