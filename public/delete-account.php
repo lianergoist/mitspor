@@ -7,6 +7,7 @@ require_once __DIR__ . '/../app/db.php';
 require_once __DIR__ . '/../app/csrf.php';
 require_once __DIR__ . '/../app/auth.php';
 require_once __DIR__ . '/../app/account_deletion.php';
+require_once __DIR__ . '/../app/app_hent.php';
 
 $userId = require_login();
 $user = current_user($userId);
@@ -89,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <p>
     Overvejer du i stedet bare at eksportere dine data, uden at slette kontoen?
-    <a href="export-data.php">Download alle mine data</a>
+    <a href="<?= htmlspecialchars(data_export_url(), ENT_QUOTES, 'UTF-8') ?>">Download alle mine data</a>
 </p>
 
 <?php if (!empty($errors)): ?>

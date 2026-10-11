@@ -50,6 +50,8 @@ function api_bootstrap(array $allowedMethods): void
         header('Access-Control-Allow-Origin: ' . $origin);
         header('Access-Control-Allow-Methods: ' . implode(', ', $methods));
         header('Access-Control-Allow-Headers: X-Api-Token, Content-Type');
+        // Filnavnet ved download (api/v1/route-file.php, export-data.php).
+        header('Access-Control-Expose-Headers: Content-Disposition');
         header('Access-Control-Max-Age: 600');
     }
 

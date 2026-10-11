@@ -52,6 +52,11 @@ define('API_TOKEN_TTL_DAYS', 180);
 // Uploads pr. bruger via API'et inden for tidsvinduet.
 define('API_UPLOAD_RATE_LIMIT_MAX_ATTEMPTS', 30);
 define('API_UPLOAD_RATE_LIMIT_WINDOW_SECONDS', 3600); // 1 time
+// Download af GPX-filer og dataeksport til appen (api/v1/route-file.php, export-data.php).
+define('API_DOWNLOAD_RATE_LIMIT_MAX_ATTEMPTS', 120);
+define('API_DOWNLOAD_RATE_LIMIT_WINDOW_SECONDS', 3600); // 1 time
+define('API_EXPORT_RATE_LIMIT_MAX_ATTEMPTS', 10);
+define('API_EXPORT_RATE_LIMIT_WINDOW_SECONDS', 3600); // 1 time
 // Origins der får CORS-headere (Capacitor-appen på iOS/Android).
 define('API_CORS_ALLOWED_ORIGINS', ['capacitor://localhost', 'https://localhost']);
 // Engangskoder, der forbinder login i appen og på sitet (app/app_login.php):

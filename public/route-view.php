@@ -8,6 +8,7 @@ require_once __DIR__ . '/../app/og_image.php';
 require_once __DIR__ . '/../app/route_groups.php';
 require_once __DIR__ . '/../app/auth.php';
 require_once __DIR__ . '/../app/auth_dialogs.php';
+require_once __DIR__ . '/../app/app_hent.php';
 
 $publicId = (string) ($_GET['id'] ?? '');
 
@@ -335,7 +336,7 @@ if ($route['visibility'] === 'public') {
         <div class="topbar-buttons">
             <button type="button" id="btn-graphs-toggle" class="btn" hidden title="Vis/skjul grafer" aria-label="Grafer"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg><span class="btn-label">Grafer</span></button>
             <?php if ($canDownload): ?>
-                <a class="btn" href="route-file.php?id=<?= htmlspecialchars($route['public_id'], ENT_QUOTES, 'UTF-8') ?>&mode=download<?= $hasValidShareToken ? '&share=' . urlencode($shareToken) : '' ?>" title="Download GPX-fil" aria-label="Download"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M12 3v12m0 0l-5-5m5 5l5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="btn-label">Download</span></a>
+                <a class="btn" href="<?= htmlspecialchars(gpx_download_url($route['public_id'], $hasValidShareToken ? $shareToken : ''), ENT_QUOTES, 'UTF-8') ?>" title="Download GPX-fil" aria-label="Download"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M12 3v12m0 0l-5-5m5 5l5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="btn-label">Download</span></a>
             <?php endif; ?>
             <?php if ($isOwner): ?>
                 <a href="editor/?route=<?= htmlspecialchars($route['public_id'], ENT_QUOTES, 'UTF-8') ?>" class="btn" title="Redigér punkter, billeder og waypoints i editoren" aria-label="Editor"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg><span class="btn-label">Editor</span></a>
