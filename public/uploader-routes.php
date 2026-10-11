@@ -4,7 +4,6 @@ declare(strict_types=1);
 session_start();
 
 require_once __DIR__ . '/../app/db.php';
-require_once __DIR__ . '/../app/app_tilbage.php';
 
 $referringPublicId = (string) ($_GET['route'] ?? '');
 
@@ -56,7 +55,6 @@ $routes = $stmt->fetchAll();
     <link rel="stylesheet" href="assets/style.css?v=8">
 </head>
 <body>
-<?php render_app_back_button(); ?>
 
 <div class="topbar">
     <a href="index.php" class="brand">&larr; MitSpor</a>

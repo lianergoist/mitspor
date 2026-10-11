@@ -12,7 +12,6 @@ require_once __DIR__ . '/../app/db.php';
 require_once __DIR__ . '/../app/csrf.php';
 require_once __DIR__ . '/../app/auth.php';
 require_once __DIR__ . '/../app/route_groups.php';
-require_once __DIR__ . '/../app/app_tilbage.php';
 
 $userId = require_login();
 $user = current_user($userId);
@@ -58,7 +57,6 @@ $groups = group_list_for_user($pdo, $userId);
     <link rel="stylesheet" href="assets/dashboard.css?v=12">
 </head>
 <body>
-<?php render_app_back_button(); ?>
 
 <div class="topbar" id="dashboard-topbar">
     <a href="index.php" class="brand" title="Til forsiden" aria-label="Til forsiden">

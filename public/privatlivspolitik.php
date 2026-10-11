@@ -2,7 +2,6 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../app/config.php';
-require_once __DIR__ . '/../app/app_tilbage.php';
 ?>
 <!DOCTYPE html>
 <html lang="da">
@@ -37,7 +36,6 @@ require_once __DIR__ . '/../app/app_tilbage.php';
     </style>
 </head>
 <body>
-<?php render_app_back_button(); ?>
 
 <header class="topbar">
     <a href="index.php" class="brand"><img src="grafik/mitspor_50x50.png" alt="" class="brand-logo"><span class="brand-text">MitSpor</span></a>

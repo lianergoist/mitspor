@@ -7,7 +7,6 @@ require_once __DIR__ . '/../app/db.php';
 require_once __DIR__ . '/../app/csrf.php';
 require_once __DIR__ . '/../app/rate_limit.php';
 require_once __DIR__ . '/../app/mailer.php';
-require_once __DIR__ . '/../app/app_tilbage.php';
 
 $errors = [];
 $success = false;
@@ -126,7 +125,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Opret konto</title>
 </head>
 <body>
-<?php render_app_back_button(); ?>
 
 <?php if ($success): ?>
 
