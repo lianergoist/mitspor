@@ -8,6 +8,7 @@ require_once __DIR__ . '/../app/csrf.php';
 require_once __DIR__ . '/../app/route_groups.php';
 require_once __DIR__ . '/../app/auth_dialogs.php';
 require_once __DIR__ . '/../app/app_login.php';
+require_once __DIR__ . '/../app/app_tilbage.php';
 
 $loggedIn = !empty($_SESSION['user_id']);
 $displayName = null;
@@ -73,6 +74,7 @@ $showIntro = !is_app_webview() && is_file($introVideoFile);
     </style>
 </head>
 <body>
+<?php render_app_back_button(); ?>
 
 <div class="map-page">
 

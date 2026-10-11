@@ -4,6 +4,7 @@ declare(strict_types=1);
 session_start();
 
 require_once __DIR__ . '/../app/db.php';
+require_once __DIR__ . '/../app/app_tilbage.php';
 
 $status = 'invalid'; // invalid | expired | success | already_used
 
@@ -72,6 +73,7 @@ if (is_string($rawToken) && $rawToken !== '') {
     <title>Bekræft e-mail</title>
 </head>
 <body>
+<?php render_app_back_button(); ?>
 
 <?php if ($status === 'success'): ?>
     <h1>Din e-mail er bekræftet</h1>
