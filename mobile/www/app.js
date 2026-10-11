@@ -24,7 +24,7 @@
             // Kun lige efter log ud i appen ryddes cookies, så sitet også logges ud.
             clearCache: rydCookies,
             clearSessionCache: rydCookies,
-            // "MitSporApp/3 (…)" fortæller sitet, at det kører i appen (fælles login).
+            // "MitSporApp/4 (…)" fortæller sitet, at det kører i appen (fælles login).
             customWebViewUserAgent: userAgent,
             showURL: false,
             // Ingen topbar med "Luk": sitet viser selv knappen "‹ Appen"
@@ -71,8 +71,9 @@
     // ---------- Fælles login med sitet (se app/app_login.php på sitet) ----------
     //
     // Appen sender oplysningerne i WebView'ets user-agent, så der ikke skal
-    // vises mellemsider: "MitSporApp/3 (par=…; tok=…; kode=…)".
+    // vises mellemsider: "MitSporApp/4 (par=…; tok=…; kode=…)".
     // Version 3: WebView'et har ingen topbar, sitet viser knappen "‹ Appen".
+    // Version 4: download-links går til /app-hent.php, og appen henter filen (hent.js).
     //   kode: engangskode, der logger sitet ind (/app-login.php omdirigerer straks)
     //   par:  SHA-256 af en hemmelighed; logger brugeren ind på sitet, kan appen
     //         veksle hemmeligheden til et token
@@ -120,7 +121,7 @@
                 }
                 return {
                     url: kode ? config.siteUrl + '/app-login.php?til=' + encodeURIComponent(path) : config.siteUrl + path,
-                    userAgent: navigator.userAgent + ' MitSporApp/3' + (dele.length ? ' (' + dele.join('; ') + ')' : '')
+                    userAgent: navigator.userAgent + ' MitSporApp/4' + (dele.length ? ' (' + dele.join('; ') + ')' : '')
                 };
             });
         });
@@ -218,19 +219,25 @@
             .then(function () { parHemmelighed = null; });
     }
 
-    // Sitets knap "‹ Appen" fører til /app-luk.php. Når den side er indlæst,
-    // lukkes WebView'et, og brugeren er tilbage i appen.
-    function erLukSide(url) {
+    // Sider med en særlig betydning for appen:
+    //   /app-luk.php   sitets link "‹ Appen": WebView'et lukkes
+    //   /app-hent.php  et download-link: appen henter filen (hent.js)
+    function stiFra(url) {
         try {
-            return new URL(url).pathname === '/app-luk.php';
+            return new URL(url).pathname;
         } catch (e) {
-            return false;
+            return '';
         }
     }
 
     function sideIndlaest(data) {
-        if (data && erLukSide(data.url)) {
+        var sti = data ? stiFra(data.url) : '';
+        if (sti === '/app-luk.php') {
             browser.InAppBrowser.close().catch(function () {});
+            return;
+        }
+        if (sti === '/app-hent.php') {
+            window.MitSporHent.hent(data.url);
             return;
         }
         proevVeksling();
