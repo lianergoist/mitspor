@@ -65,7 +65,7 @@ Appen og sitet i WebView'et er logget ind med samme konto
 (`www/app.js`, `www/konto.js`; på sitet `app/app_login.php`).
 
 Der vises ingen mellemsider: appen sender oplysningerne i WebView'ets
-user-agent, `MitSporApp/2 (par=…; tok=…; kode=…)`.
+user-agent, `MitSporApp/3 (par=…; tok=…; kode=…)`.
 
 - **Appen → sitet (`kode`):** er appen logget ind, henter den en engangskode
   (`/api/v1/web-login-code.php`) og åbner `/app-login.php?til=…`, der logger
@@ -80,6 +80,12 @@ user-agent, `MitSporApp/2 (par=…; tok=…; kode=…)`.
   rydder WebView'ets cookies, næste gang sitet åbnes.
 - user-agent kommer i serverens adgangslog, så der sendes kun hashes og en
   kode, der bruges ved første forespørgsel og gælder i 60 sekunder.
+
+WebView'et har ingen topbar. Fra `MitSporApp/3` viser sitet selv knappen
+"‹ Appen" nederst til venstre (`app/app_tilbage.php`). Den fører til
+`/app-luk.php`, og når den side er indlæst, lukker appen WebView'et.
+Tilbage i sitets historik: swipe fra venstre kant (iOS) eller
+tilbageknappen (Android).
 
 Ændringer på mitspor.dk kræver intet nyt app-build. Ændringer i `www/`,
 plugins eller native kode kræver et nyt build.
