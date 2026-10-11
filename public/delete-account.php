@@ -7,7 +7,6 @@ require_once __DIR__ . '/../app/db.php';
 require_once __DIR__ . '/../app/csrf.php';
 require_once __DIR__ . '/../app/auth.php';
 require_once __DIR__ . '/../app/account_deletion.php';
-require_once __DIR__ . '/../app/app_tilbage.php';
 
 $userId = require_login();
 $user = current_user($userId);
@@ -74,7 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Slet konto</title>
 </head>
 <body>
-<?php render_app_back_button(); ?>
 
 <h1>Slet din konto</h1>
 

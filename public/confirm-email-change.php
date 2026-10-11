@@ -4,7 +4,6 @@ declare(strict_types=1);
 session_start();
 
 require_once __DIR__ . '/../app/db.php';
-require_once __DIR__ . '/../app/app_tilbage.php';
 
 $status = 'invalid'; // invalid | expired | already_used | success | email_taken
 
@@ -79,7 +78,6 @@ if ($rawToken !== '') {
     <link rel="stylesheet" href="assets/style.css?v=8">
 </head>
 <body>
-<?php render_app_back_button(); ?>
 
 <div class="container">
     <div class="card">

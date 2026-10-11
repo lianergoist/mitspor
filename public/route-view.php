@@ -8,7 +8,6 @@ require_once __DIR__ . '/../app/og_image.php';
 require_once __DIR__ . '/../app/route_groups.php';
 require_once __DIR__ . '/../app/auth.php';
 require_once __DIR__ . '/../app/auth_dialogs.php';
-require_once __DIR__ . '/../app/app_tilbage.php';
 
 $publicId = (string) ($_GET['id'] ?? '');
 
@@ -322,7 +321,6 @@ if ($route['visibility'] === 'public') {
     </style>
 </head>
 <body>
-<?php render_app_back_button(); ?>
 
 <div class="map-page">
 

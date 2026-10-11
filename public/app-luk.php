@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /*
- * Mål for knappen "‹ Appen" (app/app_tilbage.php). Appen lukker sit
+ * Mål for linket "‹ Appen" på forsiden (app/app_tilbage.php). Appen lukker sit
  * WebView, så snart denne side indlæses, så brugeren ser den højst et
  * øjeblik. Uden for appen vises et link til forsiden.
  */
