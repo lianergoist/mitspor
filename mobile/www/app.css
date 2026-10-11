@@ -132,6 +132,55 @@ body {
 }
 /* ---------- Intro (første gang appen åbnes) ---------- */
 
+/* Introen ruller selv inden for skærmens højde, så intet skæres af på små
+   telefoner (fx iPhone 6s) eller med større tekst. "Kom i gang" bliver
+   stående nederst, mens teksten ruller. */
+.intro {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-top: calc(env(safe-area-inset-top) + 20px);
+    padding-bottom: 0;
+}
+
+.intro .start-header {
+    margin-bottom: 20px;
+}
+
+.intro .start-logo {
+    width: 64px;
+    height: 64px;
+    border-radius: 15px;
+}
+
+.intro .start-header h1 {
+    margin-top: 10px;
+    font-size: 24px;
+}
+
+.intro .start-tagline {
+    font-size: 15px;
+}
+
+.intro .intro-trin {
+    margin-bottom: 8px;
+}
+
+.intro .intro-trin li {
+    margin-bottom: 14px;
+}
+
+.intro .start-actions {
+    position: sticky;
+    bottom: 0;
+    margin-top: auto;
+    padding: 12px 0 calc(env(safe-area-inset-bottom) + 16px);
+    background: var(--bg);
+    box-shadow: 0 -12px 12px -4px var(--bg);
+}
+
 .intro-trin {
     margin: 0 0 32px;
     padding: 0;
