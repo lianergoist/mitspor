@@ -458,6 +458,8 @@ a { color: var(--primary); }
 .map-page {
     height: 100vh;
     height: 100dvh; /* korrigerer for mobilbrowseres upålidelige 100vh (adresselinje-problemet) */
+    /* I appen ligger linjen "‹ Appen" øverst (app/app_tilbage.php). */
+    height: calc(100dvh - var(--app-linje, 0px));
     position: relative;
 }
 .map-page .topbar {
