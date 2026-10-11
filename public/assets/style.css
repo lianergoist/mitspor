@@ -68,6 +68,32 @@ a { color: var(--primary); }
     display: block;
 }
 
+/* I appen står "‹ Appen" i stedet for logoet på forsiden
+   (app/app_tilbage.php). Samme højde som logoet, så topbaren ikke ændres. */
+.app-tilbage {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 32px;
+    padding: 0 4px;
+    margin-left: -4px;
+    color: var(--primary);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+}
+.app-tilbage span {
+    font-size: 22px;
+    line-height: 1;
+    margin-top: -2px;
+}
+.app-tilbage:active {
+    opacity: 0.6;
+}
+
 /* Tilbage-pilen til venstre i topbaren — ens i kontrolpanelet, på rutens
    side og i editoren (editor/style.css har samme regel). */
 .back-arrow {

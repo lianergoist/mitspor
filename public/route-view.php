@@ -146,7 +146,7 @@ if ($route['visibility'] === 'public') {
     <meta name="twitter:image" content="<?= htmlspecialchars($ogImageUrl, ENT_QUOTES, 'UTF-8') ?>">
 
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/style.css?v=20">
+    <link rel="stylesheet" href="assets/style.css?v=21">
     <style>
         html, body { height: 100%; margin: 0; }
         /* Topbar + info-boks: .top-area ligger øverst over kortet, og info-boksen
