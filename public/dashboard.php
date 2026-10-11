@@ -12,6 +12,7 @@ require_once __DIR__ . '/../app/db.php';
 require_once __DIR__ . '/../app/csrf.php';
 require_once __DIR__ . '/../app/auth.php';
 require_once __DIR__ . '/../app/route_groups.php';
+require_once __DIR__ . '/../app/app_hent.php';
 
 $userId = require_login();
 $user = current_user($userId);
@@ -196,7 +197,7 @@ $groups = group_list_for_user($pdo, $userId);
 
     <h2>Konto</h2>
     <nav class="dialog-nav">
-        <a href="export-data.php">Download alle mine data</a>
+        <a href="<?= dash_h(data_export_url()) ?>">Download alle mine data</a>
         <a href="delete-account.php" class="danger">Slet min konto</a>
     </nav>
 </dialog>
@@ -297,7 +298,7 @@ function render_route_detail(array $route): void
                 </div>
             <?php endif; ?>
             <div class="tool-row">
-                <a class="tool" href="route-file.php?id=<?= dash_h($id) ?>&amp;mode=download">Download GPX-fil</a>
+                <a class="tool" href="<?= dash_h(gpx_download_url($id)) ?>">Download GPX-fil</a>
                 <?= dash_help_btn('download', 'Download GPX-fil') ?>
             </div>
             <?php if ($route['original_gpx_file_path'] !== null): ?>
