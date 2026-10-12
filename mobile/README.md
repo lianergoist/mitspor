@@ -65,7 +65,7 @@ Appen og sitet i WebView'et er logget ind med samme konto
 (`www/app.js`, `www/konto.js`; på sitet `app/app_login.php`).
 
 Der vises ingen mellemsider: appen sender oplysningerne i WebView'ets
-user-agent, `MitSporApp/3 (par=…; tok=…; kode=…)`.
+user-agent, `MitSporApp/5 (par=…; kode=…)`.
 
 - **Appen → sitet (`kode`):** er appen logget ind, henter den en engangskode
   (`/api/v1/web-login-code.php`) og åbner `/app-login.php?til=…`, der logger
@@ -75,8 +75,10 @@ user-agent, `MitSporApp/3 (par=…; tok=…; kode=…)`.
   til kontoen. Efter hver side (`browserPageNavigationCompleted`) og når
   sitet lukkes, prøver appen at veksle hemmeligheden til et token
   (`/api/v1/exchange-code.php`).
-- **Log ud (`tok`):** appen sender SHA-256 af sit token. Log ud på sitet
-  tilbagekalder tokenet; appen opdager det, når sitet lukkes. Log ud i appen
+- **Log ud:** log ud på sitet går til `/app-logget-ud.php`. Når den side er
+  indlæst, logger appen også ud og tilbagekalder sit token. Appen sender
+  derfor hverken sit token eller en hash af det til sitet (til og med
+  `MitSporApp/4` sendte den SHA-256 af tokenet som `tok`). Log ud i appen
   rydder WebView'ets cookies, næste gang sitet åbnes.
 - user-agent kommer i serverens adgangslog, så der sendes kun hashes og en
   kode, der bruges ved første forespørgsel og gælder i 60 sekunder.

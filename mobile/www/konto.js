@@ -150,9 +150,13 @@
 
     // Logger ud på telefonen med det samme og tilbagekalder tokenet på
     // sitet, hvis der er net. (Uden net udløber det af sig selv.)
-    function logUd() {
+    // valg.rydWeb: false, når brugeren loggede ud på sitet (app-logget-ud.php);
+    // ellers ryddes WebView'ets cookies, næste gang sitet åbnes.
+    function logUd(valg) {
         var gammelt = login;
-        gemLokalt(RYD_WEB_NOEGLE, true);
+        if (!valg || valg.rydWeb !== false) {
+            gemLokalt(RYD_WEB_NOEGLE, true);
+        }
         return glem().then(function () {
             if (gammelt) {
                 return api('logout.php', { method: 'POST', token: gammelt.token }).catch(function () {});

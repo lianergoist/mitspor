@@ -24,7 +24,7 @@
             // Kun lige efter log ud i appen ryddes cookies, så sitet også logges ud.
             clearCache: rydCookies,
             clearSessionCache: rydCookies,
-            // "MitSporApp/4 (…)" fortæller sitet, at det kører i appen (fælles login).
+            // "MitSporApp/5 (…)" fortæller sitet, at det kører i appen (fælles login).
             customWebViewUserAgent: userAgent,
             showURL: false,
             // Ingen topbar med "Luk": sitet viser selv knappen "‹ Appen"
@@ -71,13 +71,14 @@
     // ---------- Fælles login med sitet (se app/app_login.php på sitet) ----------
     //
     // Appen sender oplysningerne i WebView'ets user-agent, så der ikke skal
-    // vises mellemsider: "MitSporApp/4 (par=…; tok=…; kode=…)".
+    // vises mellemsider: "MitSporApp/5 (par=…; kode=…)".
     // Version 3: WebView'et har ingen topbar, sitet viser knappen "‹ Appen".
     // Version 4: download-links går til /app-hent.php, og appen henter filen (hent.js).
+    // Version 5: tok sendes ikke længere. Log ud på sitet går til
+    //   /app-logget-ud.php, og appen logger selv ud, når den ser siden.
     //   kode: engangskode, der logger sitet ind (/app-login.php omdirigerer straks)
     //   par:  SHA-256 af en hemmelighed; logger brugeren ind på sitet, kan appen
     //         veksle hemmeligheden til et token
-    //   tok:  SHA-256 af appens token; log ud på sitet tilbagekalder det
 
     // Hemmeligheden for det WebView, der er åbent nu (ny for hver åbning).
     var parHemmelighed = null;
@@ -104,24 +105,19 @@
         var Konto = window.MitSporKonto;
         var hemmelighed = hex(window.crypto.getRandomValues(new Uint8Array(32)));
 
-        return Promise.all([Konto.webLoginKode(), Konto.hent()]).then(function (svar) {
-            var kode = svar[0];
-            var login = svar[1];
-            return Promise.all([sha256(hemmelighed), login ? sha256(login.token) : null]).then(function (hashes) {
+        return Konto.webLoginKode().then(function (kode) {
+            return sha256(hemmelighed).then(function (hash) {
                 var dele = [];
-                if (hashes[0]) {
-                    dele.push('par=' + hashes[0]);
+                if (hash) {
+                    dele.push('par=' + hash);
                     parHemmelighed = hemmelighed;
-                }
-                if (hashes[1]) {
-                    dele.push('tok=' + hashes[1]);
                 }
                 if (kode) {
                     dele.push('kode=' + kode);
                 }
                 return {
                     url: kode ? config.siteUrl + '/app-login.php?til=' + encodeURIComponent(path) : config.siteUrl + path,
-                    userAgent: navigator.userAgent + ' MitSporApp/4' + (dele.length ? ' (' + dele.join('; ') + ')' : '')
+                    userAgent: navigator.userAgent + ' MitSporApp/5' + (dele.length ? ' (' + dele.join('; ') + ')' : '')
                 };
             });
         });
@@ -206,8 +202,8 @@
         aktivSide: aktivSide
     };
 
-    // Når WebView'et lukkes: er appens token tilbagekaldt (brugeren loggede
-    // ud på sitet), glemmer appen det; hentAktiviteter() opdager 401. Derefter
+    // Når WebView'et lukkes: er appens token tilbagekaldt (fx efter skift af
+    // adgangskode), glemmer appen det; hentAktiviteter() opdager 401. Derefter
     // et sidste forsøg på veksling, hvis brugeren loggede ind på sitet.
     function webLukket() {
         var Konto = window.MitSporKonto;
@@ -222,6 +218,7 @@
     // Sider med en særlig betydning for appen:
     //   /app-luk.php   sitets link "‹ Appen": WebView'et lukkes
     //   /app-hent.php  et download-link: appen henter filen (hent.js)
+    //   /app-logget-ud.php  brugeren loggede ud på sitet: appen logger også ud
     function stiFra(url) {
         try {
             return new URL(url).pathname;
@@ -238,6 +235,11 @@
         }
         if (sti === '/app-hent.php') {
             window.MitSporHent.hent(data.url);
+            return;
+        }
+        if (sti === '/app-logget-ud.php') {
+            // Sitet er allerede logget ud, så WebView'ets cookies skal ikke ryddes.
+            window.MitSporKonto.logUd({ rydWeb: false });
             return;
         }
         proevVeksling();
