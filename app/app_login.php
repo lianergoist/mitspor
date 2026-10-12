@@ -16,8 +16,10 @@ require_once __DIR__ . '/db.php';
  *      brugeren logger ind på sitet, kobles hashen til kontoen (som kode
  *      web_til_app). Appen veksler derefter hemmeligheden til et token via
  *      api/v1/exchange-code.php.
- * tok  (log ud):     SHA-256 af appens token. Log ud på sitet tilbagekalder
- *      tokenet, hvis det hører til den bruger, der logger ud.
+ * tok  (log ud, kun til og med MitSporApp/4): SHA-256 af appens token. Log
+ *      ud på sitet tilbagekalder tokenet, hvis det hører til den bruger, der
+ *      logger ud. Fra version 5 sendes tok ikke: logout.php går til
+ *      /app-logget-ud.php, og appen logger selv ud, når den ser siden.
  *
  * user-agent kan forfalskes og kommer i adgangsloggen. Derfor sendes kun
  * hashes og en kode, der bruges ved første forespørgsel. Kun SHA-256 af

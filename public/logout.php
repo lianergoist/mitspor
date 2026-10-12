@@ -6,11 +6,15 @@ session_start();
 require_once __DIR__ . '/../app/db.php';
 require_once __DIR__ . '/../app/csrf.php';
 require_once __DIR__ . '/../app/app_login.php';
+require_once __DIR__ . '/../app/app_tilbage.php'; // app_webview_version()
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $loggedOut = false;
     if (csrf_validate($_POST['csrf_token'] ?? null)) {
-        // I appens WebView logges appen også ud: dens token (hash som tok i
-        // user-agent) tilbagekaldes, hvis det hører til denne bruger.
+        // I appens WebView logges appen også ud. Til og med MitSporApp/4
+        // sender appen hashen af sit token (tok i user-agent), og tokenet
+        // tilbagekaldes her, hvis det hører til denne bruger. Fra version 5
+        // logger appen selv ud, når den ser /app-logget-ud.php (se nedenfor).
         $tokenHash = app_ua_param('tok');
         if ($tokenHash !== null && !empty($_SESSION['user_id'])) {
             app_token_revoke_by_hash(get_db(), (int) $_SESSION['user_id'], $tokenHash);
@@ -33,9 +37,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         session_destroy();
+        $loggedOut = true;
     }
 
-    header('Location: login.php');
+    header('Location: ' . ($loggedOut && app_webview_version() >= 5 ? 'app-logget-ud.php' : 'login.php'));
     exit;
 }
 ?>
