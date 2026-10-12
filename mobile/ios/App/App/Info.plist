@@ -43,6 +43,8 @@
       </array>
     </dict>
 	</dict>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>MitSpor bruger din placering til at optage din tur, når du trykker Start.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
