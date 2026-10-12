@@ -88,6 +88,12 @@ Man kommer kun tilbage til appen fra forsiden.
 Tilbage i sitets historik: swipe fra venstre kant (iOS) eller
 tilbageknappen (Android).
 
+WebView'et kan ikke hente filer. Fra `MitSporApp/4` peger sitets
+download-links (GPX-fil og "Download alle mine data") på `/app-hent.php`
+(`app/app_hent.php`). Når den side er indlæst, henter appen filen via
+`/api/v1/route-file.php` eller `/api/v1/export-data.php` med sit token og
+viser telefonens del-ark (`www/hent.js`). Siden går selv tilbage.
+
 Ændringer på mitspor.dk kræver intet nyt app-build. Ændringer i `www/`,
 plugins eller native kode kræver et nyt build.
 
