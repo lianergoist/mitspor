@@ -30,6 +30,34 @@ workflows:
       # installeres direkte på en Android-telefon (ikke til Google Play).
       - mobile/android/app/build/outputs/apk/debug/*.apk
 
+  android-release:
+    name: Android til Google Play (AAB)
+    instance_type: mac_mini_m2
+    max_build_duration: 30
+    environment:
+      node: 22
+      java: 21
+      android_signing:
+        # Navnet på upload-nøglen under Personal Account → codemagic.yaml settings → Code signing identities → Android keystores
+        - mitspor_upload
+    scripts:
+      - name: Installér npm-pakker
+        script: |
+          cd mobile
+          npm ci
+      - name: Kopiér web-filer ind i Android-projektet
+        script: |
+          cd mobile
+          npm run vendor
+          npx cap sync android
+      - name: Byg signeret AAB
+        script: |
+          cd mobile/android
+          ./gradlew bundleRelease
+    artifacts:
+      # AAB-filen uploades manuelt i Play Console (første upload skal altid ske manuelt)
+      - mobile/android/app/build/outputs/bundle/release/*.aab
+
   ios-testflight:
     name: iOS-testversion (TestFlight)
     instance_type: mac_mini_m2
