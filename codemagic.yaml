@@ -66,6 +66,8 @@ workflows:
           xcode-project build-ipa --project mobile/ios/App/App.xcodeproj --scheme App
     artifacts:
       - build/ios/ipa/*.ipa
+      # Hele xcodebuild-loggen, så fejl i arkiveringen kan ses
+      - /tmp/xcodebuild_logs/*.log
     publishing:
       app_store_connect:
         auth: integration
@@ -111,3 +113,5 @@ workflows:
     artifacts:
       # IPA'en hentes fra Codemagic og uploades manuelt til diawi.com
       - build/ios/ipa/*.ipa
+      # Hele xcodebuild-loggen, så fejl i arkiveringen kan ses
+      - /tmp/xcodebuild_logs/*.log
