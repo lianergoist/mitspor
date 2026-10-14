@@ -175,11 +175,11 @@
         if (!u || u.status === 'fejl') {
             knapper.appendChild(knap('Upload', 'btn-primary', function () { UploadVisning.aabn(m); }));
         } else if (u.status === 'koe' && u.fejl && logget && !sendes) {
-            knapper.appendChild(knap('Prøv igen nu', 'btn-secondary', function () {
+            knapper.appendChild(knap('Prøv igen', 'btn-secondary', function () {
                 Upload.saetIKoe(m.id, u.titel, u.aktivitet);
             }));
         } else if (u.status === 'uploadet' && u.url) {
-            knapper.appendChild(knap('Vis på mitspor.dk', 'btn-secondary', function () {
+            knapper.appendChild(knap('Vis', 'btn-secondary', function () {
                 window.MitSporApp.aabnSite(u.url);
             }));
         }
