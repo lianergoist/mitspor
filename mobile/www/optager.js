@@ -179,7 +179,7 @@
                 Upload.saetIKoe(m.id, u.titel, u.aktivitet);
             }));
         } else if (u.status === 'uploadet' && u.url) {
-            knapper.appendChild(knap('Vis på mitspor.dk', 'btn-secondary', function () {
+            knapper.appendChild(knap('Vis', 'btn-secondary', function () {
                 window.MitSporApp.aabnSite(u.url);
             }));
         }
