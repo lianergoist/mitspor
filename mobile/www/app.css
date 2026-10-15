@@ -359,6 +359,10 @@ body {
     background: var(--warning-bg);
     color: var(--warning-text);
 }
+/* Forklaring, når der efter et minut stadig ikke er et præcist signal. */
+.optag-gps-hjaelp p {
+    margin: 0;
+}
 
 .ture {
     margin-top: 32px;
