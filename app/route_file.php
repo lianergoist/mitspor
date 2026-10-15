@@ -101,22 +101,19 @@ function route_file_attachment_header(string $rawFilename): string
 /**
  * Send GPX-filen og afslut.
  *
- * Billedlinks (se app/image_links.php): ejerens egen download sendes
- * uændret. Ved visning fjernes billedlinks til andre brugeres billeder,
- * og ved download af en andens rute fjernes alle billedlinks.
+ * Billedlinks (se app/image_links.php): billedlinks til andre brugeres
+ * billeder end rutens ejer fjernes altid, også i ejerens egen download.
+ * Downloader en anden end ejeren, fjernes alle billedlinks.
  */
 function route_file_send(array $route, bool $download, bool $isOwner): never
 {
-    $fullPath = gpx_full_path($route['gpx_file_path']);
-    $content = null;
-    if (!($download && $isOwner)) {
-        $raw = file_get_contents($fullPath);
-        $content = $raw === false ? null : gpx_remove_image_links($raw, $download ? null : (int) $route['user_id']);
-        if ($content === null) {
-            error_log('GPX kunne ikke renses for billedlinks: rute ' . $route['id']);
-            http_response_code(500);
-            exit;
-        }
+    $raw = file_get_contents(gpx_full_path($route['gpx_file_path']));
+    $keepOwnerId = ($download && !$isOwner) ? null : (int) $route['user_id'];
+    $content = $raw === false ? null : gpx_remove_image_links($raw, $keepOwnerId);
+    if ($content === null) {
+        error_log('GPX kunne ikke renses for billedlinks: rute ' . $route['id']);
+        http_response_code(500);
+        exit;
     }
 
     header('Content-Type: application/gpx+xml; charset=UTF-8');
@@ -135,16 +132,12 @@ function route_file_send(array $route, bool $download, bool $isOwner): never
     // til at afskære store filer midt i overførslen. Lad Apache/PHP selv
     // sætte den korrekte header ud fra hvad der rent faktisk sendes.
 
-    // Ryd evt. aktive output-buffere, så readfile() strømmer direkte,
+    // Ryd evt. aktive output-buffere, så indholdet sendes direkte,
     // uden at en buffer utilsigtet ændrer eller forsinker outputtet.
     while (ob_get_level() > 0) {
         ob_end_flush();
     }
 
-    if ($content !== null) {
-        echo $content;
-    } else {
-        readfile($fullPath);
-    }
+    echo $content;
     exit;
 }
