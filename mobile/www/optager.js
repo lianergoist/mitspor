@@ -31,6 +31,9 @@
     var GPX_INTERVAL_MS = 60 * 1000;
     // Hold GPX-filen et stykke under MAX_UPLOAD_SIZE_BYTES (10 MB) på sitet.
     var MAX_GPX_BYTES = 9.5 * 1024 * 1024;
+    // Er der stadig ikke et præcist signal efter så lang tid, vises en
+    // forklaring (indendørs, eller en tablet uden GPS).
+    var GPS_HJAELP_MS = 60 * 1000;
 
     var aabnKnap = document.getElementById('open-recorder');
     var tilbageKnap = document.getElementById('optag-tilbage');
@@ -42,6 +45,7 @@
     var afstandFelt = document.getElementById('optag-afstand');
     var punkterFelt = document.getElementById('optag-punkter');
     var gpsFelt = document.getElementById('optag-gps');
+    var gpsHjaelp = document.getElementById('optag-gps-hjaelp');
     var fejlFelt = document.getElementById('optag-fejl');
     var afbrudtBoks = document.getElementById('optag-afbrudt');
     var afbrudtTekst = document.getElementById('optag-afbrudt-tekst');
@@ -63,6 +67,7 @@
     var klar = false;      // har GPS'en fundet et præcist signal?
     var godeITraek = 0;
     var urTimer = null;
+    var hjaelpTimer = null;
     var afbrudt = null;   // en optagelse, der ikke blev afsluttet (nedbrud/genstart)
     var logget = false;   // er brugeren logget ind i appen?
 
@@ -261,10 +266,26 @@
         gpsFelt.classList.toggle('optag-gps--venter', aktiv && !pauset && !klar);
     }
 
+    // Viser forklaringen, hvis der efter GPS_HJAELP_MS stadig ventes på et
+    // præcist signal. Den skjules igen, så snart der kommer gode punkter.
+    function ventPaaGps() {
+        skjulGpsHjaelp();
+        hjaelpTimer = setTimeout(function () {
+            gpsHjaelp.hidden = !(aktiv && !pauset && !klar);
+        }, GPS_HJAELP_MS);
+    }
+
+    function skjulGpsHjaelp() {
+        clearTimeout(hjaelpTimer);
+        hjaelpTimer = null;
+        gpsHjaelp.hidden = true;
+    }
+
     function startGps() {
         klar = false;
         godeITraek = 0;
         visGps('Venter på GPS-signal …');
+        ventPaaGps();
         return BG.start({
             backgroundTitle: 'MitSpor optager din tur',
             backgroundMessage: 'Tryk for at åbne MitSpor.',
@@ -315,6 +336,7 @@
                 return;
             }
             klar = true;
+            skjulGpsHjaelp();
         }
         visGps('GPS: ±' + noejagtighed + ' m');
 
@@ -454,6 +476,7 @@
         meta.status = 'pause';
         meta.pauseStart = Date.now();
         visGps('Pause');
+        skjulGpsHjaelp();
         opdaterKnapper();
         opdaterTal();
         BG.stop().catch(function () {});
@@ -479,6 +502,7 @@
     // stille: ingen besked, hvis turen er tom (fx når adgang til placering mangler).
     function stop(stille) {
         clearInterval(urTimer);
+        skjulGpsHjaelp();
         var bgStop = BG.stop().catch(function () {});
         if (!aktiv || !meta) {
             aktiv = false;
