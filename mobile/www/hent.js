@@ -18,6 +18,11 @@
 
     var igang = false;
 
+    // Brugeren lukkede del-arket: ikke en fejl.
+    function annulleret(f) {
+        return !!f && /cancel/i.test(f.message || '');
+    }
+
     // Fejl med en tekst, der kan vises for brugeren.
     function fejl(tekst) {
         var f = new Error(tekst);
@@ -102,6 +107,9 @@
     }
 
     // Gem filen i appens cache (den forrige ryddes væk) og vis del-arket.
+    // Der ventes ikke på del-arkets svar: på Android kommer det først, når
+    // appens eget vindue er forrest igen (når WebView'et lukkes). Ventede vi,
+    // ville alle senere downloads blive afvist som "i gang".
     function gemOgDel(svar, standardNavn) {
         var navn = filnavn(svar, standardNavn);
         return svar.blob()
@@ -119,7 +127,12 @@
                     });
             })
             .then(function (gemt) {
-                return Share.share({ title: navn, files: [gemt.uri], dialogTitle: 'Gem eller del filen' });
+                Share.share({ title: navn, files: [gemt.uri], dialogTitle: 'Gem eller del filen' })
+                    .catch(function (f) {
+                        if (!annulleret(f)) {
+                            visFejl('Filen kunne ikke deles.');
+                        }
+                    });
             });
     }
 
@@ -161,8 +174,7 @@
                 });
             })
             .catch(function (f) {
-                // Brugeren lukkede del-arket: ikke en fejl.
-                if (f && /cancel/i.test(f.message || '')) {
+                if (annulleret(f)) {
                     return;
                 }
                 visFejl(f && f.vis ? f.message : 'Filen kunne ikke hentes.');
