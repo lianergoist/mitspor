@@ -24,11 +24,15 @@ if (!app_can_fetch_files()) {
     exit;
 }
 
-// Tilbage til siden med linket: kun en sti på dette site, ellers forsiden.
+// Tilbage til siden med linket: først tilbage= fra linket (Android sender
+// ingen Referer), så Referer, ellers forsiden. Kun stier på dette site.
 $back = '/';
+$tilbage = (string) ($_GET['tilbage'] ?? '');
 $referer = (string) ($_SERVER['HTTP_REFERER'] ?? '');
 $parts = parse_url($referer);
-if (is_array($parts)
+if (app_hent_safe_back($tilbage)) {
+    $back = $tilbage;
+} elseif (is_array($parts)
     && ($parts['host'] ?? '') === ($_SERVER['HTTP_HOST'] ?? '')
     && isset($parts['path'])
     && str_starts_with($parts['path'], '/')
