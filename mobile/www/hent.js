@@ -13,6 +13,8 @@
     var fs = window.capacitorFilesystemPluginCapacitor;
     var Filesystem = fs.Filesystem;
     var Share = window.capacitorShare.Share;
+    // Appens eget del-ark på Android (DelArkPlugin.java), se gemOgDel().
+    var DelArk = window.capacitorExports.registerPlugin('MitSporDelArk');
     var API_URL = window.MITSPOR_CONFIG.siteUrl + '/api/v1/';
     var MAPPE = 'hentet';
 
@@ -107,9 +109,9 @@
     }
 
     // Gem filen i appens cache (den forrige ryddes væk) og vis del-arket.
-    // Der ventes ikke på del-arkets svar: på Android kommer det først, når
-    // appens eget vindue er forrest igen (når WebView'et lukkes). Ventede vi,
-    // ville alle senere downloads blive afvist som "i gang".
+    // På Android bruges appens eget del-ark: @capacitor/share får først svar,
+    // når appens eget vindue er forrest igen (når WebView'et lukkes), og
+    // afviser indtil da et nyt del-ark. På iPhone ventes der ikke på svaret.
     function gemOgDel(svar, standardNavn) {
         var navn = filnavn(svar, standardNavn);
         return svar.blob()
@@ -127,6 +129,12 @@
                     });
             })
             .then(function (gemt) {
+                if (Capacitor.getPlatform() === 'android') {
+                    return DelArk.del({ fil: gemt.uri, titel: 'Gem eller del filen' })
+                        .catch(function () {
+                            throw fejl('Filen kunne ikke deles.');
+                        });
+                }
                 Share.share({ title: navn, files: [gemt.uri], dialogTitle: 'Gem eller del filen' })
                     .catch(function (f) {
                         if (!annulleret(f)) {
