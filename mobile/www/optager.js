@@ -76,7 +76,7 @@
 
     function iKoe(opgave) {
         koe = koe.then(opgave).catch(function (fejl) {
-            visFejl('Kunne ikke gemme på telefonen: ' + (fejl && fejl.message ? fejl.message : fejl));
+            visFejl('Kunne ikke gemme på enheden: ' + (fejl && fejl.message ? fejl.message : fejl));
         });
         return koe;
     }
@@ -589,7 +589,7 @@
         var advarsel = m.uploadet
             ? 'Turen bliver ikke slettet på mitspor.dk.'
             : 'Turen er ikke uploadet til mitspor.dk og kan ikke hentes igen.';
-        if (!window.confirm('Slet "' + m.navn + '" fra telefonen?\n\n' + advarsel)) {
+        if (!window.confirm('Slet "' + m.navn + '" fra enheden?\n\n' + advarsel)) {
             return;
         }
         iKoe(function () { return Lager.slet(m.id); }).then(visListe);
