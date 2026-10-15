@@ -107,7 +107,7 @@
                 data.append('gpx_file', new Blob([gpx], { type: 'application/gpx+xml' }), m.gpxFil);
                 return data;
             }, function () {
-                var fejl = new Error('GPX-filen kunne ikke læses på telefonen.');
+                var fejl = new Error('GPX-filen kunne ikke læses på enheden.');
                 fejl.lokal = true;
                 throw fejl;
             })
