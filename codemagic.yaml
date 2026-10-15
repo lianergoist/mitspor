@@ -41,6 +41,11 @@ workflows:
         # Navnet på upload-nøglen under Personal Account → codemagic.yaml settings → Code signing identities → Android keystores
         - mitspor_upload
     scripts:
+      - name: Vis upload-nøglens fingeraftryk
+        script: |
+          # Fingeraftrykket er offentligt og bruges i Play Console. Kodeordet vises ikke.
+          keytool -list -v -keystore "$CM_KEYSTORE_PATH" -storepass "$CM_KEYSTORE_PASSWORD" -alias "$CM_KEY_ALIAS" \
+            | grep -E "^\s*(SHA1|SHA256):"
       - name: Installér npm-pakker
         script: |
           cd mobile
