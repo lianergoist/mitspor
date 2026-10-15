@@ -665,6 +665,16 @@ html {
   border: 1px solid #e2e8f0;
   background: #f1f5f9;
 }
+/* Link, der ikke er et af brugerens egne billeder (fx fra en kopieret GPX-fil). */
+.image-row-foreign {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.2;
+  color: #64748b;
+}
 
 .image-row-comment {
   flex: 1 1 auto;
