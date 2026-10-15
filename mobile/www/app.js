@@ -34,7 +34,11 @@
 
         options.android = Object.assign({}, browser.DefaultAndroidWebViewOptions, {
             // Tilbage-knappen går tilbage i sitets historik og lukker til sidst WebView'et.
-            hardwareBack: true
+            hardwareBack: true,
+            // Sitet køres i appens egen proces. I en separat proces (standard) ser
+            // appen ud til at ligge i baggrunden, og fx MIUI lukker den, mens sitet
+            // er åbent. Så reagerer appen ikke længere på download og "‹ Appen".
+            isIsolated: false
         });
         options.iOS = Object.assign({}, browser.DefaultiOSWebViewOptions, {
             allowsBackForwardNavigationGestures: true
