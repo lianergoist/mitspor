@@ -294,6 +294,6 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <script src="../vendor/leaflet-path-drag/index.js"></script>
 <script src="../vendor/sortablejs/Sortable.min.js"></script>
 <script src="../assets/route-meta-dialog.js?v=2"></script>
-<script src="app.js?v=34"></script>
+<script src="app.js?v=36"></script>
 </body>
 </html>
