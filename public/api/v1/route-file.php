@@ -45,4 +45,4 @@ if ($result['status'] !== 200) {
     api_error($errors[$result['status']] ?? 'Ruten kunne ikke hentes.', $result['status']);
 }
 
-route_file_send($result['route'], true);
+route_file_send($result['route'], true, $result['is_owner']);

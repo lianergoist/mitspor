@@ -19,4 +19,4 @@ if ($result['status'] !== 200) {
     exit;
 }
 
-route_file_send($result['route'], $download);
+route_file_send($result['route'], $download, $result['is_owner']);
