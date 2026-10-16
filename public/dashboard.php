@@ -197,6 +197,7 @@ $groups = group_list_for_user($pdo, $userId);
 
     <h2>Konto</h2>
     <nav class="dialog-nav">
+        <a href="/manage-images.php">Mine billeder</a>
         <a href="<?= dash_h(data_export_url()) ?>">Download alle mine data</a>
         <a href="delete-account.php" class="danger">Slet min konto</a>
     </nav>

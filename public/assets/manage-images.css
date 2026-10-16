@@ -1,0 +1,152 @@
+/* Siden "Mine billeder" (manage-images.php): oversigt og sletning. */
+
+.image-meta {
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.image-used {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.image-notice {
+    background: #dcfce7;
+    border: 1px solid #86efac;
+    color: #166534;
+    border-radius: 6px;
+    padding: 8px 10px;
+}
+
+.modal-errors p { margin: 0; }
+
+/* Filter: Alle / Bruges ikke / Bruges. Knapperne må bryde om på smalle skærme. */
+.image-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0 0;
+}
+
+.image-filter-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.image-filter-btn.is-active {
+    background: var(--primary);
+    border-color: var(--primary-dark);
+    color: #fff;
+}
+
+.image-filter-count {
+    opacity: 0.8;
+}
+
+/* Gitter med fleksible kolonner, så det også tåler større tekst i appen. */
+.image-grid {
+    list-style: none;
+    margin: 16px 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 14px;
+}
+
+.image-grid-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px;
+}
+
+.image-grid-thumb {
+    display: block;
+    aspect-ratio: 4 / 3;
+    background: var(--bg);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.image-grid-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.image-grid-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.image-grid-name {
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.image-grid-delete {
+    justify-content: center;
+    margin-top: auto;
+    text-align: center;
+}
+
+/* Bekræftelsessiden */
+.image-confirm {
+    margin: 0 0 16px;
+}
+
+.image-confirm img {
+    display: block;
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+}
+
+.image-confirm figcaption {
+    overflow-wrap: anywhere;
+}
+
+.image-usage-list {
+    list-style: none;
+    margin: 0 0 16px;
+    padding: 0;
+}
+
+.image-usage-list li {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 4px 16px;
+    padding: 8px 0;
+    border-top: 1px solid var(--border);
+}
+
+.image-usage-title {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.image-usage-links {
+    display: flex;
+    gap: 14px;
+}
+
+.image-confirm-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}

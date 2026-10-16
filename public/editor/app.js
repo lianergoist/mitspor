@@ -1175,6 +1175,15 @@
   // ---------- Vælg blandt allerede uploadede billeder ----------
   let pickedImageIds = new Set();
 
+  // "Administrér mine billeder" fører til /manage-images.php, hvor tilbage-pilen
+  // fører tilbage hertil. Adressen tages først nu, da en ny rute får ?route=
+  // efter første gem.
+  function updateManageImagesLink() {
+    const link = el("link-manage-images");
+    if (!link) return;
+    link.href = "/manage-images.php?tilbage=" + encodeURIComponent(location.pathname + location.search);
+  }
+
   async function openImagePickerDialog() {
     pickedImageIds = new Set();
     const grid = el("image-picker-grid");
@@ -1182,6 +1191,7 @@
     if (errEl) errEl.hidden = true;
     grid.innerHTML = '<p class="image-picker-empty">Henter dine billeder…</p>';
     el("image-picker-dialog").showModal();
+    updateManageImagesLink();
 
     try {
       const res = await fetch("../my-images.php");
@@ -1566,6 +1576,15 @@
     const imagePickerDialog = el("image-picker-dialog");
     if (imagePickerDialog) {
       el("btn-pick-existing-images").addEventListener("click", openImagePickerDialog);
+      // Ugemte ændringer går tabt, når man forlader editoren. 'beforeunload'
+      // advarer ikke altid i appens WebView, så linket stopper selv.
+      el("link-manage-images").addEventListener("click", (e) => {
+        if (!isAnyDirty()) return;
+        e.preventDefault();
+        const errEl = el("image-picker-errors");
+        errEl.textContent = "Gem ruten først. Ellers går dine ugemte ændringer tabt, når du forlader editoren.";
+        errEl.hidden = false;
+      });
       el("image-picker-dialog-close").addEventListener("click", () => imagePickerDialog.close());
       el("btn-add-picked-images").addEventListener("click", addPickedImagesToDialog);
       imagePickerDialog.addEventListener("click", (e) => {

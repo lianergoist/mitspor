@@ -245,6 +245,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
     <div id="image-picker-grid" class="image-picker-grid"></div>
   </div>
   <button type="button" id="btn-add-picked-images" class="btn btn-primary">Tilføj valgte</button>
+  <p class="image-picker-manage"><a href="/manage-images.php" id="link-manage-images">Administrér mine billeder</a> (se og slet uploadede billeder)</p>
 </dialog>
 
 <dialog id="help-dialog">
