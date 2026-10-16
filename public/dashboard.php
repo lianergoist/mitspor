@@ -342,6 +342,9 @@ function render_group_detail(array $g): void
 
         <div class="tool-list">
             <a class="tool" href="group-view.php?id=<?= dash_h($id) ?>">Vis gruppe på kort</a>
+            <?php if (app_webview_version() === 0): /* appen kan endnu ikke hente en gruppe, se group-view.php */ ?>
+            <a class="tool" href="group-file.php?id=<?= dash_h($id) ?>">Download gruppen som én GPX</a>
+            <?php endif; ?>
             <button type="button" class="tool" data-edit-group="<?= dash_h($id) ?>">Rediger gruppe (titel, rækkefølge, synlighed)</button>
         </div>
     </section>

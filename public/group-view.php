@@ -6,6 +6,8 @@ session_start();
 require_once __DIR__ . '/../app/db.php';
 require_once __DIR__ . '/../app/route_groups.php';
 require_once __DIR__ . '/../app/og_image.php';
+require_once __DIR__ . '/../app/group_file.php';
+require_once __DIR__ . '/../app/app_tilbage.php';
 
 $pdo = get_db();
 $group = group_find($pdo, (string) ($_GET['id'] ?? ''));
@@ -25,6 +27,12 @@ if ($group === null || (!$isOwner && count($members) === 0)) {
 }
 
 $totals = group_totals($members);
+
+// Download af hele gruppen som én GPX. Appens WebView kan ikke hente filer,
+// og appen kender endnu ikke gruppe-download (mobile/www/hent.js), så
+// knappen vises kun uden for appen.
+$downloadPlan = group_download_plan($members, $isOwner);
+$showGroupDownload = $downloadPlan['included'] !== [] && app_webview_version() === 0;
 $geometry = group_geometry($group, $members, $isOwner);
 $hasPublic = false;
 foreach ($members as $m) {
@@ -105,6 +113,8 @@ $palette = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#0891b2', '#
         .info-panel h1 { font-size: 16px; margin: 0 0 4px; }
         .info-panel .meta { color: var(--text-muted); font-size: 12px; margin-bottom: 6px; }
         .info-panel p { margin: 6px 0; font-size: 13px; }
+        .group-download { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+        .group-download .btn { padding: 6px 12px; font-size: 13px; }
         .stage-list { list-style: none; margin: 10px 0 0; padding: 0; border-top: 1px solid var(--border); }
         .stage-list li { border-bottom: 1px solid var(--border); }
         .stage-list a { display: flex; align-items: center; gap: 10px; padding: 7px 4px; color: inherit; text-decoration: none; font-size: 13px; }
@@ -142,6 +152,15 @@ $palette = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#0891b2', '#
 
         <?php if ($isOwner && !$hasPublic): ?>
             <p class="meta">Ingen af etaperne er offentlige — kun du kan se denne gruppe.</p>
+        <?php endif; ?>
+
+        <?php if ($showGroupDownload): ?>
+            <p class="group-download">
+                <a class="btn" href="group-file.php?id=<?= $e($group['public_id']) ?>">Download GPX (hele gruppen)</a>
+                <?php if ($downloadPlan['skipped'] > 0): ?>
+                    <span class="meta"><?= (int) $downloadPlan['skipped'] ?> af <?= count($members) ?> etaper må ikke downloades og kommer ikke med.</span>
+                <?php endif; ?>
+            </p>
         <?php endif; ?>
 
         <ol class="stage-list" id="stage-list">
