@@ -1228,6 +1228,7 @@ function markerDefaultPreview(select, box) {
     var visAck = document.getElementById('group-vis-ack');
     var currentGroupId = null;
     var loadedVisibility = null; // 'public', 'private' eller null (blandet)
+    var loadedOrder = '';        // etapernes id'er, som de var ved åbning
 
     // Samme opførsel som synligheden i "Rediger metadata": GDPR-boksen vises
     // ved Offentlig og er forudfyldt, hvis alle etaper allerede er offentlige.
@@ -1315,6 +1316,7 @@ function markerDefaultPreview(select, box) {
                     visMixed.hidden = loadedVisibility !== null;
                     visBehavior.setLoadedVisibility(loadedVisibility === 'public' ? 'public' : 'private');
                     renderOrder(data.routes);
+                    loadedOrder = currentOrder();
                     editDialog.showModal();
                 });
         });
@@ -1326,8 +1328,12 @@ function markerDefaultPreview(select, box) {
     }
     function failed() { showErrors(editErrors, null); }
 
-    // "Gem": titel og beskrivelse, og synligheden, hvis der er valgt en
-    // anden end den, etaperne har nu.
+    function currentOrder() {
+        return Array.prototype.map.call(orderList.children, function (li) { return li.getAttribute('data-id'); }).join(',');
+    }
+
+    // "Gem": titel og beskrivelse, rækkefølgen, hvis den er ændret, og
+    // synligheden, hvis der er valgt en anden end den, etaperne har nu.
     editForm.addEventListener('submit', function (ev) {
         ev.preventDefault();
         editErrors.hidden = true;
@@ -1341,6 +1347,10 @@ function markerDefaultPreview(select, box) {
             title: document.getElementById('group-edit-title').value,
             description: document.getElementById('group-edit-description').value
         }).then(function (data) {
+            var order = currentOrder();
+            if (!data.success || order === loadedOrder) return data;
+            return post({ action: 'reorder', group_id: currentGroupId, route_ids: order });
+        }).then(function (data) {
             if (!data.success || !changeVisibility) return data;
             return post({
                 action: 'set_visibility',
@@ -1349,12 +1359,6 @@ function markerDefaultPreview(select, box) {
                 public_notice_ack: visAck.checked ? '1' : '0'
             });
         }).then(done).catch(failed);
-    });
-
-    document.getElementById('group-order-save').addEventListener('click', function () {
-        editErrors.hidden = true;
-        var ids = Array.prototype.map.call(orderList.children, function (li) { return li.getAttribute('data-id'); });
-        post({ action: 'reorder', group_id: currentGroupId, route_ids: ids.join(',') }).then(done).catch(failed);
     });
 
     document.getElementById('group-dissolve').addEventListener('click', function () {

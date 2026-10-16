@@ -870,7 +870,6 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
             <h3>Etaper</h3>
             <p class="hint">Træk i etaperne (eller brug pilene) for at ændre rækkefølgen. Fjern en etape fra gruppen via "Rediger metadata" på ruten.</p>
             <ol id="group-order-list" class="group-order-list"></ol>
-            <button type="button" id="group-order-save" class="btn btn-full">Gem rækkefølge</button>
         </div>
 
         <fieldset>
@@ -904,7 +903,7 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
 <script src="assets/gpx-field-labels.js?v=3"></script>
 <script src="assets/gpx-tools.js?v=1"></script>
 <script src="assets/genindlaes.js?v=1"></script>
-<script src="assets/dashboard.js?v=15"></script>
+<script src="assets/dashboard.js?v=16"></script>
 <script src="assets/dashboard-tools.js?v=3"></script>
 <script src="assets/activity-marker.js?v=1"></script>
 <script src="assets/dashboard-map.js?v=6"></script>
