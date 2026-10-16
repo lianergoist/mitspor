@@ -623,6 +623,17 @@
       </div>`;
   }
 
+  // Er href et link til et af brugerens egne billeder (billeder/<eget id>/<hex>.<endelse>)?
+  // Andre links (fremmede profilers billeder fra en kopieret GPX-fil eller
+  // eksterne adresser) hentes ikke og vises ikke på rutens side.
+  function isOwnImageHref(href) {
+    const prefix = document.body.dataset.imagePrefix || "";
+    if (!prefix) return false;
+    const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp("^(?:/|\\.\\./)?" + escaped + "[0-9a-f]{32}(?:-thumb)?\\.(?:jpe?g|png|gif|webp)$", "i")
+      .test(String(href || "").trim());
+  }
+
   // Billeder ligger under public/billeder/, ét niveau over editor/-mappen.
   function imagePreviewUrl(href) {
     if (/^https?:\/\//i.test(href) || href.startsWith("../") || href.startsWith("/")) return href;
@@ -986,7 +997,9 @@
     list.innerHTML = editImagesRows.map((row) => `
       <li class="image-row" data-key="${row.key}">
         <span class="image-row-handle" title="Træk for at ændre rækkefølge">⠿</span>
-        <img class="image-row-thumb" src="${escapeHtml(imagePreviewUrl(row.thumbnailUrl || row.href))}" alt="">
+        ${row.thumbnailUrl || isOwnImageHref(row.href)
+          ? `<img class="image-row-thumb" src="${escapeHtml(imagePreviewUrl(row.thumbnailUrl || row.href))}" alt="">`
+          : `<span class="image-row-thumb image-row-foreign" title="${escapeHtml(row.href)}">Vises ikke</span>`}
         <textarea class="image-row-comment" data-key="${row.key}" placeholder="Kommentar til billedet">${escapeHtml(row.text)}</textarea>
         <button type="button" class="image-row-remove" data-key="${row.key}" title="Fjern billede">✕</button>
       </li>

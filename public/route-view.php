@@ -739,12 +739,21 @@ if ($route['visibility'] === 'public') {
         return found.length ? found[0].textContent : '';
     }
 
+    // Kun MitSpors egne billedlinks vises. Serveren har allerede fjernet
+    // links til andre brugeres billeder (app/image_links.php); eksterne
+    // adresser (fx http://www.garmin.com) hentes aldrig, så en GPX-fil ikke
+    // kan få besøgendes browsere til at kontakte fremmede servere.
+    var IMAGE_LINK_PATTERN = new RegExp('^(?:/|\\.\\./)?' + <?= json_encode(preg_quote(IMAGE_PUBLIC_URL_BASE, '/')) ?>
+        + '/\\d+/[0-9a-f]{32}(?:-thumb)?\\.(?:jpe?g|png|gif|webp)$', 'i');
+
     function getWaypointLinks(wptEl) {
         var linkEls = wptEl.getElementsByTagNameNS('*', 'link');
         var links = [];
         for (var i = 0; i < linkEls.length; i++) {
+            var href = (linkEls[i].getAttribute('href') || '').trim();
+            if (!IMAGE_LINK_PATTERN.test(href)) continue;
             links.push({
-                href: linkEls[i].getAttribute('href') || '',
+                href: href,
                 text: firstTagText(linkEls[i], 'text'),
                 type: firstTagText(linkEls[i], 'type')
             });

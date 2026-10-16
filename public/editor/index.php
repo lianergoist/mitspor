@@ -54,9 +54,9 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <title>GPX-editor</title>
 
 <link rel="stylesheet" href="../vendor/leaflet/leaflet.css" />
-<link rel="stylesheet" href="style.css?v=34" />
+<link rel="stylesheet" href="style.css?v=35" />
 </head>
-<body>
+<body data-image-prefix="<?= htmlspecialchars(IMAGE_PUBLIC_URL_BASE . '/' . $userId . '/', ENT_QUOTES, 'UTF-8') ?>">
 
 <input type="hidden" id="csrf-token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
 <input type="hidden" id="initial-route-id" value="<?= htmlspecialchars($initialRouteId, ENT_QUOTES, 'UTF-8') ?>">
@@ -294,6 +294,6 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <script src="../vendor/leaflet-path-drag/index.js"></script>
 <script src="../vendor/sortablejs/Sortable.min.js"></script>
 <script src="../assets/route-meta-dialog.js?v=2"></script>
-<script src="app.js?v=34"></script>
+<script src="app.js?v=35"></script>
 </body>
 </html>
