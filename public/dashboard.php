@@ -617,6 +617,18 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
         </label>
         <p class="hint" id="upload-multi-hint">Vælg flere filer for at oprette dem som etaper i en ny gruppe (fx en flerdagestur).</p>
 
+        <fieldset id="upload-split-fields" hidden>
+            <legend id="upload-split-legend">Filen indeholder flere spor</legend>
+            <label class="checkbox-field">
+                <input type="radio" name="upload_split" value="1" id="upload-split-yes" checked>
+                Opret en gruppe med én etape pr. spor
+            </label>
+            <label class="checkbox-field">
+                <input type="radio" name="upload_split" value="0" id="upload-split-no">
+                Upload som én rute
+            </label>
+        </fieldset>
+
         <label id="upload-title-label">
             Titel
             <input type="text" name="title" id="upload-title" required maxlength="200">
@@ -849,7 +861,7 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
 <script src="assets/gpx-field-labels.js?v=3"></script>
 <script src="assets/gpx-tools.js?v=1"></script>
 <script src="assets/genindlaes.js?v=1"></script>
-<script src="assets/dashboard.js?v=11"></script>
+<script src="assets/dashboard.js?v=12"></script>
 <script src="assets/dashboard-tools.js?v=3"></script>
 <script src="assets/activity-marker.js?v=1"></script>
 <script src="assets/dashboard-map.js?v=6"></script>
