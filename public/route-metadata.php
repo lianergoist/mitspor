@@ -17,7 +17,7 @@ $publicId = (string) ($_GET['id'] ?? '');
 
 $pdo = get_db();
 $stmt = $pdo->prepare(
-    "SELECT r.public_id, r.title, r.description, r.activity_type_id, r.route_type, r.has_time_data, r.visibility, r.allow_download, r.hide_uploader_name,
+    "SELECT r.public_id, r.title, r.description, r.activity_type_id, r.route_type, r.has_time_data, r.visibility, r.allow_download, r.hide_uploader_name, r.marker_icon,
             g.public_id AS group_public_id
      FROM routes r
      LEFT JOIN route_groups g ON g.id = r.group_id
@@ -45,4 +45,5 @@ echo json_encode([
     'allow_download'   => (bool) $route['allow_download'],
     'hide_uploader_name' => (bool) $route['hide_uploader_name'],
     'group_id'         => $route['group_public_id'] ?? '',
+    'marker_icon'      => $route['marker_icon'] ?? '',
 ]);

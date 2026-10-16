@@ -703,7 +703,8 @@ function og_load_public_route(PDO $pdo, string $publicId): ?array
     $stmt = $pdo->prepare(
         "SELECT r.public_id, r.title, r.updated_at, r.gpx_file_path,
                 r.distance_meters, r.elevation_gain_meters,
-                a.name_da AS activity_name, a.icon_filename AS activity_icon
+                a.name_da AS activity_name,
+                COALESCE(r.marker_icon, a.icon_filename) AS activity_icon
          FROM routes r
          JOIN activity_types a ON a.id = r.activity_type_id
          WHERE r.public_id = :public_id

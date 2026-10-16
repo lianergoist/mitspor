@@ -18,7 +18,7 @@ $stmt = $pdo->prepare(
             r.distance_meters, r.elevation_gain_meters, r.elevation_loss_meters, r.hide_uploader_name,
             r.share_token, r.enabled_data_fields, r.enabled_functions,
             r.updated_at, r.gpx_file_path, r.group_id,
-            r.user_id, a.name_da AS activity_name, a.icon_filename AS activity_icon,
+            r.user_id, a.name_da AS activity_name, COALESCE(r.marker_icon, a.icon_filename) AS activity_icon,
             u.display_name AS uploader_name
      FROM routes r
      JOIN activity_types a ON a.id = r.activity_type_id
