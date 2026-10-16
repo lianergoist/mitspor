@@ -18,7 +18,7 @@ $stmt = $pdo->prepare(
             r.distance_meters, r.elevation_gain_meters, r.elevation_loss_meters, r.hide_uploader_name,
             r.share_token, r.enabled_data_fields, r.enabled_functions,
             r.updated_at, r.gpx_file_path, r.group_id,
-            r.user_id, a.name_da AS activity_name, COALESCE(r.marker_icon, a.icon_filename) AS activity_icon,
+            r.user_id, a.name_da AS activity_name, COALESCE(r.marker_icon, a.icon_filename) AS activity_icon, r.marker_icon,
             u.display_name AS uploader_name
      FROM routes r
      JOIN activity_types a ON a.id = r.activity_type_id
@@ -630,6 +630,9 @@ if ($route['visibility'] === 'public') {
     // matchende markørsæt i public/markers/ (activity_icon fra PHP) —
     // ellers falder vi tilbage til de simple farvede prikker ovenfor.
     var activityIconBase = <?= json_encode($route['activity_icon'] ?: null) ?>;
+    // Spor viser altid markøren. En rute viser den kun, når ejeren selv har
+    // valgt en markør (routes.marker_icon); ellers den blå prik som hidtil.
+    var showActivityIcon = isSpor || <?= json_encode(!empty($route['marker_icon'])) ?>;
     var activityIconEast = null;
     var activityIconWest = null;
     if (activityIconBase && window.ActivityMarker) {
@@ -1382,13 +1385,13 @@ if ($route['visibility'] === 'public') {
         var prevPoint = idx > 0 ? allPoints[idx - 1] : null;
 
         var markerIcon;
-        if (isSpor && activityIconEast && activityIconWest) {
+        if (showActivityIcon && activityIconEast && activityIconWest) {
             // Bevæger vi os mod øst (længdegraden stiger)? Så "1"-ikonet,
             // ellers "2". Uden et forrige punkt antages øst som standard.
             markerIcon = (!prevPoint || currentPoint.lng > prevPoint.lng) ? activityIconEast : activityIconWest;
         } else {
             // Blå prik = "nuværende position under scrubning" — bruges for
-            // alle Ruter, og for Spor uden et dedikeret retningsikonsæt.
+            // Ruter uden valgt markør, og når der ikke er et retningsikonsæt.
             markerIcon = routeMarkerIcon;
         }
 
