@@ -199,6 +199,10 @@
                     document.getElementById('edit-meta-title').value = data.title;
                     document.getElementById('edit-meta-description').value = data.description || '';
                     document.getElementById('edit-meta-activity').value = String(data.activity_type_id);
+                    var markerRadio = metaForm.querySelector('input[name="marker_icon"][value="' + (data.marker_icon || '') + '"]')
+                        || metaForm.querySelector('input[name="marker_icon"][value=""]');
+                    if (markerRadio) markerRadio.checked = true;
+                    updateDefaultMarker();
                     document.getElementById('edit-meta-allow-download').checked = data.allow_download;
                     document.getElementById('edit-meta-hide-uploader-name').checked = data.hide_uploader_name;
                     var metaGroupSelect = document.getElementById('edit-meta-group');
@@ -224,6 +228,26 @@
             metaDialog.close();
         }
     });
+
+    // "Standard" i markørvalget viser markøren for den valgte aktivitet
+    // (eller "Ingen", hvis aktiviteten ikke har en, fx "Rute på land").
+    var metaActivity = document.getElementById('edit-meta-activity');
+    function updateDefaultMarker() {
+        var box = document.getElementById('edit-meta-marker-default');
+        if (!box || !metaActivity) return;
+        var option = metaActivity.options[metaActivity.selectedIndex];
+        var markerUrl = option ? option.getAttribute('data-marker-url') : '';
+        box.textContent = '';
+        if (markerUrl) {
+            var img = document.createElement('img');
+            img.src = markerUrl;
+            img.alt = '';
+            box.appendChild(img);
+        } else {
+            box.textContent = 'Ingen';
+        }
+    }
+    if (metaActivity) metaActivity.addEventListener('change', updateDefaultMarker);
 
     metaForm.addEventListener('submit', function (ev) {
         ev.preventDefault();

@@ -9,6 +9,7 @@ require_once __DIR__ . '/../app/route_groups.php';
 require_once __DIR__ . '/../app/auth.php';
 require_once __DIR__ . '/../app/auth_dialogs.php';
 require_once __DIR__ . '/../app/app_hent.php';
+require_once __DIR__ . '/../app/markers.php';
 
 $publicId = (string) ($_GET['id'] ?? '');
 
@@ -18,7 +19,7 @@ $stmt = $pdo->prepare(
             r.distance_meters, r.elevation_gain_meters, r.elevation_loss_meters, r.hide_uploader_name,
             r.share_token, r.enabled_data_fields, r.enabled_functions,
             r.updated_at, r.gpx_file_path, r.group_id,
-            r.user_id, a.name_da AS activity_name, a.icon_filename AS activity_icon,
+            r.user_id, a.name_da AS activity_name, COALESCE(r.marker_icon, a.icon_filename) AS activity_icon, r.marker_icon,
             u.display_name AS uploader_name
      FROM routes r
      JOIN activity_types a ON a.id = r.activity_type_id
@@ -629,18 +630,21 @@ if ($route['visibility'] === 'public') {
     // bevæger sig mod vest → "2"). Findes kun hvis aktiviteten har et
     // matchende markørsæt i public/markers/ (activity_icon fra PHP) —
     // ellers falder vi tilbage til de simple farvede prikker ovenfor.
-    var activityIconBase = <?= json_encode($route['activity_icon'] ?: null) ?>;
+    var activityIconUrls = <?= json_encode(marker_image_urls($route['activity_icon'] ?: null)) ?>;
+    // Spor viser altid markøren. En rute viser den kun, når ejeren selv har
+    // valgt en markør (routes.marker_icon); ellers den blå prik som hidtil.
+    var showActivityIcon = isSpor || <?= json_encode(!empty($route['marker_icon'])) ?>;
     var activityIconEast = null;
     var activityIconWest = null;
-    if (activityIconBase && window.ActivityMarker) {
+    if (activityIconUrls && window.ActivityMarker) {
         // Ikonerne vises i halv størrelse (120 px-billede -> 60 px, skarpt på retina).
         // Ankeret (ikonets fod) beregnes af ActivityMarker ud fra billedets egen
         // gennemsigtighed, så det passer uanset hvor tæt billederne er beskåret.
         // Indtil billederne er indlæst (og hvis de ikke kan indlæses) vises den
         // blå prik; når de er klar, tegnes den bevægelige markør om med ikonet.
         Promise.all([
-            window.ActivityMarker.icon('markers/' + activityIconBase + '1_120x120.png'),
-            window.ActivityMarker.icon('markers/' + activityIconBase + '2_120x120.png')
+            window.ActivityMarker.icon(activityIconUrls.east),
+            window.ActivityMarker.icon(activityIconUrls.west)
         ]).then(function (icons) {
             activityIconEast = icons[0];
             activityIconWest = icons[1];
@@ -1382,13 +1386,13 @@ if ($route['visibility'] === 'public') {
         var prevPoint = idx > 0 ? allPoints[idx - 1] : null;
 
         var markerIcon;
-        if (isSpor && activityIconEast && activityIconWest) {
+        if (showActivityIcon && activityIconEast && activityIconWest) {
             // Bevæger vi os mod øst (længdegraden stiger)? Så "1"-ikonet,
             // ellers "2". Uden et forrige punkt antages øst som standard.
             markerIcon = (!prevPoint || currentPoint.lng > prevPoint.lng) ? activityIconEast : activityIconWest;
         } else {
             // Blå prik = "nuværende position under scrubning" — bruges for
-            // alle Ruter, og for Spor uden et dedikeret retningsikonsæt.
+            // Ruter uden valgt markør, og når der ikke er et retningsikonsæt.
             markerIcon = routeMarkerIcon;
         }
 

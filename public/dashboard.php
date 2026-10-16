@@ -13,6 +13,7 @@ require_once __DIR__ . '/../app/csrf.php';
 require_once __DIR__ . '/../app/auth.php';
 require_once __DIR__ . '/../app/route_groups.php';
 require_once __DIR__ . '/../app/app_hent.php';
+require_once __DIR__ . '/../app/markers.php';
 
 $userId = require_login();
 $user = current_user($userId);
@@ -26,13 +27,14 @@ if ($user === null) {
 
 $pdo = get_db();
 $activityTypes = $pdo->query(
-    'SELECT id, name_da FROM activity_types WHERE is_active = 1 ORDER BY (slug IN (\'water_other\',\'land_other\')) DESC, name_da ASC'
+    'SELECT id, name_da, icon_filename FROM activity_types WHERE is_active = 1 ORDER BY (slug IN (\'water_other\',\'land_other\')) DESC, name_da ASC'
 )->fetchAll();
 
 $stmt = $pdo->prepare(
     "SELECT r.public_id, r.title, r.visibility, r.route_type, r.created_at, r.original_gpx_file_path, r.share_token,
             r.group_id, r.group_position, g.public_id AS group_public_id, g.title AS group_title,
-            r.distance_meters, r.allow_download, r.has_time_data, a.name_da AS activity_name, a.icon_filename AS activity_icon
+            r.distance_meters, r.allow_download, r.has_time_data, a.name_da AS activity_name,
+            COALESCE(r.marker_icon, a.icon_filename) AS activity_icon
      FROM routes r
      LEFT JOIN route_groups g ON g.id = r.group_id
      LEFT JOIN activity_types a ON a.id = r.activity_type_id
@@ -55,7 +57,7 @@ $groups = group_list_for_user($pdo, $userId);
     <title>Mit kontrolpanel</title>
     <link rel="stylesheet" href="assets/style.css?v=22">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/dashboard.css?v=12">
+    <link rel="stylesheet" href="assets/dashboard.css?v=14">
 </head>
 <body>
 
@@ -263,7 +265,7 @@ function render_route_detail(array $route): void
             <?php endif; ?>
         </p>
 
-        <div class="detail-map" aria-label="Kort over ruten"<?= !empty($route['activity_icon']) ? ' data-activity-icon="' . dash_h($route['activity_icon']) . '"' : '' ?>></div>
+        <div class="detail-map" aria-label="Kort over ruten"<?php $markerUrls = marker_image_urls($route['activity_icon'] ?: null); ?><?= $markerUrls !== null ? ' data-marker-east="' . dash_h($markerUrls['east']) . '" data-marker-west="' . dash_h($markerUrls['west']) . '"' : '' ?>></div>
 
         <div class="tool-list">
             <div class="tool-row">
@@ -492,10 +494,28 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
             Aktivitetstype
             <select name="activity_type_id" id="edit-meta-activity">
                 <?php foreach ($activityTypes as $type): ?>
-                    <option value="<?= (int) $type['id'] ?>"><?= htmlspecialchars($type['name_da'], ENT_QUOTES, 'UTF-8') ?></option>
+                    <option value="<?= (int) $type['id'] ?>" data-marker-url="<?= dash_h(marker_image_urls((string) $type['icon_filename'])['east'] ?? '') ?>"><?= htmlspecialchars($type['name_da'], ENT_QUOTES, 'UTF-8') ?></option>
                 <?php endforeach; ?>
             </select>
         </label>
+
+        <fieldset class="marker-picker">
+            <legend>Markør på kortet</legend>
+            <div class="marker-options">
+                <label class="marker-option">
+                    <input type="radio" name="marker_icon" value="" checked>
+                    <span class="marker-option-img" id="edit-meta-marker-default"></span>
+                    <span class="marker-option-name">Standard</span>
+                </label>
+                <?php foreach (MARKER_SETS as $markerKey => $markerName): ?>
+                <label class="marker-option">
+                    <input type="radio" name="marker_icon" value="<?= dash_h($markerKey) ?>">
+                    <span class="marker-option-img"><img src="<?= dash_h(marker_image_urls($markerKey)['east'] ?? '') ?>" alt="" loading="lazy"></span>
+                    <span class="marker-option-name"><?= dash_h($markerName) ?></span>
+                </label>
+                <?php endforeach; ?>
+            </div>
+        </fieldset>
 
         <?php if (!empty($groups)): ?>
         <label>
@@ -829,10 +849,10 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
 <script src="assets/gpx-field-labels.js?v=3"></script>
 <script src="assets/gpx-tools.js?v=1"></script>
 <script src="assets/genindlaes.js?v=1"></script>
-<script src="assets/dashboard.js?v=9"></script>
+<script src="assets/dashboard.js?v=11"></script>
 <script src="assets/dashboard-tools.js?v=3"></script>
 <script src="assets/activity-marker.js?v=1"></script>
-<script src="assets/dashboard-map.js?v=5"></script>
+<script src="assets/dashboard-map.js?v=6"></script>
 
 </body>
 </html>

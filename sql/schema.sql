@@ -304,6 +304,7 @@ CREATE TABLE `routes` (
   `group_id` bigint(20) unsigned DEFAULT NULL,
   `group_position` smallint(5) unsigned DEFAULT NULL,
   `activity_type_id` tinyint(3) unsigned NOT NULL,
+  `marker_icon` varchar(50) DEFAULT NULL,
   `route_type` enum('rute','spor') NOT NULL DEFAULT 'rute',
   `has_time_data` tinyint(1) NOT NULL DEFAULT 0,
   `enabled_data_fields` text DEFAULT NULL,

@@ -106,7 +106,8 @@ function group_members(PDO $pdo, int $groupId, bool $includePrivate): array
                    r.distance_meters, r.elevation_gain_meters, r.has_time_data,
                    r.hide_uploader_name, r.allow_download, r.updated_at, r.gpx_file_path,
                    r.start_lat, r.start_lon,
-                   a.name_da AS activity_name, a.icon_filename AS activity_icon, a.category
+                   a.name_da AS activity_name,
+                   COALESCE(r.marker_icon, a.icon_filename) AS activity_icon, a.category
             FROM routes r
             JOIN activity_types a ON a.id = r.activity_type_id
             WHERE r.group_id = :gid AND r.status = 'active'"

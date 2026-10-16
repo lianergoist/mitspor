@@ -8,6 +8,7 @@ require_once __DIR__ . '/../app/csrf.php';
 require_once __DIR__ . '/../app/auth.php';
 require_once __DIR__ . '/../app/route_update.php';
 require_once __DIR__ . '/../app/route_groups.php';
+require_once __DIR__ . '/../app/markers.php';
 
 header('Content-Type: application/json; charset=UTF-8');
 
@@ -44,6 +45,12 @@ if ($internalRouteId === false) {
     json_fail_meta(['Ruten blev ikke fundet, eller tilhører dig ikke.'], 404);
 }
 
+// Markør: kun hvis formularen har feltet med. Tom værdi = aktivitetens standard.
+$markerIcon = array_key_exists('marker_icon', $_POST) ? (string) $_POST['marker_icon'] : null;
+if ($markerIcon !== null && !marker_is_valid($markerIcon)) {
+    json_fail_meta(['Ukendt markør.']);
+}
+
 $result = update_route(
     $pdo,
     $user,
@@ -63,6 +70,12 @@ $result = update_route(
 
 if (!$result['success']) {
     json_fail_meta($result['errors']);
+}
+
+// Gemmes efter de øvrige oplysninger. Delingsbilledet laves først, når
+// svaret er sendt (og_refresh), så det får den nye markør med.
+if ($markerIcon !== null) {
+    marker_save($pdo, (int) $internalRouteId, (int) $user['id'], $markerIcon);
 }
 
 // Gruppe (etape-tur): kun hvis formularen har et gruppe-felt med.
