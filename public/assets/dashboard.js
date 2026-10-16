@@ -1,4 +1,21 @@
 /* Kontrolpanelets JavaScript (flyttet ud af dashboard.php). */
+// Markørvalget: "Standard" viser markøren for den valgte aktivitet (fra
+// <option data-marker-url>), eller "Ingen", hvis aktiviteten ikke har en.
+function markerDefaultPreview(select, box) {
+    if (!select || !box) return;
+    var option = select.options[select.selectedIndex];
+    var markerUrl = option ? option.getAttribute('data-marker-url') : '';
+    box.textContent = '';
+    if (markerUrl) {
+        var img = document.createElement('img');
+        img.src = markerUrl;
+        img.alt = '';
+        box.appendChild(img);
+    } else {
+        box.textContent = 'Ingen';
+    }
+}
+
 (function () {
     "use strict";
     var dialog = document.getElementById('profile-dialog');
@@ -233,19 +250,7 @@
     // (eller "Ingen", hvis aktiviteten ikke har en, fx "Rute på land").
     var metaActivity = document.getElementById('edit-meta-activity');
     function updateDefaultMarker() {
-        var box = document.getElementById('edit-meta-marker-default');
-        if (!box || !metaActivity) return;
-        var option = metaActivity.options[metaActivity.selectedIndex];
-        var markerUrl = option ? option.getAttribute('data-marker-url') : '';
-        box.textContent = '';
-        if (markerUrl) {
-            var img = document.createElement('img');
-            img.src = markerUrl;
-            img.alt = '';
-            box.appendChild(img);
-        } else {
-            box.textContent = 'Ingen';
-        }
+        markerDefaultPreview(metaActivity, document.getElementById('edit-meta-marker-default'));
     }
     if (metaActivity) metaActivity.addEventListener('change', updateDefaultMarker);
 
@@ -303,19 +308,129 @@
     var progressEl = document.getElementById('upload-progress');
     var submitBtn = document.getElementById('upload-submit-btn');
 
-    function setMultiMode(on, count) {
+    // note: forklaringen over gruppens titel; groupTitle: forslag til titlen.
+    function setMultiMode(on, note, groupTitle) {
         isMulti = on;
         titleLabel.hidden = on;
         titleInput.required = !on;
         groupFields.hidden = !on;
         groupTitleInput.required = on;
-        multiHint.hidden = on;
+        multiHint.hidden = on || splitParts !== null;
         if (on) {
-            multiNote.textContent = count + ' filer valgt. De oprettes som etaper i en ny gruppe, og hver etape får filnavnet som titel (du kan omdøbe dem bagefter). ' +
-                'Aktivitet, type og synlighed nedenfor gælder for alle etaperne. Tidsstempler og punkter beholdes uændret.';
+            multiNote.textContent = note + ' Aktivitet, type og synlighed nedenfor gælder for alle etaperne. Tidsstempler og punkter beholdes uændret.';
+            if (!groupTitleInput.value && groupTitle) groupTitleInput.value = groupTitle;
         } else {
             groupTitleInput.value = '';
         }
+    }
+
+    // ---------- Én fil med flere spor -> én etape pr. spor ----------
+    // Filen deles pr. <trk>/<rte> (ikke pr. <trkseg>, som blot er huller i
+    // GPS-signalet). Hver del beholder filens rodelement (navnerum,
+    // Garmin-udvidelser), <metadata> uden <bounds> og de waypoints, der
+    // ligger nærmest netop det spor.
+    var splitParts = null; // [{ title, content }] når den valgte fil har flere spor
+    var splitGroupTitle = '';
+    var splitFields = document.getElementById('upload-split-fields');
+    var splitLegend = document.getElementById('upload-split-legend');
+    var splitYes = document.getElementById('upload-split-yes');
+
+    function childElements(el, name) {
+        return Array.prototype.filter.call(el.children, function (c) { return c.localName === name; });
+    }
+
+    function linePoints(line) {
+        var tag = line.localName === 'rte' ? 'rtept' : 'trkpt';
+        return Array.prototype.filter.call(line.getElementsByTagNameNS('*', tag), function (p) {
+            return p.hasAttribute('lat') && p.hasAttribute('lon');
+        }).map(function (p) {
+            return { lat: parseFloat(p.getAttribute('lat')), lon: parseFloat(p.getAttribute('lon')) };
+        });
+    }
+
+    // Kvadratet på en tilnærmet afstand: nok til at finde det nærmeste spor.
+    function nearestLineIndex(wpt, lines) {
+        var lat = parseFloat(wpt.getAttribute('lat'));
+        var lon = parseFloat(wpt.getAttribute('lon'));
+        if (isNaN(lat) || isNaN(lon)) return 0;
+        var k = Math.cos(lat * Math.PI / 180);
+        var best = 0, bestD = Infinity;
+        lines.forEach(function (line, i) {
+            line.points.forEach(function (p) {
+                var dLat = p.lat - lat, dLon = (p.lon - lon) * k;
+                var d = dLat * dLat + dLon * dLon;
+                if (d < bestD) { bestD = d; best = i; }
+            });
+        });
+        return best;
+    }
+
+    // Returnerer null, hvis filen ikke har mindst to spor/ruter med punkter.
+    function splitGpx(text, fileBaseName) {
+        var doc = new DOMParser().parseFromString(text, 'application/xml');
+        if (doc.getElementsByTagName('parsererror').length) return null;
+        var root = doc.documentElement;
+        if (!root || root.localName !== 'gpx') return null;
+
+        var lines = Array.prototype.filter.call(root.children, function (c) {
+            return c.localName === 'trk' || c.localName === 'rte';
+        }).map(function (el) {
+            return { el: el, points: linePoints(el) };
+        }).filter(function (line) { return line.points.length >= 2; });
+        if (lines.length < 2) return null;
+
+        var metadata = childElements(root, 'metadata')[0] || null;
+        var metaName = metadata ? childElements(metadata, 'name')[0] : null;
+        splitGroupTitle = (metaName && metaName.textContent.trim()) || fileBaseName;
+
+        var wptsByLine = lines.map(function () { return []; });
+        childElements(root, 'wpt').forEach(function (w) {
+            wptsByLine[nearestLineIndex(w, lines)].push(w);
+        });
+
+        var serializer = new XMLSerializer();
+        return lines.map(function (line, i) {
+            var partDoc = document.implementation.createDocument(null, null, null);
+            var partRoot = partDoc.importNode(root, false);
+            partDoc.appendChild(partRoot);
+            if (metadata) {
+                var meta = partDoc.importNode(metadata, true);
+                childElements(meta, 'bounds').forEach(function (b) { meta.removeChild(b); });
+                partRoot.appendChild(meta);
+            }
+            wptsByLine[i].forEach(function (w) { partRoot.appendChild(partDoc.importNode(w, true)); });
+            partRoot.appendChild(partDoc.importNode(line.el, true));
+
+            var nameEl = childElements(line.el, 'name')[0];
+            var title = (nameEl && nameEl.textContent.trim()) || (fileBaseName + ' ' + (i + 1));
+            return {
+                title: title.slice(0, 200),
+                content: '<?xml version="1.0" encoding="UTF-8"?>\n' + serializer.serializeToString(partDoc)
+            };
+        });
+    }
+
+    function splitNote() {
+        var names = splitParts.map(function (p) { return p.title; });
+        var shown = names.slice(0, 5).join(', ') + (names.length > 5 ? ' …' : '');
+        return 'De ' + splitParts.length + ' spor oprettes som etaper i en ny gruppe, med sporets navn som titel (' + shown + '). Du kan omdøbe dem bagefter.';
+    }
+
+    function applySplitChoice() {
+        if (splitParts && splitYes.checked) {
+            setMultiMode(true, splitNote(), splitGroupTitle);
+        } else {
+            setMultiMode(false);
+        }
+    }
+    document.getElementById('upload-split-yes').addEventListener('change', applySplitChoice);
+    document.getElementById('upload-split-no').addEventListener('change', applySplitChoice);
+
+    function clearSplit() {
+        splitParts = null;
+        splitGroupTitle = '';
+        splitFields.hidden = true;
+        splitYes.checked = true;
     }
 
     function readFileText(file) {
@@ -336,7 +451,8 @@
 
     function handleMultiSelect() {
         var files = Array.prototype.slice.call(fileInput.files);
-        setMultiMode(true, files.length);
+        clearSplit();
+        setMultiMode(true, files.length + ' filer valgt. De oprettes som etaper i en ny gruppe, og hver etape får filnavnet som titel (du kan omdøbe dem bagefter).');
         Promise.all(files.map(function (f) { return readFileText(f.slice(0, 300000)); })).then(function (texts) {
             fileHasTimeData = texts.every(startHasPointTime);
             metaBehavior.setHasTimeData(fileHasTimeData);
@@ -353,10 +469,33 @@
         errorsEl.hidden = false;
     }
 
-    async function submitMulti() {
+    // Flere filer: én etape pr. fil, sorteret efter filnavn.
+    function submitMulti() {
         var files = Array.prototype.slice.call(fileInput.files).sort(function (a, b) {
             return a.name.localeCompare(b.name, 'da', { numeric: true });
         });
+        return submitParts(files.map(function (f) {
+            return {
+                label: 'Filen "' + f.name + '"',
+                title: f.name.replace(/\.gpx$/i, ''),
+                read: function () { return readFileText(f); }
+            };
+        }));
+    }
+
+    // Én fil med flere spor: én etape pr. spor, i filens rækkefølge.
+    function submitSplit() {
+        return submitParts(splitParts.map(function (p) {
+            return {
+                label: 'Sporet "' + p.title + '"',
+                title: p.title,
+                read: function () { return Promise.resolve(p.content); }
+            };
+        }));
+    }
+
+    // Uploader delene som ruter og samler dem i en ny gruppe.
+    async function submitParts(parts) {
         var groupTitle = groupTitleInput.value.trim();
         if (groupTitle.length < 2) {
             showUploadError('Skriv en titel til gruppen (mindst 2 tegn).');
@@ -373,6 +512,7 @@
             allow_download: document.getElementById('upload-allow-download').checked ? '1' : '0',
             hide_uploader_name: document.getElementById('upload-hide-uploader-name').checked ? '1' : '0',
             public_notice_ack: noticeCheckbox.checked ? '1' : '0',
+            marker_icon: selectedUploadMarker(),
             // Ingen spørgsmål undervejs ved mange filer: tidsstempler og punkter
             // beholdes som de er (kan ændres bagefter i GPX-editoren).
             time_resolution: 'keep',
@@ -384,14 +524,14 @@
         var created = [];
         var failure = null;
 
-        for (var i = 0; i < files.length; i++) {
-            var f = files[i];
-            progressEl.textContent = 'Uploader ' + (i + 1) + ' af ' + files.length + ': ' + f.name;
+        for (var i = 0; i < parts.length; i++) {
+            var part = parts[i];
+            progressEl.textContent = 'Uploader ' + (i + 1) + ' af ' + parts.length + ': ' + part.title;
             try {
-                var content = await readFileText(f);
+                var content = await part.read();
                 var body = new URLSearchParams(Object.assign({}, common, {
                     gpx_data: content,
-                    title: f.name.replace(/\.gpx$/i, '')
+                    title: part.title
                 }));
                 var res = await fetch('editor-save.php', { method: 'POST', body: body });
                 var data = await res.json();
@@ -400,7 +540,7 @@
                 }
                 created.push(data.route_id);
             } catch (e) {
-                failure = { name: f.name, message: e.message };
+                failure = { label: part.label, message: e.message };
                 break;
             }
         }
@@ -420,10 +560,10 @@
                     })
                 }).then(function (r) { return r.json(); });
                 if (!g.success) {
-                    failure = failure || { name: '', message: (g.errors && g.errors.join(' ')) || 'Gruppen kunne ikke oprettes.' };
+                    failure = failure || { label: '', message: (g.errors && g.errors.join(' ')) || 'Gruppen kunne ikke oprettes.' };
                 }
             } catch (e) {
-                failure = failure || { name: '', message: 'Gruppen kunne ikke oprettes.' };
+                failure = failure || { label: '', message: 'Gruppen kunne ikke oprettes.' };
             }
         }
 
@@ -436,9 +576,9 @@
         progressEl.hidden = true;
         submitBtn.disabled = false;
         showUploadError(
-            (failure.name ? 'Filen "' + failure.name + '" kunne ikke uploades: ' : '') + failure.message +
+            (failure.label ? failure.label + ' kunne ikke uploades: ' : '') + failure.message +
             (created.length > 0
-                ? ' ' + created.length + ' af ' + files.length + ' etaper er oprettet. Luk dialogen for at se dem i listen.'
+                ? ' ' + created.length + ' af ' + parts.length + ' etaper er oprettet. Luk dialogen for at se dem i listen.'
                 : '')
         );
     }
@@ -475,8 +615,20 @@
         r.addEventListener('change', function () { userChoseRouteType = true; });
     });
 
+    // Markøren gælder alle etaper ved upload af flere filer/spor.
+    var uploadActivity = document.getElementById('upload-activity');
+    function selectedUploadMarker() {
+        var checked = form.querySelector('input[name="marker_icon"]:checked');
+        return checked ? checked.value : '';
+    }
+    function updateUploadDefaultMarker() {
+        markerDefaultPreview(uploadActivity, document.getElementById('upload-marker-default'));
+    }
+    uploadActivity.addEventListener('change', updateUploadDefaultMarker);
+
     function resetDialog() {
         form.reset();
+        updateUploadDefaultMarker();
         form.hidden = false;
         warningPanel.hidden = true;
         thinningPanel.hidden = true;
@@ -488,6 +640,7 @@
         fileHasTimeData = false;
         metaBehavior.setHasTimeData(false);
         userChoseRouteType = false;
+        clearSplit();
         setMultiMode(false);
         progressEl.hidden = true;
         submitBtn.disabled = false;
@@ -516,12 +669,25 @@
             handleMultiSelect();
             return;
         }
+        clearSplit();
         setMultiMode(false);
+        var baseName = fileInput.files[0].name.replace(/\.gpx$/i, '');
         if (!titleInput.value) {
-            titleInput.value = fileInput.files[0].name.replace(/\.gpx$/i, '');
+            titleInput.value = baseName;
         }
         var reader = new FileReader();
         reader.onload = function () {
+            // Flere spor i filen? Så foreslås (forvalgt) én etape pr. spor.
+            try {
+                splitParts = splitGpx(reader.result, baseName);
+            } catch (e) {
+                splitParts = null;
+            }
+            if (splitParts) {
+                splitLegend.textContent = 'Filen indeholder ' + splitParts.length + ' spor';
+                splitFields.hidden = false;
+                applySplitChoice();
+            }
             fileHasTimeData = /<time[>\s]/.test(reader.result);
             metaBehavior.setHasTimeData(fileHasTimeData);
             if (!userChoseRouteType) {
@@ -546,6 +712,7 @@
             allow_download: document.getElementById('upload-allow-download').checked ? '1' : '0',
             hide_uploader_name: document.getElementById('upload-hide-uploader-name').checked ? '1' : '0',
             public_notice_ack: noticeCheckbox.checked ? '1' : '0',
+            marker_icon: selectedUploadMarker(),
             time_resolution: timeResolution || 'ask',
             thin_interval: (thinInterval === undefined || thinInterval === null) ? '' : String(thinInterval)
         });
@@ -621,6 +788,10 @@
 
         if (isMulti && fileInput.files.length > 1) {
             submitMulti();
+            return;
+        }
+        if (isMulti && splitParts) {
+            submitSplit();
             return;
         }
 

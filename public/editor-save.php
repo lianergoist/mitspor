@@ -42,6 +42,7 @@ require_once __DIR__ . '/../app/auth.php';
 require_once __DIR__ . '/../app/route_creation.php';
 require_once __DIR__ . '/../app/route_update.php';
 require_once __DIR__ . '/../app/route_groups.php';
+require_once __DIR__ . '/../app/markers.php';
 
 header('Content-Type: application/json; charset=UTF-8');
 
@@ -77,6 +78,11 @@ $hideUploaderName = isset($_POST['hide_uploader_name']) && $_POST['hide_uploader
 $publicAck      = isset($_POST['public_notice_ack']) && $_POST['public_notice_ack'] !== '0' && $_POST['public_notice_ack'] !== '';
 $timeResolution = (string) ($_POST['time_resolution'] ?? 'ask');
 $thinInterval = isset($_POST['thin_interval']) && $_POST['thin_interval'] !== '' ? (int) $_POST['thin_interval'] : null;
+// Markør: kun hvis kalderen sender feltet med (upload-dialogen). Tom = aktivitetens standard.
+$markerIcon = array_key_exists('marker_icon', $_POST) ? (string) $_POST['marker_icon'] : null;
+if ($markerIcon !== null && !marker_is_valid($markerIcon)) {
+    json_fail_editor(['Ukendt markør.']);
+}
 
 // Hvilke GPX-datafelter (puls, kadence, watt, osv.) ejeren har valgt
 // skal kunne vises/bruges — sat via "Visning og datafelter" i
@@ -236,6 +242,10 @@ if (!$result['success']) {
 // Ved opdatering kender vi allerede public_id (det ændrer sig aldrig);
 // ved oprettelse kommer det fra create_route()'s svar.
 $responsePublicId = $result['public_id'] ?? $routePublicId;
+
+if ($markerIcon !== null) {
+    marker_save($pdo, (int) $result['route_id'], (int) $user['id'], $markerIcon);
+}
 
 // Gruppe (etape-tur): kun hvis kalderen sender group_id med (tom = ingen
 // gruppe). Nye ruter lægges sidst i gruppen.
