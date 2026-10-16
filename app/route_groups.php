@@ -104,7 +104,7 @@ function group_members(PDO $pdo, int $groupId, bool $includePrivate): array
 {
     $sql = "SELECT r.id, r.public_id, r.title, r.visibility, r.group_position,
                    r.distance_meters, r.elevation_gain_meters, r.has_time_data,
-                   r.hide_uploader_name, r.updated_at, r.gpx_file_path,
+                   r.hide_uploader_name, r.allow_download, r.updated_at, r.gpx_file_path,
                    r.start_lat, r.start_lon,
                    a.name_da AS activity_name, a.icon_filename AS activity_icon, a.category
             FROM routes r
