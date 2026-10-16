@@ -618,6 +618,13 @@ html {
   line-height: 20px;
   text-align: center;
 }
+.image-picker-manage {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: #64748b;
+  text-align: center;
+}
+
 .image-picker-empty {
   font-size: 13px;
   color: #64748b;

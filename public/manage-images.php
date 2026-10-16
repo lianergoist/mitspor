@@ -10,6 +10,7 @@ require_once __DIR__ . '/../app/db.php';
 require_once __DIR__ . '/../app/csrf.php';
 require_once __DIR__ . '/../app/auth.php';
 require_once __DIR__ . '/../app/image_deletion.php';
+require_once __DIR__ . '/../app/app_hent.php';
 
 $userId = require_login();
 $user = current_user($userId);
@@ -39,6 +40,22 @@ function img_size_label(int $bytes): string
 function img_route_type_label(string $routeType): string
 {
     return $routeType === 'spor' ? 'Spor' : 'Rute';
+}
+
+// tilbage=: siden, man kom fra (fx editoren), som tilbage-pilen fører til.
+// Kun stier på dette site accepteres (samme tjek som app-hent.php).
+$back = (string) ($_POST['tilbage'] ?? $_GET['tilbage'] ?? '');
+if (!app_hent_safe_back($back) || str_starts_with($back, '/manage-images.php')) {
+    $back = '';
+}
+
+// Adresse på denne side, med tilbage= bevaret.
+function img_self_url(string $back, array $params = []): string
+{
+    if ($back !== '') {
+        $params['tilbage'] = $back;
+    }
+    return '/manage-images.php' . ($params !== [] ? '?' . http_build_query($params) : '');
 }
 
 $errors = [];
@@ -71,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errors)) {
         try {
             image_delete($pdo, $userId, $image);
-            header('Location: /manage-images.php?slettet=1');
+            header('Location: ' . img_self_url($back, ['slettet' => 1]));
             exit;
         } catch (Throwable $e) {
             error_log('Billedsletning fejlede: ' . $e->getMessage());
@@ -126,7 +143,7 @@ $imageUrl = static fn (array $img, bool $thumb): string =>
 <body>
 
 <div class="topbar">
-    <a href="<?= $confirmImage !== null ? '/manage-images.php' : '/dashboard.php' ?>" class="brand" title="Tilbage" aria-label="Tilbage">
+    <a href="<?= img_h($confirmImage !== null ? img_self_url($back) : ($back !== '' ? $back : '/dashboard.php')) ?>" class="brand" title="Tilbage" aria-label="Tilbage">
         <span class="back-arrow" aria-hidden="true">&larr;</span>
     </a>
 </div>
@@ -167,14 +184,15 @@ $imageUrl = static fn (array $img, bool $thumb): string =>
                     </li>
                 <?php endforeach; ?>
             </ul>
-            <p><a href="/manage-images.php" class="btn">Tilbage til mine billeder</a></p>
+            <p><a href="<?= img_h(img_self_url($back)) ?>" class="btn">Tilbage til mine billeder</a></p>
         <?php else: ?>
             <p>Billedet bruges ikke i nogen af dine ruter. Vil du slette det permanent? Det kan ikke fortrydes.</p>
             <form method="post" action="/manage-images.php" class="image-confirm-actions">
                 <input type="hidden" name="csrf_token" value="<?= img_h(csrf_token()) ?>">
                 <input type="hidden" name="image_id" value="<?= (int) $confirmImage['id'] ?>">
+                <?php if ($back !== ''): ?><input type="hidden" name="tilbage" value="<?= img_h($back) ?>"><?php endif; ?>
                 <button type="submit" class="btn btn-danger">Slet billedet</button>
-                <a href="/manage-images.php" class="btn">Annullér</a>
+                <a href="<?= img_h(img_self_url($back)) ?>" class="btn">Annullér</a>
             </form>
         <?php endif; ?>
 
@@ -213,7 +231,7 @@ $imageUrl = static fn (array $img, bool $thumb): string =>
                                 <?php endif; ?>
                             </span>
                         </div>
-                        <a href="/manage-images.php?slet=<?= (int) $img['id'] ?>" class="btn image-grid-delete<?= $used === [] ? ' btn-danger' : '' ?>">
+                        <a href="<?= img_h(img_self_url($back, ['slet' => (int) $img['id']])) ?>" class="btn image-grid-delete<?= $used === [] ? ' btn-danger' : '' ?>">
                             <?= $used === [] ? 'Slet' : 'Hvor bruges det?' ?>
                         </a>
                     </li>

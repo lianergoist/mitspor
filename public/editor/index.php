@@ -54,7 +54,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <title>GPX-editor</title>
 
 <link rel="stylesheet" href="../vendor/leaflet/leaflet.css" />
-<link rel="stylesheet" href="style.css?v=34" />
+<link rel="stylesheet" href="style.css?v=38" />
 </head>
 <body>
 
@@ -245,6 +245,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
     <div id="image-picker-grid" class="image-picker-grid"></div>
   </div>
   <button type="button" id="btn-add-picked-images" class="btn btn-primary">Tilføj valgte</button>
+  <p class="image-picker-manage"><a href="/manage-images.php" id="link-manage-images">Administrér mine billeder</a> (se og slet uploadede billeder)</p>
 </dialog>
 
 <dialog id="help-dialog">
@@ -294,6 +295,6 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <script src="../vendor/leaflet-path-drag/index.js"></script>
 <script src="../vendor/sortablejs/Sortable.min.js"></script>
 <script src="../assets/route-meta-dialog.js?v=2"></script>
-<script src="app.js?v=34"></script>
+<script src="app.js?v=38"></script>
 </body>
 </html>
