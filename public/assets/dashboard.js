@@ -1222,8 +1222,22 @@ function markerDefaultPreview(select, box) {
     var editForm = document.getElementById('group-edit-form');
     var editErrors = document.getElementById('group-edit-errors');
     var orderList = document.getElementById('group-order-list');
+    var visPublic = document.getElementById('group-vis-public');
+    var visPrivate = document.getElementById('group-vis-private');
+    var visMixed = document.getElementById('group-vis-mixed');
     var visAck = document.getElementById('group-vis-ack');
     var currentGroupId = null;
+    var loadedVisibility = null; // 'public', 'private' eller null (blandet)
+    var loadedOrder = '';        // etapernes id'er, som de var ved åbning
+
+    // Samme opførsel som synligheden i "Rediger metadata": GDPR-boksen vises
+    // ved Offentlig og er forudfyldt, hvis alle etaper allerede er offentlige.
+    var visBehavior = RouteMetaDialog.init({
+        visibilityPublic: 'group-vis-public',
+        visibilityPrivate: 'group-vis-private',
+        publicNotice: 'group-vis-notice',
+        publicNoticeAck: 'group-vis-ack'
+    });
     var sortable = null;
     bindDialogClose(editDialog, document.getElementById('group-edit-close'));
 
@@ -1295,8 +1309,14 @@ function markerDefaultPreview(select, box) {
                     currentGroupId = data.group_id;
                     document.getElementById('group-edit-title').value = data.title;
                     document.getElementById('group-edit-description').value = data.description || '';
-                    visAck.checked = false;
+                    var pub = data.routes.filter(function (r) { return r.visibility === 'public'; }).length;
+                    loadedVisibility = pub === data.routes.length ? 'public' : (pub === 0 ? 'private' : null);
+                    visPublic.checked = loadedVisibility === 'public';
+                    visPrivate.checked = loadedVisibility === 'private';
+                    visMixed.hidden = loadedVisibility !== null;
+                    visBehavior.setLoadedVisibility(loadedVisibility === 'public' ? 'public' : 'private');
                     renderOrder(data.routes);
+                    loadedOrder = currentOrder();
                     editDialog.showModal();
                 });
         });
@@ -1308,43 +1328,38 @@ function markerDefaultPreview(select, box) {
     }
     function failed() { showErrors(editErrors, null); }
 
+    function currentOrder() {
+        return Array.prototype.map.call(orderList.children, function (li) { return li.getAttribute('data-id'); }).join(',');
+    }
+
+    // "Gem": titel og beskrivelse, rækkefølgen, hvis den er ændret, og
+    // synligheden, hvis der er valgt en anden end den, etaperne har nu.
     editForm.addEventListener('submit', function (ev) {
         ev.preventDefault();
         editErrors.hidden = true;
+        var visibility = visPublic.checked ? 'public' : (visPrivate.checked ? 'private' : null);
+        var changeVisibility = visibility !== null && visibility !== loadedVisibility;
+        if (changeVisibility && !visBehavior.requireGdprAckIfPublic()) return;
+
         post({
             action: 'update',
             group_id: currentGroupId,
             title: document.getElementById('group-edit-title').value,
             description: document.getElementById('group-edit-description').value
+        }).then(function (data) {
+            var order = currentOrder();
+            if (!data.success || order === loadedOrder) return data;
+            return post({ action: 'reorder', group_id: currentGroupId, route_ids: order });
+        }).then(function (data) {
+            if (!data.success || !changeVisibility) return data;
+            return post({
+                action: 'set_visibility',
+                group_id: currentGroupId,
+                visibility: visibility,
+                public_notice_ack: visAck.checked ? '1' : '0'
+            });
         }).then(done).catch(failed);
     });
-
-    document.getElementById('group-order-save').addEventListener('click', function () {
-        editErrors.hidden = true;
-        var ids = Array.prototype.map.call(orderList.children, function (li) { return li.getAttribute('data-id'); });
-        post({ action: 'reorder', group_id: currentGroupId, route_ids: ids.join(',') }).then(done).catch(failed);
-    });
-
-    document.getElementById('group-order-sort-time').addEventListener('click', function () {
-        editErrors.hidden = true;
-        post({ action: 'sort_by_time', group_id: currentGroupId }).then(done).catch(failed);
-    });
-
-    function setVisibility(visibility) {
-        editErrors.hidden = true;
-        if (visibility === 'public' && !visAck.checked) {
-            alert('Husk at krydse boksen af om, at du forstår at start-/slutpunkter kan afsløre din bopæl (GDPR), før du kan gøre gruppen offentlig.');
-            return;
-        }
-        post({
-            action: 'set_visibility',
-            group_id: currentGroupId,
-            visibility: visibility,
-            public_notice_ack: visAck.checked ? '1' : '0'
-        }).then(done).catch(failed);
-    }
-    document.getElementById('group-make-public').addEventListener('click', function () { setVisibility('public'); });
-    document.getElementById('group-make-private').addEventListener('click', function () { setVisibility('private'); });
 
     document.getElementById('group-dissolve').addEventListener('click', function () {
         if (!confirm('Opløs gruppen? Ruterne bliver stående som almindelige ruter — kun selve gruppen slettes.')) return;
