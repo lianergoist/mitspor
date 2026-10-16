@@ -106,15 +106,19 @@ $palette = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#0891b2', '#
     <meta name="twitter:image" content="<?= $e($ogImageUrl) ?>">
 
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/style.css?v=10">
+    <link rel="stylesheet" href="assets/style.css?v=22">
     <style>
         html, body { height: 100%; margin: 0; }
         .info-panel { top: 80px; left: 12px; width: 320px; max-width: calc(100vw - 24px); max-height: calc(100dvh - 100px); overflow-y: auto; }
         .info-panel h1 { font-size: 16px; margin: 0 0 4px; }
         .info-panel .meta { color: var(--text-muted); font-size: 12px; margin-bottom: 6px; }
         .info-panel p { margin: 6px 0; font-size: 13px; }
-        .group-download { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
-        .group-download .btn { padding: 6px 12px; font-size: 13px; }
+        /* Knapper i topbaren, som på rutesiden (route-view.php). */
+        .topbar-buttons { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+        @media (max-width: 520px) {
+            .btn-label { display: none; }
+            .map-page .topbar .btn { padding: 6px 12px; min-height: 40px; }
+        }
         .stage-list { list-style: none; margin: 10px 0 0; padding: 0; border-top: 1px solid var(--border); }
         .stage-list li { border-bottom: 1px solid var(--border); }
         .stage-list a { display: flex; align-items: center; gap: 10px; padding: 7px 4px; color: inherit; text-decoration: none; font-size: 13px; }
@@ -132,6 +136,11 @@ $palette = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#0891b2', '#
 
     <div class="topbar">
         <a href="<?= $isOwner ? 'dashboard.php' : 'index.php' ?>" class="brand">&larr; <?= $isOwner ? 'Mit kontrolpanel' : 'MitSpor' ?></a>
+        <?php if ($showGroupDownload): ?>
+            <div class="topbar-buttons">
+                <a class="btn" href="group-file.php?id=<?= $e($group['public_id']) ?>" title="Download hele gruppen som én GPX-fil" aria-label="Download"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M12 3v12m0 0l-5-5m5 5l5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="btn-label">Download</span></a>
+            </div>
+        <?php endif; ?>
     </div>
 
     <div id="map"></div>
@@ -154,13 +163,8 @@ $palette = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#0891b2', '#
             <p class="meta">Ingen af etaperne er offentlige — kun du kan se denne gruppe.</p>
         <?php endif; ?>
 
-        <?php if ($showGroupDownload): ?>
-            <p class="group-download">
-                <a class="btn" href="group-file.php?id=<?= $e($group['public_id']) ?>">Download GPX (hele gruppen)</a>
-                <?php if ($downloadPlan['skipped'] > 0): ?>
-                    <span class="meta"><?= (int) $downloadPlan['skipped'] ?> af <?= count($members) ?> etaper må ikke downloades og kommer ikke med.</span>
-                <?php endif; ?>
-            </p>
+        <?php if ($showGroupDownload && $downloadPlan['skipped'] > 0): ?>
+            <p class="meta">Download: <?= (int) $downloadPlan['skipped'] ?> af <?= count($members) ?> etaper må ikke downloades og kommer ikke med i filen.</p>
         <?php endif; ?>
 
         <ol class="stage-list" id="stage-list">
