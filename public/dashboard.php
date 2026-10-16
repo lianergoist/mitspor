@@ -211,6 +211,34 @@ function dash_h(?string $value): string
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 }
 
+/**
+ * Markørvalget (radioknapper med billeder) til "Rediger metadata" og upload.
+ * $defaultBoxId: feltet, der viser den valgte aktivitets standardmarkør
+ * (fyldes af markerDefaultPreview() i assets/dashboard.js).
+ */
+function render_marker_picker(string $defaultBoxId): void
+{
+    ?>
+        <fieldset class="marker-picker">
+            <legend>Markør på kortet</legend>
+            <div class="marker-options">
+                <label class="marker-option">
+                    <input type="radio" name="marker_icon" value="" checked>
+                    <span class="marker-option-img" id="<?= dash_h($defaultBoxId) ?>"></span>
+                    <span class="marker-option-name">Standard</span>
+                </label>
+                <?php foreach (MARKER_SETS as $markerKey => $markerName): ?>
+                <label class="marker-option">
+                    <input type="radio" name="marker_icon" value="<?= dash_h($markerKey) ?>">
+                    <span class="marker-option-img"><img src="<?= dash_h(marker_image_urls($markerKey)['east'] ?? '') ?>" alt="" loading="lazy"></span>
+                    <span class="marker-option-name"><?= dash_h($markerName) ?></span>
+                </label>
+                <?php endforeach; ?>
+            </div>
+        </fieldset>
+    <?php
+}
+
 // Lille "?"-knap til højre for et værktøj; teksten ligger i assets/dashboard.js (TOOL_HELP).
 function dash_help_btn(string $key, string $label): string
 {
@@ -499,23 +527,7 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
             </select>
         </label>
 
-        <fieldset class="marker-picker">
-            <legend>Markør på kortet</legend>
-            <div class="marker-options">
-                <label class="marker-option">
-                    <input type="radio" name="marker_icon" value="" checked>
-                    <span class="marker-option-img" id="edit-meta-marker-default"></span>
-                    <span class="marker-option-name">Standard</span>
-                </label>
-                <?php foreach (MARKER_SETS as $markerKey => $markerName): ?>
-                <label class="marker-option">
-                    <input type="radio" name="marker_icon" value="<?= dash_h($markerKey) ?>">
-                    <span class="marker-option-img"><img src="<?= dash_h(marker_image_urls($markerKey)['east'] ?? '') ?>" alt="" loading="lazy"></span>
-                    <span class="marker-option-name"><?= dash_h($markerName) ?></span>
-                </label>
-                <?php endforeach; ?>
-            </div>
-        </fieldset>
+        <?php render_marker_picker('edit-meta-marker-default'); ?>
 
         <?php if (!empty($groups)): ?>
         <label>
@@ -652,10 +664,12 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
             <select name="activity_type_id" id="upload-activity">
                 <option value="">Vælg...</option>
                 <?php foreach ($activityTypes as $type): ?>
-                    <option value="<?= (int) $type['id'] ?>"><?= htmlspecialchars($type['name_da'], ENT_QUOTES, 'UTF-8') ?></option>
+                    <option value="<?= (int) $type['id'] ?>" data-marker-url="<?= dash_h(marker_image_urls((string) $type['icon_filename'])['east'] ?? '') ?>"><?= htmlspecialchars($type['name_da'], ENT_QUOTES, 'UTF-8') ?></option>
                 <?php endforeach; ?>
             </select>
         </label>
+
+        <?php render_marker_picker('upload-marker-default'); ?>
 
         <fieldset>
             <legend>Type</legend>
@@ -861,7 +875,7 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
 <script src="assets/gpx-field-labels.js?v=3"></script>
 <script src="assets/gpx-tools.js?v=1"></script>
 <script src="assets/genindlaes.js?v=1"></script>
-<script src="assets/dashboard.js?v=12"></script>
+<script src="assets/dashboard.js?v=13"></script>
 <script src="assets/dashboard-tools.js?v=3"></script>
 <script src="assets/activity-marker.js?v=1"></script>
 <script src="assets/dashboard-map.js?v=6"></script>

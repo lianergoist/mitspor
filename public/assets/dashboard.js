@@ -1,4 +1,21 @@
 /* Kontrolpanelets JavaScript (flyttet ud af dashboard.php). */
+// Markørvalget: "Standard" viser markøren for den valgte aktivitet (fra
+// <option data-marker-url>), eller "Ingen", hvis aktiviteten ikke har en.
+function markerDefaultPreview(select, box) {
+    if (!select || !box) return;
+    var option = select.options[select.selectedIndex];
+    var markerUrl = option ? option.getAttribute('data-marker-url') : '';
+    box.textContent = '';
+    if (markerUrl) {
+        var img = document.createElement('img');
+        img.src = markerUrl;
+        img.alt = '';
+        box.appendChild(img);
+    } else {
+        box.textContent = 'Ingen';
+    }
+}
+
 (function () {
     "use strict";
     var dialog = document.getElementById('profile-dialog');
@@ -233,19 +250,7 @@
     // (eller "Ingen", hvis aktiviteten ikke har en, fx "Rute på land").
     var metaActivity = document.getElementById('edit-meta-activity');
     function updateDefaultMarker() {
-        var box = document.getElementById('edit-meta-marker-default');
-        if (!box || !metaActivity) return;
-        var option = metaActivity.options[metaActivity.selectedIndex];
-        var markerUrl = option ? option.getAttribute('data-marker-url') : '';
-        box.textContent = '';
-        if (markerUrl) {
-            var img = document.createElement('img');
-            img.src = markerUrl;
-            img.alt = '';
-            box.appendChild(img);
-        } else {
-            box.textContent = 'Ingen';
-        }
+        markerDefaultPreview(metaActivity, document.getElementById('edit-meta-marker-default'));
     }
     if (metaActivity) metaActivity.addEventListener('change', updateDefaultMarker);
 
@@ -507,6 +512,7 @@
             allow_download: document.getElementById('upload-allow-download').checked ? '1' : '0',
             hide_uploader_name: document.getElementById('upload-hide-uploader-name').checked ? '1' : '0',
             public_notice_ack: noticeCheckbox.checked ? '1' : '0',
+            marker_icon: selectedUploadMarker(),
             // Ingen spørgsmål undervejs ved mange filer: tidsstempler og punkter
             // beholdes som de er (kan ændres bagefter i GPX-editoren).
             time_resolution: 'keep',
@@ -609,8 +615,20 @@
         r.addEventListener('change', function () { userChoseRouteType = true; });
     });
 
+    // Markøren gælder alle etaper ved upload af flere filer/spor.
+    var uploadActivity = document.getElementById('upload-activity');
+    function selectedUploadMarker() {
+        var checked = form.querySelector('input[name="marker_icon"]:checked');
+        return checked ? checked.value : '';
+    }
+    function updateUploadDefaultMarker() {
+        markerDefaultPreview(uploadActivity, document.getElementById('upload-marker-default'));
+    }
+    uploadActivity.addEventListener('change', updateUploadDefaultMarker);
+
     function resetDialog() {
         form.reset();
+        updateUploadDefaultMarker();
         form.hidden = false;
         warningPanel.hidden = true;
         thinningPanel.hidden = true;
@@ -694,6 +712,7 @@
             allow_download: document.getElementById('upload-allow-download').checked ? '1' : '0',
             hide_uploader_name: document.getElementById('upload-hide-uploader-name').checked ? '1' : '0',
             public_notice_ack: noticeCheckbox.checked ? '1' : '0',
+            marker_icon: selectedUploadMarker(),
             time_resolution: timeResolution || 'ask',
             thin_interval: (thinInterval === undefined || thinInterval === null) ? '' : String(thinInterval)
         });
