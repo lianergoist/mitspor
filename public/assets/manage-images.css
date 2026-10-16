@@ -20,6 +20,34 @@
 
 .modal-errors p { margin: 0; }
 
+/* Filter: Alle / Bruges ikke / Bruges. Knapperne må bryde om på smalle skærme. */
+.image-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0 0;
+}
+
+.image-filter-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.image-filter-btn.is-active {
+    background: var(--primary);
+    border-color: var(--primary-dark);
+    color: #fff;
+}
+
+.image-filter-count {
+    opacity: 0.8;
+}
+
 /* Gitter med fleksible kolonner, så det også tåler større tekst i appen. */
 .image-grid {
     list-style: none;

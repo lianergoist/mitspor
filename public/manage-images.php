@@ -49,12 +49,20 @@ if (!app_hent_safe_back($back) || str_starts_with($back, '/manage-images.php')) 
     $back = '';
 }
 
-// Adresse på denne side, med tilbage= bevaret.
-function img_self_url(string $back, array $params = []): string
+// vis=: filter i oversigten — alle billeder, kun ubrugte eller kun brugte.
+const IMG_FILTERS = ['alle' => 'Alle', 'ubrugte' => 'Bruges ikke', 'brugte' => 'Bruges'];
+$filter = (string) ($_POST['vis'] ?? $_GET['vis'] ?? 'alle');
+if (!isset(IMG_FILTERS[$filter])) {
+    $filter = 'alle';
+}
+
+// Det, der skal følge med fra side til side på denne side.
+$keep = ['tilbage' => $back, 'vis' => $filter === 'alle' ? '' : $filter];
+
+// Adresse på denne side, med tilbage= og vis= bevaret.
+function img_self_url(array $keep, array $params = []): string
 {
-    if ($back !== '') {
-        $params['tilbage'] = $back;
-    }
+    $params = array_merge(array_filter($keep, static fn (string $v): bool => $v !== ''), $params);
     return '/manage-images.php' . ($params !== [] ? '?' . http_build_query($params) : '');
 }
 
@@ -88,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errors)) {
         try {
             image_delete($pdo, $userId, $image);
-            header('Location: ' . img_self_url($back, ['slettet' => 1]));
+            header('Location: ' . img_self_url($keep, ['slettet' => 1]));
             exit;
         } catch (Throwable $e) {
             error_log('Billedsletning fejlede: ' . $e->getMessage());
@@ -121,6 +129,16 @@ if ($confirmImage === null) {
     $stmt->execute(['user_id' => $userId]);
     $images = $stmt->fetchAll();
     $usageMap = image_usage_map($pdo, $userId, $images);
+
+    $counts = ['alle' => count($images), 'ubrugte' => 0, 'brugte' => 0];
+    foreach ($images as $img) {
+        $counts[isset($usageMap[(int) $img['id']]) ? 'brugte' : 'ubrugte']++;
+    }
+    $shownImages = array_values(array_filter($images, static fn (array $img): bool => match ($filter) {
+        'ubrugte' => !isset($usageMap[(int) $img['id']]),
+        'brugte'  => isset($usageMap[(int) $img['id']]),
+        default   => true,
+    }));
 }
 
 $imageUrl = static fn (array $img, bool $thumb): string =>
@@ -138,12 +156,12 @@ $imageUrl = static fn (array $img, bool $thumb): string =>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mine billeder</title>
     <link rel="stylesheet" href="/assets/style.css?v=22">
-    <link rel="stylesheet" href="/assets/manage-images.css?v=1">
+    <link rel="stylesheet" href="/assets/manage-images.css?v=2">
 </head>
 <body>
 
 <div class="topbar">
-    <a href="<?= img_h($confirmImage !== null ? img_self_url($back) : ($back !== '' ? $back : '/dashboard.php')) ?>" class="brand" title="Tilbage" aria-label="Tilbage">
+    <a href="<?= img_h($confirmImage !== null ? img_self_url($keep) : ($back !== '' ? $back : '/dashboard.php')) ?>" class="brand" title="Tilbage" aria-label="Tilbage">
         <span class="back-arrow" aria-hidden="true">&larr;</span>
     </a>
 </div>
@@ -184,15 +202,17 @@ $imageUrl = static fn (array $img, bool $thumb): string =>
                     </li>
                 <?php endforeach; ?>
             </ul>
-            <p><a href="<?= img_h(img_self_url($back)) ?>" class="btn">Tilbage til mine billeder</a></p>
+            <p><a href="<?= img_h(img_self_url($keep)) ?>" class="btn">Tilbage til mine billeder</a></p>
         <?php else: ?>
             <p>Billedet bruges ikke i nogen af dine ruter. Vil du slette det permanent? Det kan ikke fortrydes.</p>
             <form method="post" action="/manage-images.php" class="image-confirm-actions">
                 <input type="hidden" name="csrf_token" value="<?= img_h(csrf_token()) ?>">
                 <input type="hidden" name="image_id" value="<?= (int) $confirmImage['id'] ?>">
-                <?php if ($back !== ''): ?><input type="hidden" name="tilbage" value="<?= img_h($back) ?>"><?php endif; ?>
+                <?php foreach (array_filter($keep) as $name => $value): ?>
+                    <input type="hidden" name="<?= img_h($name) ?>" value="<?= img_h($value) ?>">
+                <?php endforeach; ?>
                 <button type="submit" class="btn btn-danger">Slet billedet</button>
-                <a href="<?= img_h(img_self_url($back)) ?>" class="btn">Annullér</a>
+                <a href="<?= img_h(img_self_url($keep)) ?>" class="btn">Annullér</a>
             </form>
         <?php endif; ?>
 
@@ -209,12 +229,20 @@ $imageUrl = static fn (array $img, bool $thumb): string =>
         <?php if ($images === []): ?>
             <p class="empty-state">Du har ikke uploadet nogen billeder endnu. Billeder sættes ind på waypoints i editoren.</p>
         <?php else: ?>
-            <p class="image-meta">
-                <?= count($images) ?> billede<?= count($images) === 1 ? '' : 'r' ?>.
-                Et billede, der bruges i en rute eller et spor, kan ikke slettes.
-            </p>
+            <p class="image-meta">Et billede, der bruges i en rute eller et spor, kan ikke slettes.</p>
+            <nav class="image-filter" aria-label="Filtrér billeder">
+                <?php foreach (IMG_FILTERS as $key => $label): ?>
+                    <a href="<?= img_h(img_self_url(['vis' => $key === 'alle' ? '' : $key] + $keep)) ?>"
+                       class="image-filter-btn<?= $key === $filter ? ' is-active' : '' ?>"<?= $key === $filter ? ' aria-current="page"' : '' ?>>
+                        <?= img_h($label) ?> <span class="image-filter-count">(<?= (int) $counts[$key] ?>)</span>
+                    </a>
+                <?php endforeach; ?>
+            </nav>
+            <?php if ($shownImages === []): ?>
+                <p class="empty-state"><?= $filter === 'ubrugte' ? 'Alle dine billeder bruges i en rute eller et spor.' : 'Ingen af dine billeder bruges i en rute eller et spor.' ?></p>
+            <?php endif; ?>
             <ul class="image-grid">
-                <?php foreach ($images as $img): ?>
+                <?php foreach ($shownImages as $img): ?>
                     <?php $used = $usageMap[(int) $img['id']] ?? []; ?>
                     <li class="image-grid-item">
                         <a href="<?= img_h($imageUrl($img, false)) ?>" class="image-grid-thumb" target="_blank" rel="noopener">
@@ -231,7 +259,7 @@ $imageUrl = static fn (array $img, bool $thumb): string =>
                                 <?php endif; ?>
                             </span>
                         </div>
-                        <a href="<?= img_h(img_self_url($back, ['slet' => (int) $img['id']])) ?>" class="btn image-grid-delete<?= $used === [] ? ' btn-danger' : '' ?>">
+                        <a href="<?= img_h(img_self_url($keep, ['slet' => (int) $img['id']])) ?>" class="btn image-grid-delete<?= $used === [] ? ' btn-danger' : '' ?>">
                             <?= $used === [] ? 'Slet' : 'Hvor bruges det?' ?>
                         </a>
                     </li>
