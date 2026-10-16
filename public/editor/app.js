@@ -199,16 +199,7 @@
       pushHistory();
 
       if (state.segments.length === 0) {
-        const trkseg = state.xml.createElementNS(state.ns, "trkseg");
-        let trk = tagAll(state.xml, "trk")[0];
-        if (!trk) {
-          trk = state.xml.createElementNS(state.ns, "trk");
-          state.xml.documentElement.appendChild(trk);
-        }
-        trk.appendChild(trkseg);
-        const segArr = [];
-        segArr.node = trkseg;
-        state.segments.push(segArr);
+        state.segments.push(emptySegmentForNewPoints());
       }
 
       const currentSegment = state.segments[state.segments.length - 1];
@@ -220,8 +211,8 @@
         time: null // bevidst intet tidsstempel på håndtegnede punkter
       };
 
-      newPt.node = createTrkPtNode(state.ns, newPt.lat, newPt.lon, newPt.ele, newPt.time);
-      currentSegment.node.appendChild(newPt.node);
+      newPt.node = createPointNode(currentSegment, newPt.lat, newPt.lon, newPt.ele, newPt.time);
+      insertPointNode(currentSegment, newPt.node, currentSegment.length);
       currentSegment.push(newPt);
 
       markDirty();
@@ -263,8 +254,51 @@
     }
   }
 
-  function createTrkPtNode(ns, lat, lon, ele, time) {
-    const pt = state.xml.createElementNS(ns, "trkpt");
+  // Et segment er enten et <trkseg> med <trkpt> (spor) eller en <rte> med
+  // <rtept> (rute). Nye punkter får samme type som segmentet, så filen
+  // gemmes i det format, den blev uploadet i.
+  function makeSegment(node, pointTag) {
+    const seg = [];
+    seg.node = node;
+    seg.pointTag = pointTag;
+    return seg;
+  }
+
+  // Segment til det første punkt, når ruten ikke har nogen punkter (ny rute,
+  // eller alle punkter er slettet). Et tomt <trkseg> eller en tom <rte>, der
+  // allerede findes i filen, genbruges, så en rute ikke skifter til <trk>.
+  function emptySegmentForNewPoints() {
+    const existing = tagAll(state.xml, "*").find((n) =>
+      (n.localName === "trkseg" || n.localName === "rte") &&
+      !Array.from(n.children).some((c) => c.localName === "trkpt" || c.localName === "rtept"));
+    if (existing) {
+      return makeSegment(existing, existing.localName === "rte" ? "rtept" : "trkpt");
+    }
+    const trkseg = state.xml.createElementNS(state.ns, "trkseg");
+    let trk = tagAll(state.xml, "trk")[0];
+    if (!trk) {
+      trk = state.xml.createElementNS(state.ns, "trk");
+      state.xml.documentElement.appendChild(trk);
+    }
+    trk.appendChild(trkseg);
+    return makeSegment(trkseg, "trkpt");
+  }
+
+  // Indsætter et punkt på plads nr. index i segmentet. Sidst i segmentet
+  // sættes det lige efter det hidtil sidste punkt (ikke efter fx <extensions>).
+  function insertPointNode(seg, node, index) {
+    if (index < seg.length) {
+      seg.node.insertBefore(node, seg[index].node);
+    } else if (seg.length > 0) {
+      seg.node.insertBefore(node, seg[seg.length - 1].node.nextSibling);
+    } else {
+      seg.node.appendChild(node);
+    }
+  }
+
+  function createPointNode(seg, lat, lon, ele, time) {
+    const ns = state.ns;
+    const pt = state.xml.createElementNS(ns, seg.pointTag || "trkpt");
     pt.setAttribute("lat", lat);
     pt.setAttribute("lon", lon);
     if (ele !== null && ele !== undefined && ele !== "") {
@@ -376,10 +410,13 @@
 
     const ns = xml.documentElement.namespaceURI || "http://www.topografix.com/GPX/1/1";
 
+    // Spor (<trkseg>/<trkpt>) og ruter (<rte>/<rtept>) læses begge som
+    // segmenter, i den rækkefølge de står i filen.
     const segments = [];
-    tagAll(xml, "trkseg").forEach((segEl) => {
-      const pts = [];
-      tagAll(segEl, "trkpt").forEach((ptEl) => {
+    tagAll(xml, "*").filter((n) => n.localName === "trkseg" || n.localName === "rte").forEach((segEl) => {
+      const pointTag = segEl.localName === "rte" ? "rtept" : "trkpt";
+      const pts = makeSegment(segEl, pointTag);
+      Array.from(segEl.children).filter((c) => c.localName === pointTag).forEach((ptEl) => {
         pts.push({
           id: nextId(),
           node: ptEl,
@@ -389,7 +426,6 @@
           time: firstText(ptEl, "time")
         });
       });
-      pts.node = segEl;
       segments.push(pts);
     });
 
@@ -406,7 +442,33 @@
     return { xml, ns, segments, waypoints };
   }
 
+  // Findes der en <bounds> i <metadata>, rettes den til de nuværende
+  // punkter og waypoints, så den ikke viser rutens gamle udstrækning.
+  // Der tilføjes ingen <bounds>, hvis filen ikke havde en.
+  function updateMetadataBounds(st) {
+    const bounds = tagAll(st.xml, "bounds")[0];
+    if (!bounds) return;
+    const all = st.segments.flat().concat(st.waypoints)
+      .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lon));
+    if (all.length === 0) {
+      bounds.remove();
+      return;
+    }
+    let minLat = Infinity, minLon = Infinity, maxLat = -Infinity, maxLon = -Infinity;
+    for (const p of all) {
+      if (p.lat < minLat) minLat = p.lat;
+      if (p.lat > maxLat) maxLat = p.lat;
+      if (p.lon < minLon) minLon = p.lon;
+      if (p.lon > maxLon) maxLon = p.lon;
+    }
+    bounds.setAttribute("minlat", String(minLat));
+    bounds.setAttribute("minlon", String(minLon));
+    bounds.setAttribute("maxlat", String(maxLat));
+    bounds.setAttribute("maxlon", String(maxLon));
+  }
+
   function serializeGPX(st) {
+    updateMetadataBounds(st);
     let out = new XMLSerializer().serializeToString(st.xml);
     if (!out.startsWith("<?xml")) {
       out = '<?xml version="1.0" encoding="UTF-8"?>\n' + out;
@@ -712,7 +774,8 @@
     newWpt.node.setAttribute("lon", newWpt.lon);
     setNodeText(newWpt.node, "name", newWpt.name, state.ns);
 
-    const trkNode = tagAll(state.xml, "trk")[0];
+    const trkNode = Array.from(state.xml.documentElement.children)
+      .find((c) => c.localName === "rte" || c.localName === "trk");
     if (trkNode) {
       state.xml.documentElement.insertBefore(newWpt.node, trkNode);
     } else {
@@ -788,11 +851,10 @@
       }
 
       const newPoint = { id: nextId(), ...coords };
-      newPoint.node = createTrkPtNode(state.ns, coords.lat, coords.lon, coords.ele, coords.time);
+      newPoint.node = createPointNode(seg, coords.lat, coords.lon, coords.ele, coords.time);
 
       let insertIdx = where === "after" ? idx + 1 : idx;
-      const refNode = seg[insertIdx] ? seg[insertIdx].node : null;
-      seg.node.insertBefore(newPoint.node, refNode);
+      insertPointNode(seg, newPoint.node, insertIdx);
 
       seg.splice(insertIdx, 0, newPoint);
 
@@ -869,10 +931,8 @@
       time: interpolateTime(p1.time, p2.time, best.t)
     };
 
-    newPoint.node = createTrkPtNode(state.ns, newPoint.lat, newPoint.lon, newPoint.ele, newPoint.time);
-
-    const refNode = seg[best.index + 1] ? seg[best.index + 1].node : null;
-    seg.node.insertBefore(newPoint.node, refNode);
+    newPoint.node = createPointNode(seg, newPoint.lat, newPoint.lon, newPoint.ele, newPoint.time);
+    insertPointNode(seg, newPoint.node, best.index + 1);
 
     seg.splice(best.index + 1, 0, newPoint);
 
