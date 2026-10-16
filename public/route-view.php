@@ -826,18 +826,24 @@ if ($route['visibility'] === 'public') {
                     collectPolylines(layer, polylines);
                 });
 
+                // Alle spor/segmenter i filen lægges efter hinanden i allPoints.
+                // Første punkt i hvert nyt spor får segStart, så afstand og
+                // grafer ikke tæller springet mellem sporene med (som
+                // gpx_extract_points() på serveren). Linjerne tegnes stadig
+                // hver for sig, så der ikke kommer en streg mellem dem.
                 if (polylines.length > 0) {
-                    var subLayer = polylines[0];
-                    var latlngs = subLayer.getLatLngs();
-                    if (Array.isArray(latlngs[0])) latlngs = latlngs.flat();
-
-                    allPoints = latlngs.map(function (ll, i) {
-                        var meta = subLayer.getLatLngs()[i] && subLayer.getLatLngs()[i].meta || {};
-                        ll.meta = meta;
-                        return ll;
+                    allPoints = [];
+                    polylines.forEach(function (line, n) {
+                        var latlngs = line.getLatLngs();
+                        if (Array.isArray(latlngs[0])) latlngs = latlngs.flat();
+                        latlngs.forEach(function (ll, i) {
+                            ll.meta = ll.meta || {};
+                            ll.segStart = n > 0 && i === 0;
+                            allPoints.push(ll);
+                        });
                     });
 
-                    polylineRef = subLayer;
+                    polylineRef = polylines[0];
                     currentIndex = allPoints.length;
                 }
 
@@ -848,7 +854,10 @@ if ($route['visibility'] === 'public') {
                     // Ruten tegnes altid fuldt ud, fra start til slut —
                     // det er kun den bevægelige positions-markør (herunder),
                     // der ændrer sig ved scrubning, ikke selve linjen.
-                    polylineRef.setLatLngs(allPoints.map(function (p) { return L.latLng(p.lat, p.lng); }));
+                    // Med flere spor tegner hvert spor allerede sig selv.
+                    if (polylines.length === 1) {
+                        polylineRef.setLatLngs(allPoints.map(function (p) { return L.latLng(p.lat, p.lng); }));
+                    }
 
                     buildGraphMetricSeries();
                     if (Object.keys(metricSeriesByKey).length > 0) {
@@ -907,6 +916,11 @@ if ($route['visibility'] === 'public') {
         });
 
     // ---------- Afstand & stats ----------
+    // Afstand fra punkt i-1 til punkt i; 0 ved starten af et nyt spor.
+    function stepDistance(i) {
+        return allPoints[i].segStart ? 0 : distance(allPoints[i - 1], allPoints[i]);
+    }
+
     function distance(p1, p2) {
         var lat1 = p1.lat, lon1 = p1.lng;
         var lat2 = p2.lat, lon2 = p2.lng;
@@ -930,7 +944,7 @@ if ($route['visibility'] === 'public') {
         cumulativeDistances = [];
         var cumDist = 0;
         for (var i = 0; i < allPoints.length; i++) {
-            if (i > 0) cumDist += distance(allPoints[i - 1], allPoints[i]);
+            if (i > 0) cumDist += stepDistance(i);
             cumulativeDistances.push(cumDist);
         }
 
@@ -938,10 +952,15 @@ if ($route['visibility'] === 'public') {
             var raw = extraFieldSeries[metric.field];
             if (!raw) return;
 
+            // segStart: første punkt med en værdi i et nyt spor, så "Op/Ned"
+            // ikke tæller springet mellem to spor med.
             var points = [];
+            var newSeg = false;
             for (var i = 0; i < allPoints.length; i++) {
+                if (allPoints[i].segStart) newSeg = true;
                 if (typeof raw[i] === 'number' && !isNaN(raw[i])) {
-                    points.push({ dist: cumulativeDistances[i], value: raw[i] });
+                    points.push({ dist: cumulativeDistances[i], value: raw[i], segStart: newSeg && points.length > 0 });
+                    newSeg = false;
                 }
             }
             if (points.length >= 2) metricSeriesByKey[metric.key] = points;
@@ -1131,6 +1150,7 @@ if ($route['visibility'] === 'public') {
 
         var gain = 0, loss = 0;
         for (var i = 1; i < series.length; i++) {
+            if (series[i].segStart) continue;
             var diff = series[i].value - series[i - 1].value;
             if (diff > 0) gain += diff; else loss += -diff;
         }
@@ -1275,7 +1295,7 @@ if ($route['visibility'] === 'public') {
 
         for (var i = 1; i < endIndex; i++) {
             var p1 = allPoints[i - 1], p2 = allPoints[i];
-            var d = distance(p1, p2);
+            var d = stepDistance(i);
             totalDistance += d;
 
             if (p1.meta && p1.meta.time && p2.meta && p2.meta.time) {
