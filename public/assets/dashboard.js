@@ -880,6 +880,82 @@ function markerDefaultPreview(select, box) {
     });
 })();
 
+// Slet en hel gruppe med alle etaper (bekræftes med gruppens navn).
+(function () {
+    "use strict";
+    var dialog = document.getElementById('delete-group-dialog');
+    if (!dialog) return;
+    var form = document.getElementById('delete-group-form');
+    var errorsEl = document.getElementById('delete-group-errors');
+    var titleEl = document.getElementById('delete-group-title');
+    var countEl = document.getElementById('delete-group-count');
+    var groupIdField = document.getElementById('delete-group-id');
+    var confirmField = document.getElementById('delete-group-confirm-title');
+    var submitBtn = document.getElementById('delete-group-submit-btn');
+    var mismatchEl = document.getElementById('delete-group-mismatch');
+    var expectedTitle = '';
+
+    function updateSubmitState() {
+        var typed = confirmField.value.trim();
+        submitBtn.disabled = typed !== expectedTitle;
+        mismatchEl.hidden = typed === '' || typed === expectedTitle;
+    }
+
+    document.querySelectorAll('[data-delete-group]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            errorsEl.hidden = true;
+            form.reset();
+            groupIdField.value = btn.getAttribute('data-delete-group');
+            expectedTitle = btn.getAttribute('data-group-title').trim();
+            var n = parseInt(btn.getAttribute('data-stage-count'), 10) || 0;
+            titleEl.textContent = expectedTitle;
+            countEl.textContent = n === 1 ? 'dens ene etape' : 'alle dens ' + n + ' etaper';
+            updateSubmitState();
+            dialog.showModal();
+        });
+    });
+
+    confirmField.addEventListener('input', updateSubmitState);
+
+    document.getElementById('delete-group-close').addEventListener('click', function () { dialog.close(); });
+    dialog.addEventListener('click', function (ev) {
+        if (ev.target === dialog) {
+            dialog.close();
+        }
+    });
+
+    function fail(data) {
+        errorsEl.textContent = (data && data.errors && data.errors.join(' ')) || 'Der skete en fejl. Prøv igen.';
+        errorsEl.hidden = false;
+        updateSubmitState();
+    }
+
+    form.addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        errorsEl.hidden = true;
+        submitBtn.disabled = true;
+
+        fetch('group-action.php', {
+            method: 'POST',
+            body: new URLSearchParams(new FormData(form))
+        })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                if (data.success) {
+                    dialog.close();
+                    // Gruppen findes ikke længere, så valget i adressen ryddes.
+                    if (location.hash.indexOf('#group:') === 0) {
+                        history.replaceState(null, '', location.pathname + location.search);
+                    }
+                    window.MitSporGenindlaes();
+                    return;
+                }
+                fail(data);
+            })
+            .catch(function () { fail(null); });
+    });
+})();
+
 (function () {
     "use strict";
     var csrfToken = document.getElementById('upload-csrf-token').value;
