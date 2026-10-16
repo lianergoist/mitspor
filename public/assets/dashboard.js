@@ -236,11 +236,11 @@
         var box = document.getElementById('edit-meta-marker-default');
         if (!box || !metaActivity) return;
         var option = metaActivity.options[metaActivity.selectedIndex];
-        var marker = option ? option.getAttribute('data-marker') : '';
+        var markerUrl = option ? option.getAttribute('data-marker-url') : '';
         box.textContent = '';
-        if (marker) {
+        if (markerUrl) {
             var img = document.createElement('img');
-            img.src = 'markers/' + encodeURIComponent(marker) + '1_120x120.png';
+            img.src = markerUrl;
             img.alt = '';
             box.appendChild(img);
         } else {

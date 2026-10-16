@@ -7,8 +7,9 @@
    kan have valgt en rute (fra adressens #hash) FØR dette script er
    indlæst, tjekkes det aktuelt viste panel også ved start.
 
-   En rute vises med sin aktivitets markør (SUP, kajak, kano ...) i
-   startpunktet — samme markørsæt som rutesiden (public/markers/).
+   En rute vises med sin markør (valgt eller aktivitetens) i startpunktet —
+   samme billeder som rutesiden. Stierne kommer fra PHP (data-marker-east/
+   -west, se marker_image_urls() i app/markers.php).
 ------------------------------------------------------------------- */
 (function () {
     "use strict";
@@ -52,8 +53,9 @@
 
         dot(map, points[points.length - 1], "#991b1b", "#ef4444");
 
-        var base = entry.holder.getAttribute("data-activity-icon");
-        if (!base || !window.ActivityMarker) {
+        var eastUrl = entry.holder.getAttribute("data-marker-east");
+        var westUrl = entry.holder.getAttribute("data-marker-west");
+        if (!eastUrl || !westUrl || !window.ActivityMarker) {
             dot(map, points[0], "#166534", "#22c55e");
             return;
         }
@@ -61,7 +63,7 @@
         // Retning: mod vest, hvis ruten i starten bevæger sig mod vest.
         var ahead = points[Math.min(points.length - 1, Math.max(1, Math.floor(points.length * 0.05)))];
         var west = ahead[1] < points[0][1];
-        var url = "markers/" + base + (west ? "2" : "1") + "_120x120.png";
+        var url = west ? westUrl : eastUrl;
 
         window.ActivityMarker.icon(url, { scale: window.ActivityMarker.SCALE * 0.8 })
             .then(function (icon) {

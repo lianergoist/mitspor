@@ -9,6 +9,7 @@ require_once __DIR__ . '/../app/route_groups.php';
 require_once __DIR__ . '/../app/auth.php';
 require_once __DIR__ . '/../app/auth_dialogs.php';
 require_once __DIR__ . '/../app/app_hent.php';
+require_once __DIR__ . '/../app/markers.php';
 
 $publicId = (string) ($_GET['id'] ?? '');
 
@@ -629,21 +630,21 @@ if ($route['visibility'] === 'public') {
     // bevæger sig mod vest → "2"). Findes kun hvis aktiviteten har et
     // matchende markørsæt i public/markers/ (activity_icon fra PHP) —
     // ellers falder vi tilbage til de simple farvede prikker ovenfor.
-    var activityIconBase = <?= json_encode($route['activity_icon'] ?: null) ?>;
+    var activityIconUrls = <?= json_encode(marker_image_urls($route['activity_icon'] ?: null)) ?>;
     // Spor viser altid markøren. En rute viser den kun, når ejeren selv har
     // valgt en markør (routes.marker_icon); ellers den blå prik som hidtil.
     var showActivityIcon = isSpor || <?= json_encode(!empty($route['marker_icon'])) ?>;
     var activityIconEast = null;
     var activityIconWest = null;
-    if (activityIconBase && window.ActivityMarker) {
+    if (activityIconUrls && window.ActivityMarker) {
         // Ikonerne vises i halv størrelse (120 px-billede -> 60 px, skarpt på retina).
         // Ankeret (ikonets fod) beregnes af ActivityMarker ud fra billedets egen
         // gennemsigtighed, så det passer uanset hvor tæt billederne er beskåret.
         // Indtil billederne er indlæst (og hvis de ikke kan indlæses) vises den
         // blå prik; når de er klar, tegnes den bevægelige markør om med ikonet.
         Promise.all([
-            window.ActivityMarker.icon('markers/' + activityIconBase + '1_120x120.png'),
-            window.ActivityMarker.icon('markers/' + activityIconBase + '2_120x120.png')
+            window.ActivityMarker.icon(activityIconUrls.east),
+            window.ActivityMarker.icon(activityIconUrls.west)
         ]).then(function (icons) {
             activityIconEast = icons[0];
             activityIconWest = icons[1];

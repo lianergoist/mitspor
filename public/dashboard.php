@@ -57,7 +57,7 @@ $groups = group_list_for_user($pdo, $userId);
     <title>Mit kontrolpanel</title>
     <link rel="stylesheet" href="assets/style.css?v=22">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/dashboard.css?v=13">
+    <link rel="stylesheet" href="assets/dashboard.css?v=14">
 </head>
 <body>
 
@@ -265,7 +265,7 @@ function render_route_detail(array $route): void
             <?php endif; ?>
         </p>
 
-        <div class="detail-map" aria-label="Kort over ruten"<?= !empty($route['activity_icon']) ? ' data-activity-icon="' . dash_h($route['activity_icon']) . '"' : '' ?>></div>
+        <div class="detail-map" aria-label="Kort over ruten"<?php $markerUrls = marker_image_urls($route['activity_icon'] ?: null); ?><?= $markerUrls !== null ? ' data-marker-east="' . dash_h($markerUrls['east']) . '" data-marker-west="' . dash_h($markerUrls['west']) . '"' : '' ?>></div>
 
         <div class="tool-list">
             <div class="tool-row">
@@ -494,7 +494,7 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
             Aktivitetstype
             <select name="activity_type_id" id="edit-meta-activity">
                 <?php foreach ($activityTypes as $type): ?>
-                    <option value="<?= (int) $type['id'] ?>" data-marker="<?= htmlspecialchars((string) $type['icon_filename'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($type['name_da'], ENT_QUOTES, 'UTF-8') ?></option>
+                    <option value="<?= (int) $type['id'] ?>" data-marker-url="<?= dash_h(marker_image_urls((string) $type['icon_filename'])['east'] ?? '') ?>"><?= htmlspecialchars($type['name_da'], ENT_QUOTES, 'UTF-8') ?></option>
                 <?php endforeach; ?>
             </select>
         </label>
@@ -510,7 +510,7 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
                 <?php foreach (MARKER_SETS as $markerKey => $markerName): ?>
                 <label class="marker-option">
                     <input type="radio" name="marker_icon" value="<?= dash_h($markerKey) ?>">
-                    <span class="marker-option-img"><img src="markers/<?= dash_h($markerKey) ?>1_120x120.png" alt="" loading="lazy"></span>
+                    <span class="marker-option-img"><img src="<?= dash_h(marker_image_urls($markerKey)['east'] ?? '') ?>" alt="" loading="lazy"></span>
                     <span class="marker-option-name"><?= dash_h($markerName) ?></span>
                 </label>
                 <?php endforeach; ?>
@@ -849,10 +849,10 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
 <script src="assets/gpx-field-labels.js?v=3"></script>
 <script src="assets/gpx-tools.js?v=1"></script>
 <script src="assets/genindlaes.js?v=1"></script>
-<script src="assets/dashboard.js?v=10"></script>
+<script src="assets/dashboard.js?v=11"></script>
 <script src="assets/dashboard-tools.js?v=3"></script>
 <script src="assets/activity-marker.js?v=1"></script>
-<script src="assets/dashboard-map.js?v=5"></script>
+<script src="assets/dashboard-map.js?v=6"></script>
 
 </body>
 </html>

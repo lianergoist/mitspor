@@ -6,6 +6,7 @@ require_once __DIR__ . '/tile_cache.php';
 require_once __DIR__ . '/gpx.php';
 require_once __DIR__ . '/overview_lines.php';
 require_once __DIR__ . '/route_groups.php';
+require_once __DIR__ . '/markers.php';
 
 /**
  * Automatisk genererede delingsbilleder (Open Graph) for offentlige ruter.
@@ -371,7 +372,8 @@ function og_draw_bar($img, array $route): void
     }
     if (preg_match('/^[a-z0-9_]+$/i', $icon)) {
         // De nye ikoner er 120x120 (skarpe, når de skaleres ned); de gamle er 50x50.
-        $iconPath = __DIR__ . '/../public/markers/' . $icon . '1_120x120.png';
+        $iconUrls = marker_image_urls($icon);
+        $iconPath = __DIR__ . '/../public/' . ($iconUrls['east'] ?? 'markers/' . $icon . '1_120x120.png');
         if (!is_file($iconPath)) {
             $iconPath = __DIR__ . '/../public/markers/' . $icon . '1_50x50.png';
         }
