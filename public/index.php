@@ -66,7 +66,7 @@ $showIntro = !is_app_webview() && is_file($introVideoFile);
     <meta name="twitter:card" content="summary_large_image">
 
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/style.css?v=27">
+    <link rel="stylesheet" href="assets/style.css?v=28">
     <style>
         html, body { height: 100%; margin: 0; }
         .start-dot { width: 11px; height: 11px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 3px rgba(0,0,0,.55); }
@@ -178,6 +178,13 @@ $showIntro = !is_app_webview() && is_file($introVideoFile);
     "use strict";
 
     var map = L.map('map', { zoomControl: false }).setView([56.0, 10.0], 7);
+
+    // Kortet ligger under topbaren og skifter størrelse, når topbaren gør
+    // (fx ombrydning eller søgefeltet på mobil) — så Leaflet skal have besked.
+    if (window.ResizeObserver) {
+        new ResizeObserver(function () { map.invalidateSize({ pan: false }); })
+            .observe(document.getElementById('map'));
+    }
     L.control.zoom({ position: 'bottomright' }).addTo(map);
     L.tileLayer('tile.php?z={z}&x={x}&y={y}', {
         attribution: '&copy; OpenStreetMap-bidragydere',
