@@ -13,7 +13,7 @@
 .dialog-section h3 { margin: 0 0 6px; font-size: 15px; }
 .hint { color: var(--text-muted); font-size: 13px; margin: 4px 0 8px; }
 /* label/div med [hidden] skal virkelig skjules (andre regler sætter display) */
-#upload-title-label[hidden], #upload-group-fields[hidden], #group-create-new[hidden], #group-create-existing[hidden], .hint[hidden] { display: none; }
+#upload-title-label[hidden], #upload-group-fields[hidden], #upload-split-fields[hidden], #group-create-new[hidden], #group-create-existing[hidden], .hint[hidden] { display: none; }
 
 /* ---------------------------------------------------------------
    Liste (venstre) / værktøjer (højre)
