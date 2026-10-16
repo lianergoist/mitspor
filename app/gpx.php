@@ -170,11 +170,16 @@ function gpx_default_enabled_functions(string $xmlContent): array
  * Udtræk lat/lon/ele/time fra alle elementer af et givent tagnavn (uden
  * hensyn til namespace-prefix, da GPX-filer varierer).
  *
- * @return array<int, array{lat: float, lon: float, ele: ?float, time_epoch: ?float}>
+ * seg_start er true for det første punkt i hvert <trkseg> eller <rte>.
+ * Afstand, højde og hastighed regnes ikke hen over et skift, så springet
+ * mellem to spor eller segmenter ikke tæller med.
+ *
+ * @return array<int, array{lat: float, lon: float, ele: ?float, time_epoch: ?float, seg_start: bool}>
  */
 function gpx_extract_points(DOMDocument $dom, string $tagName): array
 {
     $points = [];
+    $prevParent = null;
 
     foreach ($dom->getElementsByTagName($tagName) as $el) {
         $latAttr = $el->getAttribute('lat');
@@ -207,7 +212,10 @@ function gpx_extract_points(DOMDocument $dom, string $tagName): array
             break;
         }
 
-        $points[] = ['lat' => $lat, 'lon' => $lon, 'ele' => $ele, 'time_epoch' => $timeEpoch];
+        $segStart = $el->parentNode !== $prevParent;
+        $prevParent = $el->parentNode;
+
+        $points[] = ['lat' => $lat, 'lon' => $lon, 'ele' => $ele, 'time_epoch' => $timeEpoch, 'seg_start' => $segStart];
     }
 
     return $points;
@@ -238,7 +246,8 @@ function gpx_compute_stats(array $points): array
         $latSum += $point['lat'];
         $lonSum += $point['lon'];
 
-        if ($prev !== null) {
+        // Intet spring mellem to spor/segmenter (se gpx_extract_points()).
+        if ($prev !== null && empty($point['seg_start'])) {
             $distanceMeters += gpx_haversine_meters($prev['lat'], $prev['lon'], $point['lat'], $point['lon']);
 
             if ($prev['ele'] !== null && $point['ele'] !== null) {
@@ -314,8 +323,10 @@ function gpx_check_speed_plausibility(array $points, float $maxSpeedKmh): array
     $prev = null;
 
     foreach ($points as $point) {
-        if ($point['time_epoch'] === null) {
-            $prev = null;
+        // Et nyt spor/segment sammenlignes ikke med det forrige: de kan være
+        // optaget på forskellige dage eller stå i en anden rækkefølge.
+        if ($point['time_epoch'] === null || !empty($point['seg_start'])) {
+            $prev = $point['time_epoch'] === null ? null : $point;
             continue;
         }
 
