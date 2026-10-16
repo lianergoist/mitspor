@@ -5,9 +5,10 @@ declare(strict_types=1);
  * Markørbiblioteket: de markørsæt, en rute kan vælge i stedet for
  * aktivitetens standardmarkør (routes.marker_icon, NULL = standard).
  *
- * Et sæt er to billeder i public/markers/: <navn>1_120x120.png (vender mod
- * øst) og <navn>2_120x120.png (vender mod vest). Et nyt sæt tilføjes ved at
- * lægge de to filer i mappen og skrive navnet på listen her.
+ * En markør er enten to billeder i public/markers/, <navn>1_120x120.png
+ * (vender mod øst) og <navn>2_120x120.png (vender mod vest), eller ét billede,
+ * <navn>_120x120.png, der bruges i begge retninger (fx en nål). En ny markør
+ * tilføjes ved at lægge filen/filerne i mappen og skrive navnet på listen her.
  */
 const MARKER_SETS = [
     'hiker'    => 'Vandrer',
@@ -18,7 +19,36 @@ const MARKER_SETS = [
     'kano'     => 'Kano',
     'sup'      => 'SUP',
     'ship'     => 'Skib',
+    'neutral_blaa'   => 'Blå',
+    'neutral_groen'  => 'Grøn',
+    'neutral_roed'   => 'Rød',
+    'neutral_turkis' => 'Turkis',
 ];
+
+/**
+ * Billederne til en markør (fra MARKER_SETS eller activity_types.icon_filename),
+ * som stier relative til public/. Null, hvis der ikke findes billeder.
+ *
+ * @return array{east: string, west: string}|null
+ */
+function marker_image_urls(?string $marker): ?array
+{
+    if ($marker === null || !preg_match('/^[a-z0-9_]+$/i', $marker)) {
+        return null;
+    }
+    $dir = __DIR__ . '/../public/markers/';
+    if (is_file($dir . $marker . '1_120x120.png')) {
+        return [
+            'east' => 'markers/' . $marker . '1_120x120.png',
+            'west' => 'markers/' . $marker . '2_120x120.png',
+        ];
+    }
+    if (is_file($dir . $marker . '_120x120.png')) {
+        $single = 'markers/' . $marker . '_120x120.png';
+        return ['east' => $single, 'west' => $single];
+    }
+    return null;
+}
 
 /**
  * Er værdien et gyldigt valg? '' og null betyder "aktivitetens standard".
