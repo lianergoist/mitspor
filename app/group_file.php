@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/gpx.php';
 require_once __DIR__ . '/image_links.php';
 require_once __DIR__ . '/route_groups.php';
+require_once __DIR__ . '/route_file.php';
 
 /*
  * Download af en hel gruppe som én GPX-fil: én <trk> (eller <rte>) pr.
@@ -169,4 +170,57 @@ function group_file_build(array $group, array $included, bool $isOwner): ?string
     $xml = $out->saveXML();
 
     return $xml === false ? null : $xml;
+}
+
+/**
+ * Find gruppen og tjek adgangen. Bruges af group-file.php (sitet, med
+ * session) og api/v1/group-file.php (appen, med token), så reglerne kun
+ * står ét sted.
+ *
+ * @param int|null $viewerId den indloggede bruger (session eller token), ellers null
+ * @return array{status: int, group: ?array, included: list<array>, is_owner: bool}
+ *         status 200, ellers 404 (findes ikke / intet synligt) eller 403
+ *         (ingen etaper må downloades)
+ */
+function group_file_find(PDO $pdo, string $publicId, ?int $viewerId): array
+{
+    $none = ['status' => 404, 'group' => null, 'included' => [], 'is_owner' => false];
+
+    $group = group_find($pdo, $publicId);
+    if ($group === null) {
+        return $none;
+    }
+    $isOwner = $viewerId !== null && $viewerId === (int) $group['user_id'];
+
+    // Samme regel som group-view.php: en gruppe uden synlige etaper findes
+    // ikke for andre end ejeren.
+    $members = group_members($pdo, (int) $group['id'], $isOwner);
+    if ($members === []) {
+        return $none;
+    }
+
+    $plan = group_download_plan($members, $isOwner);
+    if ($plan['included'] === []) {
+        return ['status' => 403, 'group' => $group, 'included' => [], 'is_owner' => $isOwner];
+    }
+
+    return ['status' => 200, 'group' => $group, 'included' => $plan['included'], 'is_owner' => $isOwner];
+}
+
+/**
+ * Byg og send den samlede GPX-fil som download, og afslut.
+ * Returnerer false (uden at sende noget), hvis filen ikke kunne bygges.
+ */
+function group_file_send(array $group, array $included, bool $isOwner): bool
+{
+    $content = group_file_build($group, $included, $isOwner);
+    if ($content === null) {
+        return false;
+    }
+
+    header('Content-Type: application/gpx+xml; charset=UTF-8');
+    header('X-Content-Type-Options: nosniff');
+    header(route_file_attachment_header(route_file_download_name($group)));
+    echo $content;
+    exit;
 }
