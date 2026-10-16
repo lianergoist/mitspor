@@ -376,6 +376,7 @@ function render_group_detail(array $g): void
             <a class="tool" href="<?= dash_h(group_download_url($id)) ?>">Download gruppen som én GPX</a>
             <?php endif; ?>
             <button type="button" class="tool" data-edit-group="<?= dash_h($id) ?>">Rediger gruppe (titel, rækkefølge, synlighed)</button>
+            <button type="button" class="tool danger" data-delete-group="<?= dash_h($id) ?>" data-group-title="<?= dash_h($g['title']) ?>" data-stage-count="<?= (int) $g['stage_count'] ?>">Slet gruppen og alle etaper</button>
         </div>
     </section>
     <?php
@@ -750,6 +751,34 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
     </form>
 </dialog>
 
+<dialog id="delete-group-dialog" class="modal-dialog">
+    <button type="button" id="delete-group-close" class="modal-close" aria-label="Luk">&times;</button>
+    <h2>Slet gruppe</h2>
+
+    <div id="delete-group-errors" class="modal-errors" hidden></div>
+
+    <p>
+        Du er ved at slette gruppen <strong id="delete-group-title"></strong> og
+        <strong id="delete-group-count"></strong> permanent, også de private.
+        GPX-filerne fjernes fra serveren, og handlingen kan ikke fortrydes.
+    </p>
+    <p class="hint">Vil du kun fjerne gruppen og beholde ruterne, så brug i stedet "Opløs gruppen" under "Rediger gruppe".</p>
+
+    <form id="delete-group-form">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
+        <input type="hidden" name="action" value="delete">
+        <input type="hidden" name="group_id" id="delete-group-id">
+
+        <label>
+            Indtast gruppens navn for at bekræfte
+            <input type="text" name="confirm_title" id="delete-group-confirm-title" required autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+        </label>
+        <p class="hint" id="delete-group-mismatch" hidden>Navnet skal skrives præcis som ovenfor, med samme store og små bogstaver.</p>
+
+        <button type="submit" class="btn btn-danger" id="delete-group-submit-btn" disabled>Slet gruppen og etaperne permanent</button>
+    </form>
+</dialog>
+
 <dialog id="share-link-dialog" class="modal-dialog">
     <button type="button" id="share-link-close" class="modal-close" aria-label="Luk">&times;</button>
     <h2>Del-link</h2>
@@ -875,7 +904,7 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
 <script src="assets/gpx-field-labels.js?v=3"></script>
 <script src="assets/gpx-tools.js?v=1"></script>
 <script src="assets/genindlaes.js?v=1"></script>
-<script src="assets/dashboard.js?v=13"></script>
+<script src="assets/dashboard.js?v=14"></script>
 <script src="assets/dashboard-tools.js?v=3"></script>
 <script src="assets/activity-marker.js?v=1"></script>
 <script src="assets/dashboard-map.js?v=6"></script>

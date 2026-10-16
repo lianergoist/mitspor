@@ -14,6 +14,7 @@ declare(strict_types=1);
 //   sort_by_time  group_id                          -> sortér efter tidsstempler
 //   set_visibility group_id, visibility, public_notice_ack -> hele gruppen offentlig/privat
 //   dissolve      group_id                          -> opløs gruppen (ruter bevares)
+//   delete        group_id, confirm_title           -> slet gruppen OG alle etaperne
 //   details       group_id                          -> GET: gruppens etaper til omordning
 //
 // group_id / route_id er de 8-cifrede OFFENTLIGE id'er (ikke interne id'er).
@@ -25,6 +26,7 @@ require_once __DIR__ . '/../app/db.php';
 require_once __DIR__ . '/../app/csrf.php';
 require_once __DIR__ . '/../app/auth.php';
 require_once __DIR__ . '/../app/route_groups.php';
+require_once __DIR__ . '/../app/route_deletion.php';
 
 header('Content-Type: application/json; charset=UTF-8');
 
@@ -150,6 +152,11 @@ switch ($action) {
     case 'dissolve':
         $r = group_dissolve($pdo, $userId, $groupPublicId);
         $r['success'] ? print(json_encode(['success' => true])) : group_json_fail($r['errors']);
+        break;
+
+    case 'delete':
+        $r = group_delete_with_routes($pdo, $userId, $groupPublicId, (string) ($_POST['confirm_title'] ?? ''));
+        $r['success'] ? print(json_encode(['success' => true, 'deleted' => $r['deleted']])) : group_json_fail($r['errors']);
         break;
 
     default:
