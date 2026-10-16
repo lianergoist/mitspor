@@ -7,7 +7,7 @@ require_once __DIR__ . '/../app/db.php';
 require_once __DIR__ . '/../app/route_groups.php';
 require_once __DIR__ . '/../app/og_image.php';
 require_once __DIR__ . '/../app/group_file.php';
-require_once __DIR__ . '/../app/app_tilbage.php';
+require_once __DIR__ . '/../app/app_hent.php';
 
 $pdo = get_db();
 $group = group_find($pdo, (string) ($_GET['id'] ?? ''));
@@ -28,11 +28,10 @@ if ($group === null || (!$isOwner && count($members) === 0)) {
 
 $totals = group_totals($members);
 
-// Download af hele gruppen som én GPX. Appens WebView kan ikke hente filer,
-// og appen kender endnu ikke gruppe-download (mobile/www/hent.js), så
-// knappen vises kun uden for appen.
+// Download af hele gruppen som én GPX. I appen kun fra MitSporApp/6, der
+// selv kan hente gruppen (se group_download_available() i app/app_hent.php).
 $downloadPlan = group_download_plan($members, $isOwner);
-$showGroupDownload = $downloadPlan['included'] !== [] && app_webview_version() === 0;
+$showGroupDownload = $downloadPlan['included'] !== [] && group_download_available();
 $geometry = group_geometry($group, $members, $isOwner);
 $hasPublic = false;
 foreach ($members as $m) {
@@ -138,7 +137,7 @@ $palette = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#0891b2', '#
         <a href="<?= $isOwner ? 'dashboard.php' : 'index.php' ?>" class="brand">&larr; <?= $isOwner ? 'Mit kontrolpanel' : 'MitSpor' ?></a>
         <?php if ($showGroupDownload): ?>
             <div class="topbar-buttons">
-                <a class="btn" href="group-file.php?id=<?= $e($group['public_id']) ?>" title="Download hele gruppen som én GPX-fil" aria-label="Download"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M12 3v12m0 0l-5-5m5 5l5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="btn-label">Download</span></a>
+                <a class="btn" href="<?= $e(group_download_url($group['public_id'])) ?>" title="Download hele gruppen som én GPX-fil" aria-label="Download"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M12 3v12m0 0l-5-5m5 5l5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="btn-label">Download</span></a>
             </div>
         <?php endif; ?>
     </div>

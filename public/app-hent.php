@@ -17,9 +17,15 @@ $type = (string) ($_GET['type'] ?? '');
 $publicId = (string) ($_GET['id'] ?? '');
 $shareToken = (string) ($_GET['share'] ?? '');
 
-if (!app_can_fetch_files()) {
-    $url = $type === 'export' ? '/export-data.php' : '/route-file.php?id=' . rawurlencode($publicId) . '&mode=download'
-        . ($shareToken !== '' ? '&share=' . rawurlencode($shareToken) : '');
+if (!app_can_fetch_files() || ($type === 'gruppe' && !app_can_fetch_groups())) {
+    if ($type === 'export') {
+        $url = '/export-data.php';
+    } elseif ($type === 'gruppe') {
+        $url = '/group-file.php?id=' . rawurlencode($publicId);
+    } else {
+        $url = '/route-file.php?id=' . rawurlencode($publicId) . '&mode=download'
+            . ($shareToken !== '' ? '&share=' . rawurlencode($shareToken) : '');
+    }
     header('Location: ' . $url, true, 302);
     exit;
 }

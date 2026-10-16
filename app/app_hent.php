@@ -72,6 +72,36 @@ function gpx_download_url(string $publicId, string $shareToken = ''): string
 }
 
 /**
+ * Kan appen hente en hel gruppe (type=gruppe i mobile/www/hent.js)?
+ * Fra MitSporApp/6. Ældre apps ignorerer typen, så der vises ingen knap.
+ */
+function app_can_fetch_groups(): bool
+{
+    return app_webview_version() >= 6;
+}
+
+/**
+ * Skal "Download gruppen" vises? Altid uden for appen; i appen kun, når
+ * appen selv kan hente gruppen (WebView'et kan ikke hente filer).
+ */
+function group_download_available(): bool
+{
+    return app_webview_version() === 0 || app_can_fetch_groups();
+}
+
+/**
+ * Link til download af en hel gruppe som én GPX-fil.
+ */
+function group_download_url(string $groupPublicId): string
+{
+    if (app_can_fetch_groups()) {
+        return '/app-hent.php?type=gruppe&id=' . rawurlencode($groupPublicId) . app_hent_back_param();
+    }
+
+    return '/group-file.php?id=' . rawurlencode($groupPublicId);
+}
+
+/**
  * Link til "Download alle mine data".
  */
 function data_export_url(): string
