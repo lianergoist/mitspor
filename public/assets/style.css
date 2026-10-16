@@ -481,16 +481,20 @@ a { color: var(--primary); }
 /* ---------------------------------------------------------------
    Fuldskærms-kortvisning (route-view.php / forsiden)
 ------------------------------------------------------------------ */
+/* Siden er en kolonne: topbaren øverst og kortet i resten af højden UNDER
+   den. Kortet ligger ikke bag topbaren, så en markør kan ikke gemme sig der.
+   Bokse over kortet (info, søgning, afspilning) er stadig absolut placeret
+   i forhold til .map-page. */
 .map-page {
     height: 100vh;
     height: 100dvh; /* korrigerer for mobilbrowseres upålidelige 100vh (adresselinje-problemet) */
     position: relative;
+    display: flex;
+    flex-direction: column;
 }
 .map-page .topbar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
+    position: relative;
+    flex: 0 0 auto;
     z-index: 1000;
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(4px);
@@ -537,20 +541,18 @@ a { color: var(--primary); }
     color: var(--primary);
 }
 .map-page #map {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
     width: 100%;
-    /* Højden følger top/bottom (ikke height: 100%) — ellers ignoreres
-       'bottom', og kortet krymper ikke, når grafpanelet åbnes. Så ligger
-       zoom-knapperne skjult bag panelet i stedet for over det. */
     height: auto;
-    transition: bottom 0.15s ease;
+    transition: margin-bottom 0.15s ease;
 }
+/* Grafpanelet (20 % af siden i bunden) tager plads fra kortet, så
+   zoom-knapperne ikke ligger skjult bag panelet. */
 .map-page.graphs-open #map {
-    bottom: 20%;
+    margin-bottom: 20vh;
+    margin-bottom: 20dvh;
 }
 .map-page.graphs-open .scrubber {
     bottom: calc(20% + var(--attribution-height, 11px) + 5px);

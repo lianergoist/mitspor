@@ -148,13 +148,13 @@ if ($route['visibility'] === 'public') {
     <meta name="twitter:image" content="<?= htmlspecialchars($ogImageUrl, ENT_QUOTES, 'UTF-8') ?>">
 
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/style.css?v=21">
+    <link rel="stylesheet" href="assets/style.css?v=28">
     <style>
         html, body { height: 100%; margin: 0; }
         /* Topbar + info-boks: .top-area ligger øverst over kortet, og info-boksen
            hænger 8 px under topbaren og 8 px fra venstre kant — uanset hvor høj
            topbaren er. Boksen er halvgennemsigtig, så kortet anes bagved. */
-        .top-area { position: absolute; top: 0; left: 0; right: 0; z-index: 1000; }
+        .top-area { position: relative; flex: 0 0 auto; z-index: 1000; }
         .map-page .top-area .topbar { position: relative; }
         .map-page .info-panel {
             top: calc(100% + 8px);
@@ -230,13 +230,6 @@ if ($route['visibility'] === 'public') {
            under topbaren, som på computer.
         ------------------------------------------------------------------ */
         @media (max-width: 600px) {
-            .map-page { display: flex; flex-direction: column; }
-
-            .top-area {
-                flex: 0 0 auto;
-                position: relative;
-            }
-
             /* Topbar: kun pilen (ikke "Mit kontrolpanel"), og knapperne må
                gerne ombrydes frem for at skubbe noget ud over kanten. */
             .brand-name { display: none; }
@@ -300,25 +293,6 @@ if ($route['visibility'] === 'public') {
             /* Luk-knappen ligger inde på selve billedet (ikke oppe i rammen). */
             .wpt-modal-close { top: 14px; right: 14px; }
 
-            /* Kortet fylder resten af skærmen under bjælken. */
-            .map-page #map {
-                position: relative;
-                top: auto;
-                left: auto;
-                right: auto;
-                bottom: auto;
-                flex: 1 1 auto;
-                min-height: 0;
-                width: 100%;
-                height: auto;
-                transition: margin-bottom 0.15s ease;
-            }
-            /* Graf-panelet (20 % af skærmen i bunden) tager plads fra kortet. */
-            .map-page.graphs-open #map {
-                bottom: auto;
-                margin-bottom: 20vh;
-                margin-bottom: 20dvh;
-            }
         }
     </style>
 </head>
