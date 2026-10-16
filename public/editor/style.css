@@ -581,6 +581,8 @@ html {
 .image-picker-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  align-content: start;
+  flex-shrink: 0;
   gap: 8px;
   max-height: 55vh;
   overflow-y: auto;
@@ -611,6 +613,9 @@ html {
   }
 }
 
+/* Feltet er kvadratisk og mindst 80 px højt, og billedet fylder det ud.
+   Størrelsen må ikke afhænge af billedets egen størrelse: så kan Firefox
+   klemme rækkerne sammen til tynde striber, så alt passer uden at rulle. */
 .image-picker-item {
   position: relative;
   cursor: pointer;
@@ -619,11 +624,13 @@ html {
   overflow: hidden;
   line-height: 0;
   background: #f1f5f9;
+  aspect-ratio: 1 / 1;
+  min-height: 80px;
 }
 .image-picker-item img {
   display: block;
   width: 100%;
-  aspect-ratio: 1 / 1;
+  height: 100%;
   object-fit: cover;
 }
 .image-picker-item.picked {
