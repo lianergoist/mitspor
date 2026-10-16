@@ -57,7 +57,7 @@ $groups = group_list_for_user($pdo, $userId);
     <title>Mit kontrolpanel</title>
     <link rel="stylesheet" href="assets/style.css?v=22">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/dashboard.css?v=15">
+    <link rel="stylesheet" href="assets/dashboard.css?v=16">
 </head>
 <body>
 
@@ -865,37 +865,37 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
             Beskrivelse
             <textarea id="group-edit-description"></textarea>
         </label>
-        <button type="submit" class="btn btn-primary">Gem titel og beskrivelse</button>
-    </form>
 
-    <div class="dialog-section">
-        <h3>Etaper</h3>
-        <p class="hint">Træk i etaperne (eller brug pilene) for at ændre rækkefølgen. Fjern en etape fra gruppen via "Rediger metadata" på ruten.</p>
-        <ol id="group-order-list" class="group-order-list"></ol>
-        <div class="inline-edit-actions">
-            <button type="button" id="group-order-save" class="btn btn-primary">Gem rækkefølge</button>
-            <button type="button" id="group-order-sort-time" class="btn">Sortér efter tid</button>
+        <div class="dialog-section">
+            <h3>Etaper</h3>
+            <p class="hint">Træk i etaperne (eller brug pilene) for at ændre rækkefølgen. Fjern en etape fra gruppen via "Rediger metadata" på ruten.</p>
+            <ol id="group-order-list" class="group-order-list"></ol>
+            <button type="button" id="group-order-save" class="btn btn-full">Gem rækkefølge</button>
         </div>
-    </div>
 
-    <div class="dialog-section">
-        <h3>Synlighed</h3>
-        <p class="hint">Sætter alle etaperne på én gang. Du kan stadig ændre hver etape for sig.</p>
-        <p class="notice-field">
+        <fieldset>
+            <legend>Synlighed (alle etaper)</legend>
+            <label class="checkbox-field">
+                <input type="radio" name="group_visibility" value="private" id="group-vis-private">
+                Privat (kun dig)
+            </label>
+            <label class="checkbox-field">
+                <input type="radio" name="group_visibility" value="public" id="group-vis-public">
+                Offentlig (alle kan se dem)
+            </label>
+            <p class="hint" id="group-vis-mixed" hidden>Etaperne har forskellig synlighed. Vælg én, hvis alle etaper skal have den samme. Ellers bliver de, som de er.</p>
+        </fieldset>
+
+        <p class="notice-field" id="group-vis-notice" hidden>
             <label class="checkbox-field">
                 <input type="checkbox" id="group-vis-ack">
                 Jeg forstår at start-/slutpunkter i en offentlig rute kan afsløre min bopæl (GDPR).
             </label>
         </p>
-        <div class="inline-edit-actions">
-            <button type="button" id="group-make-public" class="btn">Gør hele gruppen offentlig</button>
-            <button type="button" id="group-make-private" class="btn">Gør hele gruppen privat</button>
-        </div>
-    </div>
 
-    <div class="dialog-section">
-        <button type="button" id="group-dissolve" class="link-btn danger">Opløs gruppen (ruterne bevares)</button>
-    </div>
+        <button type="submit" class="btn btn-primary btn-full">Gem</button>
+        <button type="button" id="group-dissolve" class="link-btn danger group-dissolve">Opløs gruppen (ruterne bevares)</button>
+    </form>
 </dialog>
 
 <script src="vendor/leaflet/leaflet.js"></script>
@@ -904,7 +904,7 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
 <script src="assets/gpx-field-labels.js?v=3"></script>
 <script src="assets/gpx-tools.js?v=1"></script>
 <script src="assets/genindlaes.js?v=1"></script>
-<script src="assets/dashboard.js?v=14"></script>
+<script src="assets/dashboard.js?v=15"></script>
 <script src="assets/dashboard-tools.js?v=3"></script>
 <script src="assets/activity-marker.js?v=1"></script>
 <script src="assets/dashboard-map.js?v=6"></script>
