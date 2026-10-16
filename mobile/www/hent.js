@@ -93,6 +93,24 @@
         });
     }
 
+    // En hel gruppe som én GPX (api/v1/group-file.php). Med login får
+    // ejeren også sine private etaper; uden kun dem, der må downloades.
+    function hentGruppe(id, login) {
+        var sti = 'group-file.php?id=' + encodeURIComponent(id);
+        return hentFil(sti, login && login.token).then(function (svar) {
+            // Udløbet login i appen: prøv uden, så offentlige grupper virker.
+            if (svar.status === 401 && login) {
+                return hentFil(sti, null);
+            }
+            return svar;
+        }).then(function (svar) {
+            if (!svar.ok) {
+                return svarFejl(svar, 'Gruppen kunne ikke hentes.');
+            }
+            return svar;
+        });
+    }
+
     function hentEksport(login) {
         if (!login) {
             return Promise.reject(fejl('Log ind i appen for at hente dine data.'));
@@ -153,7 +171,8 @@
             });
     }
 
-    // url: den indlæste /app-hent.php?type=gpx&id=…[&share=…] eller ?type=export
+    // url: den indlæste /app-hent.php?type=gpx&id=…[&share=…], ?type=gruppe&id=…
+    // eller ?type=export
     function hent(url) {
         if (igang || !Capacitor.isNativePlatform()) {
             return;
@@ -165,7 +184,7 @@
             return;
         }
         var type = parametre.get('type');
-        if (type !== 'gpx' && type !== 'export') {
+        if (type !== 'gpx' && type !== 'gruppe' && type !== 'export') {
             return;
         }
 
@@ -175,6 +194,11 @@
                 if (type === 'export') {
                     return hentEksport(login).then(function (svar) {
                         return gemOgDel(svar, 'mitspor-data.zip');
+                    });
+                }
+                if (type === 'gruppe') {
+                    return hentGruppe(parametre.get('id') || '', login).then(function (svar) {
+                        return gemOgDel(svar, 'gruppe.gpx');
                     });
                 }
                 return hentGpx(parametre.get('id') || '', parametre.get('share') || '', login).then(function (svar) {
