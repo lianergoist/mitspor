@@ -54,7 +54,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <title>GPX-editor</title>
 
 <link rel="stylesheet" href="../vendor/leaflet/leaflet.css" />
-<link rel="stylesheet" href="style.css?v=35" />
+<link rel="stylesheet" href="style.css?v=42" />
 </head>
 <body data-image-prefix="<?= htmlspecialchars(IMAGE_PUBLIC_URL_BASE . '/' . $userId . '/', ENT_QUOTES, 'UTF-8') ?>">
 

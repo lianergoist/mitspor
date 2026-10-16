@@ -581,11 +581,41 @@ html {
 .image-picker-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  align-content: start;
+  flex-shrink: 0;
   gap: 8px;
   max-height: 55vh;
   overflow-y: auto;
+  padding: 4px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+}
+/* Rullebjælken skal altid kunne ses: telefoner, appen og macOS skjuler den
+   ellers, indtil man ruller, så man ikke kan se, at der er flere billeder.
+   En stylet ::-webkit-scrollbar vises altid i Chrome, Safari og WebView. */
+.image-picker-grid::-webkit-scrollbar {
+  width: 10px;
+}
+.image-picker-grid::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 5px;
+}
+.image-picker-grid::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 5px;
+  border: 2px solid #f1f5f9;
+}
+/* Firefox kender ikke ::-webkit-scrollbar. */
+@supports not selector(::-webkit-scrollbar) {
+  .image-picker-grid {
+    scrollbar-width: thin;
+    scrollbar-color: #94a3b8 #f1f5f9;
+  }
 }
 
+/* Feltet er kvadratisk og mindst 80 px højt, og billedet fylder det ud.
+   Størrelsen må ikke afhænge af billedets egen størrelse: så kan Firefox
+   klemme rækkerne sammen til tynde striber, så alt passer uden at rulle. */
 .image-picker-item {
   position: relative;
   cursor: pointer;
@@ -594,11 +624,13 @@ html {
   overflow: hidden;
   line-height: 0;
   background: #f1f5f9;
+  aspect-ratio: 1 / 1;
+  min-height: 80px;
 }
 .image-picker-item img {
   display: block;
   width: 100%;
-  aspect-ratio: 1 / 1;
+  height: 100%;
   object-fit: cover;
 }
 .image-picker-item.picked {
