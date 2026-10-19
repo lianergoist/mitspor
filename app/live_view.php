@@ -24,6 +24,14 @@ const LIVE_AUTO_PAUSE_MINUTES = 120;
 // Siden henter nye punkter med dette interval (sekunder).
 const LIVE_POLL_SECONDS = 30;
 
+// Appen sender et livstegn ca. hvert minut. Er der gået længere tid end
+// dette siden sidste kontakt, vises "ingen kontakt".
+const LIVE_CONTACT_LOST_SECONDS = 180;
+
+// Er appen i kontakt, men har ingen ny position haft i så lang tid,
+// vises "står stille".
+const LIVE_STILL_SECONDS = 120;
+
 /** Livesendingen med dette id, med ejerens visningsnavn, eller null. */
 function live_event_find(PDO $pdo, string $publicId): ?array
 {
@@ -84,6 +92,7 @@ function live_view_payload(PDO $pdo, array $event, bool $isOwner, string $client
         "SELECT s.id, s.position, s.title, s.status, s.client_upload_id, s.route_id,
                 s.started_at <= :c1 AS started_visible,
                 s.ended_at IS NOT NULL AND s.ended_at <= :c2 AS ended_visible,
+                FLOOR(UNIX_TIMESTAMP(LEAST(s.last_contact_at, :c3)) * 1000) AS contact_ms,
                 r.public_id AS route_public_id, r.title AS route_title, r.visibility AS route_visibility,
                 r.share_token AS route_share_token,
                 r.gpx_file_path AS route_gpx, r.updated_at AS route_updated,
@@ -94,14 +103,14 @@ function live_view_payload(PDO $pdo, array $event, bool $isOwner, string $client
          WHERE s.event_id = :eid
          ORDER BY s.position ASC"
     );
-    $stmt->execute(['c1' => $cutoff, 'c2' => $cutoff, 'eid' => $eventId]);
+    $stmt->execute(['c1' => $cutoff, 'c2' => $cutoff, 'c3' => $cutoff, 'eid' => $eventId]);
     $rows = $stmt->fetchAll();
 
     // Er et spor uploadet efter "slut" i appen, er det endnu ikke koblet.
     foreach ($rows as $row) {
         if ($row['status'] === 'afsluttet' && $row['route_id'] === null && $row['client_upload_id'] !== null) {
             live_sync($pdo, $eventId);
-            $stmt->execute(['c1' => $cutoff, 'c2' => $cutoff, 'eid' => $eventId]);
+            $stmt->execute(['c1' => $cutoff, 'c2' => $cutoff, 'c3' => $cutoff, 'eid' => $eventId]);
             $rows = $stmt->fetchAll();
             break;
         }
@@ -144,6 +153,9 @@ function live_view_payload(PDO $pdo, array $event, bool $isOwner, string $client
         'points'   => [],
         'last_id'  => $full ? 0 : $sinceId,
         'current'  => null,
+        // Kun mens en etape er i gang: 'bevaeger', 'staar' eller
+        // 'ingen_kontakt', og siden hvornår (ms).
+        'activity' => null,
     ];
 
     // Seneste synlige punkt (til markøren og "opdateret for … siden").
@@ -170,21 +182,40 @@ function live_view_payload(PDO $pdo, array $event, bool $isOwner, string $client
         }
     }
 
-    // Status, som besøgende ser den.
+    // Status, som besøgende ser den. Seneste kontakt tæller kun op til
+    // forsinkelsen (LEAST i forespørgslen), som positionerne.
     $anyStarted = false;
     $anyLive = false;
+    $contactMs = null;
     foreach ($stages as $st) {
         $anyStarted = $anyStarted || $st['state'] !== 'planlagt';
         $anyLive = $anyLive || $st['state'] === 'live';
+        if ($st['state'] === 'live' && $st['row']['contact_ms'] !== null) {
+            $contactMs = max($contactMs ?? 0, (int) $st['row']['contact_ms']);
+        }
     }
+    $viewNowMs = $nowMs - $delay * 60000;
+    // Står man stille, men appen er i kontakt, er livesendingen ikke på pause.
+    $lastSignMs = max($lastMs ?? 0, $contactMs ?? 0) ?: null;
+
     if ($event['status'] === 'afsluttet' && !$anyLive) {
         $payload['status'] = 'afsluttet';
-    } elseif ($anyLive && $lastMs !== null && $nowMs - $delay * 60000 - $lastMs < LIVE_AUTO_PAUSE_MINUTES * 60000) {
+    } elseif ($anyLive && $lastSignMs !== null && $viewNowMs - $lastSignMs < LIVE_AUTO_PAUSE_MINUTES * 60000) {
         $payload['status'] = 'live';
     } elseif ($anyLive && $lastMs === null) {
         $payload['status'] = 'live'; // startet, men ingen punkter endnu
     } elseif ($anyStarted) {
         $payload['status'] = 'pause';
+    }
+
+    if ($payload['status'] === 'live' && $contactMs !== null) {
+        if ($viewNowMs - $contactMs > LIVE_CONTACT_LOST_SECONDS * 1000) {
+            $payload['activity'] = ['state' => 'ingen_kontakt', 'since' => $contactMs];
+        } elseif ($lastMs !== null && $contactMs - $lastMs > LIVE_STILL_SECONDS * 1000) {
+            $payload['activity'] = ['state' => 'staar', 'since' => $lastMs];
+        } else {
+            $payload['activity'] = ['state' => 'bevaeger', 'since' => $lastMs];
+        }
     }
 
     if ($full) {

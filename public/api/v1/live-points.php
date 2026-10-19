@@ -5,7 +5,8 @@ declare(strict_types=1);
 // POST JSON: { event, client_upload_id, points: [[lat, lon, højde|null,
 //              tid i ms, nøjagtighed i m|null], ...] }
 // Appen sender de punkter, serveren ikke har bekræftet endnu. Punkter,
-// der allerede er modtaget (samme tid), springes over.
+// der allerede er modtaget (samme tid), springes over. En tom liste er et
+// livstegn: appen er i kontakt, men har ingen ny position (står stille).
 //
 // Svar:
 //   200 { success, received, point_count, last_ms }
