@@ -489,9 +489,9 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
                 <button type="button" class="tab-btn" data-tab-target="tab-live">Live (<?= count($liveEvents) ?>)</button>
             </div>
             <p class="hub-stats">
-                <?= count($routes) ?> / <?= (int) $user['route_quota'] ?> ruter
-                · <?= $imageCount ?> <?= $imageCount === 1 ? 'billede' : 'billeder' ?>
-                · <?= $storageText ?> lagerplads
+                Ruter: <?= count($routes) ?> / <?= (int) $user['route_quota'] ?> ruter
+                · Billeder: <?= $imageCount ?>
+                · Lagerplads: <?= $storageText ?>
             </p>
 
             <div id="tab-alle" class="tab-panel">
