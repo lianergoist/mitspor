@@ -54,7 +54,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <title>GPX-editor</title>
 
 <link rel="stylesheet" href="../vendor/leaflet/leaflet.css" />
-<link rel="stylesheet" href="style.css?v=42" />
+<link rel="stylesheet" href="style.css?v=43" />
 </head>
 <body data-image-prefix="<?= htmlspecialchars(IMAGE_PUBLIC_URL_BASE . '/' . $userId . '/', ENT_QUOTES, 'UTF-8') ?>">
 
@@ -216,6 +216,19 @@ if ($initialRouteId === '' && !$isNewRoute) {
   <button type="button" id="btn-delete-insert-waypoint" class="link-btn danger" hidden>🗑 Slet waypoint</button>
 </dialog>
 
+<dialog id="thin-dialog" class="modal-dialog">
+  <button type="button" id="thin-dialog-close" class="modal-close" aria-label="Luk">&times;</button>
+  <h2>Mange punkter</h2>
+  <p id="thin-dialog-text"></p>
+  <p class="thin-hint">Udtynding fjerner punkter på lige strækninger og bevarer sving, slingrende stier og bakker. Let, Middel og Kraftig tillader 2, 5 og 10 meters afvigelse. Du kan fortryde, og intet gemmes, før du trykker Gem.</p>
+  <div class="thin-buttons">
+    <button type="button" class="btn-primary" data-thin-tolerance="2">Let</button>
+    <button type="button" class="btn-primary" data-thin-tolerance="5">Middel</button>
+    <button type="button" class="btn-primary" data-thin-tolerance="10">Kraftig</button>
+  </div>
+  <button type="button" id="thin-dialog-skip" class="link-btn thin-skip">Fortsæt uden at udtynde</button>
+</dialog>
+
 <dialog id="edit-images-dialog" class="modal-dialog images-dialog">
   <button type="button" id="edit-images-dialog-close" class="modal-close" aria-label="Luk">&times;</button>
   <h2 id="edit-images-dialog-title">Billeder</h2>
@@ -295,6 +308,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <script src="../vendor/leaflet-path-drag/index.js"></script>
 <script src="../vendor/sortablejs/Sortable.min.js"></script>
 <script src="../assets/route-meta-dialog.js?v=2"></script>
-<script src="app.js?v=42"></script>
+<script src="../assets/gpx-tools.js?v=2"></script>
+<script src="app.js?v=43"></script>
 </body>
 </html>

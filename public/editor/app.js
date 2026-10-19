@@ -14,7 +14,8 @@
      editor-save.php beholder dem, der allerede ligger i databasen.
    - Nye, håndtegnede punkter får IKKE noget tidsstempel (undgår
      misvisende hastighedsdata for ruter der ikke er GPS-optaget)
-   - Håndtering af "usandsynlig hastighed"-advarslen fra serveren
+   - Har en rute mere end THIN_SUGGEST_POINTS punkter, spørges der om
+     udtynding, før den tegnes (se askThin())
 ------------------------------------------------------------------- */
 
 (function () {
@@ -33,6 +34,8 @@
   let suppressNextMapClick = false; // se map.on("click") og btnWaypointMode-handleren
   let currentFilename = null;
   let currentRouteId = null; // null = ny, endnu ikke gemt rute på platformen
+  let thinnedSinceSave = false; // udtyndet i editoren: næste gem beder serveren gemme originalen
+  const THIN_SUGGEST_POINTS = 2000;
 
   function setCurrentRouteId(id) {
     currentRouteId = id;
@@ -1408,14 +1411,99 @@
         throw new Error((data.errors && data.errors.join(" ")) || "Ukendt fejl.");
       }
 
-      const parsed = parseGPX(data.gpx_content);
       setCurrentRouteId(data.route_id);
       metaConfirmed = true; // eksisterende rute — metadata røres ikke af editoren
       setRouteTitleLabel(data.title);
-      loadState(parsed, data.title + ".gpx");
+      const filename = data.title + ".gpx";
+      const thinned = await askThin(data.gpx_content, data.route_id);
+      if (thinned) {
+        // Udtyndingen er en almindelig, ugemt ændring: originalen ligger i
+        // fortryd-historikken, og Gem sender thin_interval med.
+        loadState(parseGPX(thinned.content), filename);
+        historyStack = [{ xmlStr: data.gpx_content, filename: filename }];
+        updateUndoRedoButtons();
+        thinnedSinceSave = true;
+        markDirty();
+        setStatus(`Udtyndet (${thinned.label}): ${thinned.removed} af ${thinned.before} punkter fjernet. Tryk Gem for at beholde det`);
+      } else {
+        loadState(parseGPX(data.gpx_content), filename);
+      }
     } catch (e) {
       setStatus("Fejl ved indlæsning fra platformen: " + e.message);
     }
+  }
+
+  // ---------- Udtynding ved mange punkter ----------
+  // Editoren tegner et trækbart håndtag pr. punkt, så meget tætte filer
+  // (fx ét punkt i sekundet fra et ur) gør den langsom, især på telefoner.
+  // Spørg derfor, før ruten tegnes. "Fortsæt uden" huskes pr. rute i
+  // browseren; lukkes dialogen med krydset, spørges der igen næste gang.
+  // Svarer med { content, label, removed, before } eller null.
+  function askThin(content, routeId) {
+    const G = window.GpxTools;
+    const skipKey = "mitspor-editor-udtynd-nej-" + routeId;
+    let gpx;
+    try {
+      if (localStorage.getItem(skipKey)) return Promise.resolve(null);
+    } catch (e) {
+      /* lagring utilgængelig: spørg bare */
+    }
+    try {
+      gpx = G.parse(content);
+    } catch (e) {
+      return Promise.resolve(null); // parseGPX() melder selv fejlen bagefter
+    }
+    const before = G.pointCount(gpx);
+    if (before <= THIN_SUGGEST_POINTS) return Promise.resolve(null);
+
+    const dialog = el("thin-dialog");
+    const buttons = Array.from(dialog.querySelectorAll("[data-thin-tolerance]"));
+    const plans = {};
+    buttons.forEach((b) => {
+      const tolerance = parseInt(b.getAttribute("data-thin-tolerance"), 10);
+      const label = b.getAttribute("data-label") || b.textContent.trim();
+      b.setAttribute("data-label", label);
+      plans[tolerance] = G.thinPlan(gpx, tolerance);
+      const left = before - plans[tolerance].total;
+      b.textContent = `${label}: ${left.toLocaleString("da-DK")} punkter tilbage`;
+      b.disabled = plans[tolerance].total === 0;
+    });
+    el("thin-dialog-text").textContent =
+      `Ruten har ${before.toLocaleString("da-DK")} punkter. Det kan gøre editoren langsom, især på mobiltelefoner. Vil du udtynde den først?`;
+
+    return new Promise((resolve) => {
+      function done(result) {
+        buttons.forEach((b) => { b.onclick = null; });
+        el("thin-dialog-skip").onclick = null;
+        el("thin-dialog-close").onclick = null;
+        dialog.onclose = null;
+        if (dialog.open) dialog.close();
+        resolve(result);
+      }
+      buttons.forEach((b) => {
+        b.onclick = () => {
+          const tolerance = parseInt(b.getAttribute("data-thin-tolerance"), 10);
+          G.applyThin(gpx, plans[tolerance]);
+          done({
+            content: G.serialize(gpx),
+            label: b.getAttribute("data-label"),
+            removed: plans[tolerance].total,
+            before: before
+          });
+        };
+      });
+      el("thin-dialog-skip").onclick = () => {
+        try {
+          localStorage.setItem(skipKey, "1");
+        } catch (e) {
+          /* ikke kritisk */
+        }
+        done(null);
+      };
+      el("thin-dialog-close").onclick = () => done(null);
+      dialog.onclose = () => done(null); // Esc
+      dialog.showModal();
+    });
   }
 
   // ---------- Gemning (til platformen) ----------
@@ -1460,6 +1548,10 @@
       route_id: currentRouteId || "",
       gpx_data: content
     });
+    if (thinnedSinceSave) {
+      // Får serveren til at gemme originalen første gang (Gendan original fil).
+      body.append("thin_interval", "1");
+    }
     if (meta) {
       // Metadata sendes KUN ved oprettelse. Ved en eksisterende rute beholder
       // editor-save.php de værdier, der ligger i databasen (de ændres i
@@ -1485,6 +1577,7 @@
 
       const wasNewRoute = !currentRouteId;
       setCurrentRouteId(data.route_id);
+      thinnedSinceSave = false;
       markServerSaved();
       setStatus("Gemt på platformen");
 

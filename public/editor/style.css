@@ -482,6 +482,19 @@ html {
   cursor: default;
 }
 
+/* Spørgsmål om udtynding ved mange punkter */
+.thin-hint {
+  font-size: 13px;
+  color: #64748b;
+}
+.thin-buttons .btn-primary {
+  margin-top: 8px;
+}
+.modal-dialog .thin-skip {
+  display: block;
+  margin: 14px auto 0;
+}
+
 /* ------------------------------ */
 /* Metadata-panel (rutens titel, aktivitet, synlighed) */
 /* ------------------------------ */
