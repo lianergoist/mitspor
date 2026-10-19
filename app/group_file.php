@@ -132,6 +132,10 @@ function group_file_build(array $group, array $included, bool $isOwner): ?string
             error_log('Gruppe-download: kunne ikke læse etape ' . $member['public_id']);
             return null;
         }
+        // Etaper markeret som rute downloades uden tidsstempler (som route_file_send()).
+        if ($member['route_type'] === 'rute') {
+            $clean = gpx_strip_all_times($clean);
+        }
 
         $doc = new DOMDocument();
         if (!@$doc->loadXML($clean, LIBXML_NONET | LIBXML_PARSEHUGE)) {

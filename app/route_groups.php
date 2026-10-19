@@ -103,7 +103,7 @@ function group_list_for_user(PDO $pdo, int $userId): array
 function group_members(PDO $pdo, int $groupId, bool $includePrivate): array
 {
     $sql = "SELECT r.id, r.public_id, r.title, r.visibility, r.group_position,
-                   r.distance_meters, r.elevation_gain_meters, r.has_time_data,
+                   r.distance_meters, r.elevation_gain_meters, r.has_time_data, r.route_type,
                    r.hide_uploader_name, r.allow_download, r.updated_at, r.gpx_file_path,
                    r.start_lat, r.start_lon,
                    a.name_da AS activity_name,
