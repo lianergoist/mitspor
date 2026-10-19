@@ -98,7 +98,7 @@ require_once __DIR__ . '/../app/config.php';
 
     <h3>Dine billeder</h3>
     <p>
-        Billeder, du uploader til dine waypoints, gemmes i din billedsamling sammen med en lille miniature.
+        Billeder, du uploader til dine waypoints på sitet eller fra appen, gemmes i din billedsamling sammen med en lille miniature.
         Når du uploader et billede, fjerner vi automatisk skjulte oplysninger i filen, såsom GPS-position, kameramodel og
         tidspunkt (såkaldte EXIF-data). Selve billedet ændres ikke. Det gælder JPEG-, PNG- og WebP-billeder; GIF-filer indeholder ikke EXIF-data.
     </p>
@@ -107,7 +107,8 @@ require_once __DIR__ . '/../app/config.php';
     <ul>
         <li><strong>Placering:</strong> Appen bruger kun din placering, når du selv har trykket Start, og indtil du trykker Stop. Placeringen bruges også, mens skærmen er slukket eller appen ligger i baggrunden, så hele turen kommer med. På Android vises en notifikation, så længe optagelsen kører. Punkter med dårlig nøjagtighed kasseres.</li>
         <li><strong>Lagring på telefonen:</strong> Turen gemmes løbende i appens egen mappe på telefonen, så den ikke går tabt, hvis appen lukker. Din placering sendes ikke til os under optagelsen, medmindre du har valgt at sende turen live (se <em>Livesending</em> nedenfor).</li>
-        <li><strong>Upload:</strong> Først når du trykker Upload på en tur, sendes GPX-filen, titlen og aktivitetstypen til os, og ruten oprettes som privat. En tur, der er sendt live, uploades dog automatisk, når du stopper den. Hver optagelse har et tilfældigt id, så den samme tur ikke bliver oprettet to gange, hvis uploaden skal prøves igen.</li>
+        <li><strong>Upload:</strong> Først når du trykker Upload på en tur, sendes GPX-filen, titlen, aktivitetstypen og billederne til turens waypoints til os, og ruten oprettes som privat. En tur, der er sendt live, uploades dog automatisk, når du stopper den. Hver optagelse har et tilfældigt id, så den samme tur ikke bliver oprettet to gange, hvis uploaden skal prøves igen.</li>
+        <li><strong>Kamera og billeder:</strong> Appen bruger kun kameraet eller dine fotos, når du selv trykker <em>Tag billede</em> eller <em>Vælg billeder</em> ved et waypoint under en optagelse. Appen får kun adgang til de billeder, du selv vælger, ikke til resten af dine fotos. På Android åbnes telefonens egen kamera-app, så MitSpor får ikke selv adgang til kameraet. Billederne gøres mindre og gemmes sammen med turen i appens egen mappe på telefonen. De sendes først til os, når turen uploades, og behandles derefter som andre billeder (se <em>Dine billeder</em>): skjulte oplysninger som GPS-position fjernes, og billederne lægges i din billedsamling og vises ved waypointet på ruten. Hvert billede har et tilfældigt id, så det ikke bliver gemt to gange, hvis uploaden skal prøves igen.</li>
         <li><strong>Login:</strong> Når du logger ind i appen, sendes din e-mail og adgangskode krypteret til os og kontrolleres som ved login på sitet. Appen gemmer ikke din adgangskode. Den får i stedet en adgangsnøgle (token), som gemmes i telefonens sikre nøglering (Keychain på iPhone, Keystore på Android). Hos os gemmes kun en krypteret kode (hash) af nøglen, hvornår den er oprettet og sidst brugt, hvornår den udløber, og om den hører til iPhone- eller Android-appen. Vi gemmer ikke telefonens navn, model eller id.</li>
         <li><strong>Fælles login med sitet:</strong> Appen viser sitet i et indbygget browservindue. For at du ikke skal logge ind to gange, bruges en engangskode, der kun gælder i 60 sekunder og kun kan bruges én gang. Vi gemmer kun en krypteret kode (hash) af den.</li>
         <li><strong>Andet på telefonen:</strong> Listen over aktivitetstyper, den aktivitetstype du sidst valgte, og om introduktionen er vist. Filer, du henter (GPX-filer og dataeksport), lægges midlertidigt i appens cache, så du kan dele eller gemme dem med telefonens del-funktion.</li>
@@ -182,10 +183,10 @@ require_once __DIR__ . '/../app/config.php';
     <h2>6. Hvor længe gemmer vi dine oplysninger?</h2>
     <ul>
         <li><strong>Konto, ruter og billeder:</strong> så længe du har din konto.</li>
-        <li><strong>Sletter du en rute:</strong> GPX-filen og en evt. gemt original-fil (sikkerhedskopi fra udtynding) slettes straks, og rutens titel, beskrivelse, delingslink og positioner ryddes. Der bevares kun en tom markering, så personer med et gammelt link kan se, at ruten er slettet. Billeder i din billedsamling bliver liggende, til du sletter din konto (eller beder os fjerne dem).</li>
+        <li><strong>Sletter du en rute:</strong> GPX-filen og en evt. gemt original-fil (sikkerhedskopi fra udtynding) slettes straks, og rutens titel, beskrivelse, delingslink og positioner ryddes. Der bevares kun en tom markering, så personer med et gammelt link kan se, at ruten er slettet. Billeder i din billedsamling bliver liggende, til du selv sletter dem under <em>Mine billeder</em> eller sletter din konto.</li>
         <li><strong>Sletter du din konto:</strong> alle dine ruter og billeder (inklusive miniaturer) slettes, og din e-mail, dit navn og din adgangskode fjernes med det samme.</li>
         <li><strong>Livesendinger:</strong> Livesendingen og de punkter, appen har sendt live, gemmes, til du sletter livesendingen eller din konto. De færdige etaper er almindelige ruter og bliver liggende, til du sletter dem.</li>
-        <li><strong>Ture på telefonen:</strong> bliver liggende i appen, også efter upload, til du sletter dem i appen eller afinstallerer appen. Vi kan ikke se eller slette dem.</li>
+        <li><strong>Ture på telefonen</strong> (med waypoints og billeder): bliver liggende i appen, også efter upload, til du sletter dem i appen eller afinstallerer appen. Vi kan ikke se eller slette dem.</li>
         <li><strong>Adgangsnøgler til appen:</strong> holder op med at virke, når du logger ud i appen, når du skifter eller nulstiller din adgangskode, og når de ikke har været brugt i 180 dage. Oplysningerne om nøglerne slettes sammen med din konto. Engangskoder til fælles login slettes efter et døgn.</li>
         <li><strong>Sikkerhedsnoter (IP-adresser ved login m.m.):</strong> slettes automatisk efter 30 dage.</li>
         <li><strong>Serverens adgangslog:</strong> 3 måneder.</li>
@@ -198,7 +199,7 @@ require_once __DIR__ . '/../app/config.php';
     <ul>
         <li><strong>Indsigt og dataportabilitet:</strong> Under din profil kan du selv hente alle dine data (<em>Download alle mine data</em>) som en ZIP-fil med dine GPX-filer, billeder, livesendinger (med de punkter, appen har sendt live) og oplysninger om din konto.</li>
         <li><strong>Berigtigelse:</strong> Du kan selv rette dit navn og din e-mail i din profil.</li>
-        <li><strong>Sletning:</strong> Du kan selv slette enkelte ruter og hele din konto, også fra appen via din profil. Vil du have et enkelt billede fjernet, kan du skrive til os.</li>
+        <li><strong>Sletning:</strong> Du kan selv slette enkelte ruter og hele din konto, også fra appen via din profil. Billeder sletter du under <em>Mine billeder</em> i din profil. Et billede, der stadig bruges i en af dine ruter, skal først fjernes fra ruten i editoren.</li>
         <li><strong>Begrænsning og indsigelse:</strong> Du kan bede os begrænse behandlingen eller gøre indsigelse mod den, når den bygger på vores legitime interesse.</li>
         <li><strong>Tilbagekaldelse af samtykke:</strong> Fx ved at gøre en rute privat, fjerne data som puls fra en fil eller stoppe, afslutte eller slette en livesending.</li>
     </ul>
