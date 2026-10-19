@@ -17,6 +17,7 @@
     var Konto = window.MitSporKonto;
     var Upload = window.MitSporUpload;
     var UploadVisning = window.MitSporUploadVisning;
+    var Live = window.MitSporLive;
 
     // Smart-mode: alle brugbare GPS-punkter gemmes i punkter.jsonl, og
     // GPX-filen laves af det rensede spor (spor.js).
@@ -53,6 +54,9 @@
     var afslutKnap = document.getElementById('optag-afslut');
     var listeFelt = document.getElementById('optag-liste');
     var tomFelt = document.getElementById('optag-tom');
+    var liveValg = document.getElementById('optag-live-valg');
+    var liveSelect = document.getElementById('optag-live');
+    var liveStatus = document.getElementById('optag-live-status');
 
     // Den aktive optagelse. aktiv er sand, også når den holder pause.
     var aktiv = false;
@@ -70,6 +74,7 @@
     var hjaelpTimer = null;
     var afbrudt = null;   // en optagelse, der ikke blev afsluttet (nedbrud/genstart)
     var logget = false;   // er brugeren logget ind i appen?
+    var livesendinger = []; // brugerens åbne livesendinger (live.js)
 
     // Skrivninger køres én ad gangen, i den rækkefølge de kommer.
     var koe = Promise.resolve();
@@ -126,6 +131,8 @@
         tidFelt.textContent = meta ? ur(koretid(meta, Date.now())) : '0:00:00';
         afstandFelt.textContent = km(meta ? meta.afstandM : 0);
         punkterFelt.textContent = String(meta ? meta.antalPunkter : 0);
+        liveStatus.textContent = meta ? Live.status(meta.live) : '';
+        liveStatus.hidden = !liveStatus.textContent;
     }
 
     function opdaterKnapper() {
@@ -136,6 +143,7 @@
         startKnap.disabled = !!afbrudt;
         aabnKnap.textContent = !aktiv ? 'Optag tur' : (pauset ? 'Optagelse på pause' : 'Optagelse i gang');
         afbrudtBoks.hidden = !afbrudt || aktiv;
+        liveValg.hidden = aktiv || !!afbrudt || !logget || !livesendinger.length;
         if (afbrudt) {
             afbrudtTekst.textContent = afbrudt.navn + ' blev ikke afsluttet. Vil du fortsætte optagelsen eller afslutte og gemme den?';
         }
@@ -172,6 +180,11 @@
         status.textContent = uploadTekst(m);
         status.hidden = !status.textContent;
 
+        var liveTekst = document.createElement('div');
+        liveTekst.className = 'tur-upload';
+        liveTekst.textContent = m.live && !m.live.faerdig ? Live.status(m.live) : '';
+        liveTekst.hidden = !liveTekst.textContent;
+
         var knapper = document.createElement('div');
         knapper.className = 'tur-knapper';
         var u = m.upload;
@@ -194,6 +207,7 @@
         li.appendChild(navn);
         li.appendChild(info);
         li.appendChild(status);
+        li.appendChild(liveTekst);
         li.appendChild(knapper);
         return li;
     }
@@ -362,6 +376,11 @@
 
         iKoe(function () { return Lager.tilfoejPunkt(id, punkt); });
 
+        // Højst hvert minut (styres i live.js).
+        if (meta.live) {
+            Live.send(meta, punkter, false);
+        }
+
         // Styres af punkternes egen tid, så det også sker, når
         // JavaScript-timere bremses i baggrunden.
         if (tid - sidstGpx >= GPX_INTERVAL_MS) {
@@ -401,6 +420,10 @@
                 meta = ny;
                 meta.pauseMs = 0;
                 meta.pauseStart = null;
+                var valgt = valgtLivesending();
+                if (valgt) {
+                    meta.live = Live.ny(valgt);
+                }
                 punkter = [];
                 sidst = null;
                 segment = 0;
@@ -412,6 +435,12 @@
                 opdaterTal();
                 opdaterKnapper();
                 startUr();
+                if (meta.live) {
+                    // Gem valget, før der sendes noget, og start etapen på sitet.
+                    var kopi = Object.assign({}, meta);
+                    iKoe(function () { return Lager.gemMeta(kopi); });
+                    Live.send(meta, punkter, true);
+                }
                 return startGps();
             })
             .catch(function (fejl) {
@@ -481,6 +510,9 @@
         opdaterTal();
         BG.stop().catch(function () {});
         gemGpx();
+        if (meta.live) {
+            Live.send(meta, punkter, true);
+        }
     }
 
     // Efter en pause fortsætter sporet, hvor det slap.
@@ -500,7 +532,8 @@
 
     // Afslutter den aktive optagelse og gemmer GPX-filen.
     // stille: ingen besked, hvis turen er tom (fx når adgang til placering mangler).
-    function stop(stille) {
+    // sidsteEtape: afslut også livesendingen (kun når turen sendes live).
+    function stop(stille, sidsteEtape) {
         clearInterval(urTimer);
         skjulGpsHjaelp();
         var bgStop = BG.stop().catch(function () {});
@@ -519,8 +552,10 @@
         pauset = false;
         visGps('–');
 
+        var liste = punkter;
         return bgStop
-            .then(function () { return afslut(m, punkter, stille); })
+            .then(function () { return afslut(m, liste, stille); })
+            .then(function () { return afslutLive(m, liste, !!sidsteEtape); })
             .then(function () {
                 meta = null;
                 punkter = [];
@@ -548,6 +583,35 @@
         });
     }
 
+    // Turen er sendt live: send resten og afslut etapen på sitet, og sæt
+    // turen i kø til upload. Det færdige spor erstatter så de rå punkter
+    // på livesiden. (Uden net sker begge dele, når der er net igen.)
+    function afslutLive(m, liste, sidsteEtape) {
+        if (!m.live) {
+            return Promise.resolve();
+        }
+        return koe
+            .then(function () { return Live.afslut(m, liste, sidsteEtape); })
+            .then(function () {
+                if (!liste.length || m.upload) {
+                    return;
+                }
+                return Upload.saetIKoe(m.id, liveTitel(m.live), m.live.aktivitet);
+            });
+    }
+
+    // Etapens titel fra planen, ellers livesendingens titel og etapens nummer.
+    function liveTitel(live) {
+        var etape = live.etape;
+        if (etape && etape.titel) {
+            return etape.titel;
+        }
+        if (etape && etape.position > 1) {
+            return live.titel + ' – etape ' + etape.position;
+        }
+        return live.titel;
+    }
+
     function afslutAfbrudt() {
         var m = afbrudt;
         if (!m) {
@@ -560,9 +624,42 @@
                 m.slut = m.pauseStart || (gemte.length ? gemte[gemte.length - 1][3] : m.start);
                 m.pauseStart = null;
                 afbrudt = null;
-                return afslut(m, gemte);
+                return afslut(m, gemte).then(function () { return afslutLive(m, gemte, false); });
             })
             .then(visListe);
+    }
+
+    // ---------- Livesending ----------
+
+    function valgtLivesending() {
+        var id = liveSelect.value;
+        return livesendinger.filter(function (l) { return l.event === id; })[0] || null;
+    }
+
+    // Valget starter altid på "Nej": der sendes kun live, når brugeren selv vælger det.
+    function hentLivesendinger() {
+        if (!logget) {
+            livesendinger = [];
+            opdaterKnapper();
+            return;
+        }
+        Live.hentLivesendinger().then(function (liste) {
+            var valgt = liveSelect.value;
+            livesendinger = liste;
+            liveSelect.textContent = '';
+            var nej = document.createElement('option');
+            nej.value = '';
+            nej.textContent = 'Nej';
+            liveSelect.appendChild(nej);
+            liste.forEach(function (l) {
+                var o = document.createElement('option');
+                o.value = l.event;
+                o.textContent = l.titel;
+                liveSelect.appendChild(o);
+            });
+            liveSelect.value = liste.some(function (l) { return l.event === valgt; }) ? valgt : '';
+            opdaterKnapper();
+        });
     }
 
     // ---------- Gemte ture ----------
@@ -600,15 +697,23 @@
     aabnKnap.addEventListener('click', function () {
         visView(true);
         visListe();
+        if (!aktiv) {
+            hentLivesendinger();
+        }
     });
     tilbageKnap.addEventListener('click', function () { visView(false); });
     startKnap.addEventListener('click', start);
     pauseKnap.addEventListener('click', pause);
     genoptagKnap.addEventListener('click', genoptag);
     stopKnap.addEventListener('click', function () {
-        if (window.confirm('Stop og gem optagelsen?')) {
-            stop();
+        if (!window.confirm('Stop og gem optagelsen?')) {
+            return;
         }
+        var sidsteEtape = !!(meta && meta.live) && window.confirm(
+            'Var det den sidste etape i livesendingen "' + meta.live.titel + '"?\n\n' +
+            'OK: afslut livesendingen.\nAnnuller: hold den åben til næste etape.'
+        );
+        stop(false, sidsteEtape);
     });
     fortsaetKnap.addEventListener('click', fortsaet);
     afslutKnap.addEventListener('click', afslutAfbrudt);
@@ -632,8 +737,15 @@
     function nytLogin(login) {
         logget = !!login;
         visListe();
+        hentLivesendinger();
     }
     Upload.onSkift(visListe);
+    Live.onSkift(function () {
+        opdaterTal();
+        if (!aktiv) {
+            visListe();
+        }
+    });
     Konto.onSkift(nytLogin);
     Konto.hent().then(nytLogin);
 
