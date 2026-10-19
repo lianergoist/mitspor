@@ -262,7 +262,15 @@
 
     function startUr() {
         clearInterval(urTimer);
-        urTimer = setInterval(opdaterTal, 1000);
+        urTimer = setInterval(function () {
+            opdaterTal();
+            // Livstegn, også når der ingen GPS-punkter kommer (live.js
+            // sender højst hvert minut). Uret kan gå i stå i baggrunden;
+            // derfor sendes der også fra modtag().
+            if (meta && meta.live && !pauset) {
+                Live.send(meta, punkter, false);
+            }
+        }, 1000);
     }
 
     // Renser sporet og opdaterer afstand og antal punkter ud fra det rensede spor.
@@ -336,6 +344,12 @@
         if (!aktiv || pauset) {
             return;
         }
+        // Hver position fra GPS'en, også én der springes over nedenfor
+        // (stillestående, svagt signal), giver live.js lejlighed til at
+        // sende nye punkter eller et livstegn. Højst hvert minut.
+        if (meta.live) {
+            Live.send(meta, punkter, false);
+        }
 
         var noejagtighed = Math.round(pos.accuracy);
         if (!(noejagtighed <= MAX_NOEJAGTIGHED_M)) {
@@ -375,11 +389,6 @@
         sidst = punkt;
 
         iKoe(function () { return Lager.tilfoejPunkt(id, punkt); });
-
-        // Højst hvert minut (styres i live.js).
-        if (meta.live) {
-            Live.send(meta, punkter, false);
-        }
 
         // Styres af punkternes egen tid, så det også sker, når
         // JavaScript-timere bremses i baggrunden.
