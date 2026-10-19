@@ -246,6 +246,7 @@ CREATE TABLE `live_stages` (
   `started_at` datetime DEFAULT NULL,
   `ended_at` datetime DEFAULT NULL,
   `last_point_at` datetime(3) DEFAULT NULL,
+  `last_contact_at` datetime DEFAULT NULL,
   `point_count` int(10) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_live_stages_position` (`event_id`,`position`),
@@ -475,4 +476,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-10-19  8:32:01
+-- Dump completed on 2026-10-19 10:24:08
