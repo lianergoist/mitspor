@@ -16,6 +16,7 @@
     var lastId = 0;
     var status = "";
     var current = null;
+    var activity = null;      // { state: 'bevaeger'|'staar'|'ingen_kontakt', since }
     var clockOffset = 0;      // serverens ur minus browserens (ms)
     var firstFit = true;
     var follow = false;
@@ -139,7 +140,7 @@
             return;
         }
         var latlng = [current.lat, current.lon];
-        var old = status !== "live";
+        var old = status !== "live" || (activity && activity.state === "ingen_kontakt");
         var icon = L.divIcon({ className: "", html: '<div class="live-marker' + (old ? " is-old" : "") + '"></div>', iconSize: [18, 18], iconAnchor: [9, 9] });
         if (!marker) {
             marker = L.marker(latlng, { icon: icon, keyboard: false, zIndexOffset: 1000 }).addTo(map);
@@ -171,7 +172,13 @@
         };
         statusEl.setAttribute("data-status", status);
         statusText.textContent = texts[status] || "";
-        updatedEl.textContent = current ? "Seneste position " + ago(current.t) : "";
+        var text = current ? "Seneste position " + ago(current.t) : "";
+        if (status === "live" && activity && activity.state === "staar") {
+            text = "Står stille. Seneste position " + ago(activity.since);
+        } else if (status === "live" && activity && activity.state === "ingen_kontakt") {
+            text = "Ingen kontakt med appen " + ago(activity.since) + ". Måske dårlig dækning.";
+        }
+        updatedEl.textContent = text;
     }
 
     function url() {
@@ -208,6 +215,7 @@
                 version = data.version;
                 lastId = data.last_id;
                 current = data.current;
+                activity = data.activity;
                 updateMarker();
                 renderStatus();
             })

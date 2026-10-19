@@ -193,7 +193,7 @@ function live_stage_start(PDO $pdo, array $event, string $clientUploadId): array
         if ($plannedId !== false) {
             $pdo->prepare(
                 "UPDATE live_stages
-                 SET status = 'live', client_upload_id = :cuid, started_at = NOW()
+                 SET status = 'live', client_upload_id = :cuid, started_at = NOW(), last_contact_at = NOW()
                  WHERE id = :id"
             )->execute(['cuid' => $clientUploadId, 'id' => $plannedId]);
         } else {
@@ -202,8 +202,8 @@ function live_stage_start(PDO $pdo, array $event, string $clientUploadId): array
             $position = (int) $stmt->fetchColumn();
 
             $pdo->prepare(
-                "INSERT INTO live_stages (event_id, position, status, client_upload_id, started_at)
-                 VALUES (:eid, :pos, 'live', :cuid, NOW())"
+                "INSERT INTO live_stages (event_id, position, status, client_upload_id, started_at, last_contact_at)
+                 VALUES (:eid, :pos, 'live', :cuid, NOW(), NOW())"
             )->execute(['eid' => $eventId, 'pos' => $position, 'cuid' => $clientUploadId]);
         }
 
@@ -281,6 +281,9 @@ function live_stage_end(PDO $pdo, array $event, string $clientUploadId, bool $fi
  * punkter. Punkter, der allerede er gemt (samme tid), springes over, så
  * appen trygt kan sende igen efter en netværksfejl.
  *
+ * Hvert kald, også uden punkter, er et livstegn: last_contact_at viser
+ * livesiden, at appen er i kontakt, selv om der ingen ny position er.
+ *
  * @return array{success: bool, errors?: string[], received?: int, last_ms?: int|null, point_count?: int}
  */
 function live_points_add(PDO $pdo, array $stage, array $points): array
@@ -339,6 +342,9 @@ function live_points_add(PDO $pdo, array $stage, array $points): array
         $stmt->execute($params);
         $received = $stmt->rowCount();
     }
+
+    $pdo->prepare('UPDATE live_stages SET last_contact_at = NOW() WHERE id = :id')
+        ->execute(['id' => $stage['id']]);
 
     if ($received > 0) {
         $pdo->prepare(
