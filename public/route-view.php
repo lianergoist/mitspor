@@ -14,6 +14,35 @@ require_once __DIR__ . '/../app/markers.php';
 $publicId = (string) ($_GET['id'] ?? '');
 
 $pdo = get_db();
+
+// En igangværende etape i en livesending: route-view.php?live=<id>&etape=<n>[&k=<nøgle>]
+// viser etapens rå livepunkter (live-gpx.php) som et spor. Adgang og
+// forsinkelse som på livesiden. Når etapens færdige rute må vises, sendes
+// den besøgende videre dertil.
+$liveEvent = null;
+$liveStage = null;
+$liveKey = (string) ($_GET['k'] ?? '');
+if (isset($_GET['live'])) {
+    require_once __DIR__ . '/../app/live_view.php';
+    $liveEvent = live_event_find($pdo, (string) $_GET['live']);
+    $liveUserId = !empty($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
+    if ($liveEvent === null || !live_can_view($liveEvent, $liveUserId, $liveKey)) {
+        http_response_code(404);
+        echo '<h1>Livesendingen blev ikke fundet</h1><p>Der findes ingen livesending med det ID.</p>';
+        exit;
+    }
+    $liveStage = live_stage_for_view($pdo, $liveEvent, (int) ($_GET['etape'] ?? 0), $liveUserId === (int) $liveEvent['user_id']);
+    if ($liveStage === null || !$liveStage['started_visible']) {
+        http_response_code(404);
+        echo '<h1>Etapen er ikke startet endnu</h1><p><a href="' . htmlspecialchars(live_url($liveEvent), ENT_QUOTES, 'UTF-8') . '">Til livesiden</a></p>';
+        exit;
+    }
+    if ($liveStage['link'] !== null) {
+        header('Location: ' . $liveStage['link']);
+        exit;
+    }
+}
+
 $stmt = $pdo->prepare(
     "SELECT r.id, r.public_id, r.title, r.description, r.visibility, r.status, r.allow_download, r.route_type,
             r.distance_meters, r.elevation_gain_meters, r.elevation_loss_meters, r.hide_uploader_name,
@@ -29,6 +58,28 @@ $stmt = $pdo->prepare(
 );
 $stmt->execute(['public_id' => $publicId]);
 $route = $stmt->fetch();
+
+if ($liveEvent !== null) {
+    $stmt = $pdo->prepare(
+        'SELECT a.name_da, a.icon_filename, u.display_name
+         FROM activity_types a, users u
+         WHERE a.id = :act AND u.id = :uid'
+    );
+    $stmt->execute(['act' => $liveEvent['activity_type_id'], 'uid' => $liveEvent['user_id']]);
+    $liveInfo = $stmt->fetch() ?: ['name_da' => '', 'icon_filename' => null, 'display_name' => ''];
+    // En "rute" uden række i routes: kun de felter, siden bruger.
+    $route = [
+        'id' => 0, 'public_id' => '', 'title' => live_stage_name($liveEvent, $liveStage),
+        'description' => $liveEvent['description'], 'visibility' => $liveEvent['visibility'],
+        'status' => 'active', 'allow_download' => 0, 'route_type' => 'spor',
+        'distance_meters' => 0, 'elevation_gain_meters' => 0, 'elevation_loss_meters' => 0,
+        'hide_uploader_name' => 0, 'share_token' => null, 'enabled_data_fields' => null,
+        'enabled_functions' => null, 'updated_at' => null, 'gpx_file_path' => '', 'group_id' => null,
+        'user_id' => $liveEvent['user_id'], 'activity_name' => $liveInfo['name_da'],
+        'activity_icon' => $liveInfo['icon_filename'], 'marker_icon' => null,
+        'uploader_name' => $liveInfo['display_name'],
+    ];
+}
 
 if (!$route) {
     http_response_code(404);
@@ -81,7 +132,7 @@ $hasValidShareToken = $route['share_token'] !== null
     && $shareToken !== ''
     && hash_equals($route['share_token'], $shareToken);
 
-if ($route['visibility'] === 'private' && !$isOwner && !$hasValidShareToken) {
+if ($route['visibility'] === 'private' && !$isOwner && !$hasValidShareToken && $liveEvent === null) {
     http_response_code(403);
     echo '<h1>Ingen adgang</h1><p>Denne rute er privat.</p>';
     exit;
@@ -96,6 +147,13 @@ $groupContext = $route['group_id'] !== null
 $gpxUrl = 'route-file.php?id=' . urlencode($route['public_id']) . '&mode=view'
     . ($hasValidShareToken ? '&share=' . urlencode($shareToken) : '');
 $canDownload = $isOwner || $route['allow_download'];
+$liveUrl = null;
+if ($liveEvent !== null) {
+    $liveQuery = '?id=' . urlencode($liveEvent['public_id']) . ($liveKey !== '' ? '&k=' . urlencode($liveKey) : '');
+    $gpxUrl = 'live-gpx.php' . $liveQuery . '&etape=' . $liveStage['position'];
+    $liveUrl = '/live.php' . $liveQuery;
+    $canDownload = false;
+}
 
 // SEO/deling: en kort beskrivelse til meta description + Open Graph.
 $seoDescription = trim($route['activity_name'] . ' · ' . number_format($route['distance_meters'] / 1000, 1) . ' km');
@@ -108,7 +166,7 @@ $routeCanonicalUrl = APP_BASE_URL . '/route-view.php?id=' . urlencode($route['pu
 // (public/og-image.php). Private ruter — også via delelink — får det
 // generiske MitSpor-billede, så et privat spor aldrig ender som et cachet
 // forhåndsvisningsbillede hos Facebook m.fl.
-if ($route['visibility'] === 'public') {
+if ($route['visibility'] === 'public' && $liveEvent === null) {
     $ogImageUrl  = APP_BASE_URL . '/og-image.php?id=' . urlencode($route['public_id'])
         . '&v=' . og_route_version($route);
     $ogImageType = 'image/jpeg';
@@ -129,7 +187,7 @@ if ($route['visibility'] === 'public') {
     <title><?= htmlspecialchars($route['title'], ENT_QUOTES, 'UTF-8') ?></title>
 
     <meta name="description" content="<?= htmlspecialchars($seoDescription, ENT_QUOTES, 'UTF-8') ?>">
-    <?php if ($route['visibility'] === 'private'): ?>
+    <?php if ($route['visibility'] === 'private' || $liveEvent !== null): ?>
     <meta name="robots" content="noindex, nofollow">
     <?php else: ?>
     <link rel="canonical" href="<?= htmlspecialchars($routeCanonicalUrl, ENT_QUOTES, 'UTF-8') ?>">
@@ -294,6 +352,11 @@ if ($route['visibility'] === 'public') {
             .wpt-modal-close { top: 14px; right: 14px; }
 
         }
+        /* Igangværende etape i en livesending (route-view.php?live=…). */
+        .live-note { display: flex; align-items: center; gap: 6px; margin: 2px 0 6px; font-size: 13px; font-weight: 600; color: #b91c1c; }
+        .live-note .live-dot { flex: 0 0 auto; width: 10px; height: 10px; border-radius: 50%; background: #dc2626; animation: live-pulse 1.6s ease-in-out infinite; }
+        @keyframes live-pulse { 50% { opacity: 0.3; } }
+        @media (prefers-reduced-motion: reduce) { .live-note .live-dot { animation: none; } }
     </style>
 </head>
 <body>
@@ -303,7 +366,9 @@ if ($route['visibility'] === 'public') {
     <div class="top-area">
 
     <div class="topbar<?= $loggedIn ? '' : ' topbar-guest' ?>">
-        <?php if ($isOwner): ?>
+        <?php if ($liveUrl !== null): ?>
+            <a href="<?= htmlspecialchars($liveUrl, ENT_QUOTES, 'UTF-8') ?>" id="btn-back" class="brand" title="Til livesiden" aria-label="Til livesiden"><span class="back-arrow" aria-hidden="true">&larr;</span><span class="brand-name"> Livesiden</span></a>
+        <?php elseif ($isOwner): ?>
             <a href="dashboard.php" id="btn-back" class="brand" title="Tilbage" aria-label="Tilbage"><span class="back-arrow" aria-hidden="true">&larr;</span></a>
         <?php else: ?>
             <a href="index.php" id="btn-back" class="brand" title="Tilbage" aria-label="Tilbage"><span class="back-arrow" aria-hidden="true">&larr;</span><span class="brand-name"> MitSpor</span></a>
@@ -313,7 +378,7 @@ if ($route['visibility'] === 'public') {
             <?php if ($canDownload): ?>
                 <a class="btn" href="<?= htmlspecialchars(gpx_download_url($route['public_id'], $hasValidShareToken ? $shareToken : ''), ENT_QUOTES, 'UTF-8') ?>" title="Download GPX-fil" aria-label="Download"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M12 3v12m0 0l-5-5m5 5l5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="btn-label">Download</span></a>
             <?php endif; ?>
-            <?php if ($isOwner): ?>
+            <?php if ($isOwner && $liveEvent === null): ?>
                 <a href="editor/?route=<?= htmlspecialchars($route['public_id'], ENT_QUOTES, 'UTF-8') ?>" class="btn" title="Redigér punkter, billeder og waypoints i editoren" aria-label="Editor"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg><span class="btn-label">Editor</span></a>
             <?php endif; ?>
             <?php if (!$loggedIn): ?>
@@ -346,6 +411,9 @@ if ($route['visibility'] === 'public') {
             </nav>
         <?php endif; ?>
         <h1><?= htmlspecialchars($route['title'], ENT_QUOTES, 'UTF-8') ?></h1>
+        <?php if ($liveEvent !== null): ?>
+            <p class="live-note"><span class="live-dot" aria-hidden="true"></span> <?= $liveStage['finished'] ? 'Etapen er slut. Det færdige spor vises, når det er uploadet.' : 'Live: etapen er i gang. Siden opdateres hvert minut.' ?></p>
+        <?php endif; ?>
 
         <?php if ($route['description']): ?>
             <p class="route-description"><?= nl2br(htmlspecialchars($route['description'], ENT_QUOTES, 'UTF-8')) ?></p>
@@ -404,7 +472,7 @@ if ($route['visibility'] === 'public') {
             <?php if ($isOwner): ?>
                 <p><strong>Som ejer</strong> kan du trykke <strong>Editor</strong> for at rette ruten (punkter, waypoints og billeder). Hvad siden viser — højdeprofil, hastighed, puls m.m. — vælger du i kontrolpanelet under <strong>Visning og datafelter</strong>.</p>
             <?php endif; ?>
-            <?php if ($route['visibility'] === 'public' && !$route['hide_uploader_name']): ?>
+            <?php if ($route['visibility'] === 'public' && !$route['hide_uploader_name'] && $liveEvent === null): ?>
                 <p><a href="uploader-routes.php?route=<?= htmlspecialchars($route['public_id'], ENT_QUOTES, 'UTF-8') ?>">Andre ruter fra denne bruger</a></p>
             <?php endif; ?>
         </div>
@@ -463,6 +531,52 @@ if ($route['visibility'] === 'public') {
 
     var map = L.map('map', { zoomControl: false });
     L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    // ---------- Igangværende etape (route-view.php?live=…) ----------
+    // Siden hentes igen hvert minut. Kortets udsnit, og om graferne er
+    // åbne, gemmes først, så visningen ikke springer ved hver opdatering.
+    var isLive = <?= json_encode($liveEvent !== null) ?>;
+    var liveRefresh = isLive && <?= json_encode($liveEvent !== null && !$liveStage['finished']) ?>;
+    var LIVE_VIEW_KEY = 'mitspor-live-visning:' + location.search;
+    var liveSaved = null;
+    if (isLive) {
+        try {
+            liveSaved = JSON.parse(sessionStorage.getItem(LIVE_VIEW_KEY));
+            sessionStorage.removeItem(LIVE_VIEW_KEY);
+        } catch (e) { liveSaved = null; }
+    }
+
+    function fitRoute(bounds) {
+        if (liveSaved && liveSaved.zoom) {
+            map.setView([liveSaved.lat, liveSaved.lng], liveSaved.zoom);
+            return;
+        }
+        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+    }
+
+    function liveReload() {
+        try {
+            var c = map.getCenter();
+            sessionStorage.setItem(LIVE_VIEW_KEY, JSON.stringify({ lat: c.lat, lng: c.lng, zoom: map.getZoom(), graphs: graphsPanelOpen }));
+        } catch (e) { /* uden sessionStorage zoomer kortet bare til sporet igen */ }
+        window.MitSporGenindlaes();
+    }
+
+    if (liveRefresh) {
+        var liveTimer = setInterval(function () {
+            if (!document.hidden) liveReload();
+        }, 60000);
+        // Har fanen været skjult, hentes nye data, så snart den vises igen.
+        var liveHiddenAt = 0;
+        document.addEventListener('visibilitychange', function () {
+            if (document.hidden) {
+                liveHiddenAt = Date.now();
+            } else if (liveHiddenAt && Date.now() - liveHiddenAt > 60000) {
+                clearInterval(liveTimer);
+                liveReload();
+            }
+        });
+    }
     // Kortets højde afhænger på mobil af, hvor høj info-bjælken øverst er (og af
     // graf-panelet) — så Leaflet skal have besked, hver gang kortet skifter størrelse.
     if (window.ResizeObserver) {
@@ -823,7 +937,7 @@ if ($route['visibility'] === 'public') {
 
                 if (allPoints.length > 0 && polylineRef) {
                     var bounds = L.latLngBounds(allPoints.map(function (p) { return L.latLng(p.lat, p.lng); }));
-                    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+                    fitRoute(bounds);
 
                     // Ruten tegnes altid fuldt ud, fra start til slut —
                     // det er kun den bevægelige positions-markør (herunder),
@@ -840,11 +954,11 @@ if ($route['visibility'] === 'public') {
                         // Er der en graf at vise (en graf-funktion er slået til),
                         // åbnes grafpanelet fra start. Kortet får lidt mindre plads,
                         // så ruten tilpasses igen, når panelet er på plads.
-                        if (!graphsPanelOpen) {
+                        if (!graphsPanelOpen && !(liveSaved && liveSaved.graphs === false)) {
                             toggleGraphsPanel();
                             setTimeout(function () {
                                 map.invalidateSize();
-                                map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+                                fitRoute(bounds);
                             }, 200);
                         }
                     }
@@ -878,8 +992,17 @@ if ($route['visibility'] === 'public') {
 
                     // Markøren starter ved begyndelsen af ruten, ikke ved
                     // slutningen — man scrubber sig FREM gennem den.
-                    currentIndex = 1;
+                    // Under en livesending står den ved den seneste position.
+                    currentIndex = isLive ? allPoints.length : 1;
                     updateRoute();
+
+                    // En livesending har ingen gemt afstand: regn den ud af punkterne.
+                    if (isLive) {
+                        var liveDist = 0;
+                        for (var di = 1; di < allPoints.length; di++) liveDist += stepDistance(di);
+                        document.getElementById('stat-distance').textContent =
+                            'Afstand ialt: ' + (liveDist / 1000).toFixed(1) + ' km';
+                    }
                 } else {
                     map.setView([56.0, 10.0], 6);
                 }

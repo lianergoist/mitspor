@@ -105,20 +105,26 @@
         return bounds;
     }
 
-    // Etapens side (route-view.php) findes først, når etapen er slut, og
-    // sporet er uploadet. Indtil da forklarer popuppen det.
+    // Etapens side: den færdige rute (st.link), når den må vises, ellers
+    // route-view.php med etapens livepunkter, så længe den er i gang.
+    function stageLink(st) {
+        if (st.link) return st.link;
+        if (st.state === "planlagt") return null;
+        return "route-view.php?live=" + encodeURIComponent(cfg.id) + "&etape=" + st.position +
+            (cfg.key ? "&k=" + encodeURIComponent(cfg.key) : "");
+    }
+
     function popupHtml(st) {
         var html = "<strong>" + escapeHtml(st.position + ". " + stageName(st)) + "</strong>";
-        if (st.link) {
-            html += '<br><a href="' + escapeHtml(st.link) + '">Vis etapen med grafer</a>';
-        } else if (st.state === "live") {
-            html += "<br>Etapen er i gang. Dens side kommer, når den er slut.";
+        var link = stageLink(st);
+        if (link) {
+            html += '<br><a href="' + escapeHtml(link) + '">Vis etapen med grafer</a>';
         }
         return html;
     }
 
     function renderList(stages) {
-        var shown = stages.length > 1 || (stages.length === 1 && stages[0].title);
+        var shown = stages.length > 1 || (stages.length === 1 && (stages[0].title || stageLink(stages[0])));
         listEl.hidden = !shown;
         listEl.innerHTML = "";
         stages.forEach(function (st) {
@@ -128,7 +134,7 @@
             var name = escapeHtml(stageName(st));
             li.innerHTML =
                 '<span class="stage-num" style="background:' + color(st.position) + '">' + st.position + "</span>" +
-                '<span class="stage-title">' + (st.link ? '<a href="' + escapeHtml(st.link) + '">' + name + "</a>" : name) + "</span>" +
+                '<span class="stage-title">' + (stageLink(st) ? '<a href="' + escapeHtml(stageLink(st)) + '">' + name + "</a>" : name) + "</span>" +
                 '<span class="stage-state">' + state + "</span>";
             listEl.appendChild(li);
         });

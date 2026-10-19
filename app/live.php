@@ -516,6 +516,49 @@ function live_sync_locked(PDO $pdo, int $eventId): void
 }
 
 // ---------------------------------------------------------------------
+// GPX af en etapes rå punkter
+// ---------------------------------------------------------------------
+
+/**
+ * En etapes rå livepunkter som GPX 1.1 (dataeksporten og route-view.php
+ * under en igangværende etape). GPS'ens nøjagtighed (meter) ligger i
+ * <extensions>, da GPX ikke har et felt til den. $cutoff (databasens tid)
+ * udelader nyere punkter, så forsinkelsen overholdes.
+ */
+function live_stage_gpx(PDO $pdo, int $stageId, string $name, ?string $cutoff = null): string
+{
+    $x = static fn(string $s): string => htmlspecialchars($s, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+
+    $out = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
+        . '<gpx version="1.1" creator="MitSpor" xmlns="http://www.topografix.com/GPX/1/1"'
+        . ' xmlns:mitspor="https://mitspor.dk/gpx/1">' . "\n"
+        . '<trk><name>' . $x($name) . '</name><trkseg>' . "\n";
+
+    $stmt = $pdo->prepare(
+        'SELECT lat, lon, ele, accuracy_m, FLOOR(UNIX_TIMESTAMP(recorded_at) * 1000) AS t
+         FROM live_points
+         WHERE stage_id = :sid' . ($cutoff !== null ? ' AND recorded_at <= :c' : '') . '
+         ORDER BY recorded_at'
+    );
+    $params = ['sid' => $stageId];
+    if ($cutoff !== null) {
+        $params['c'] = $cutoff;
+    }
+    $stmt->execute($params);
+    foreach ($stmt as $p) {
+        $ms = (int) $p['t'];
+        $time = gmdate('Y-m-d\TH:i:s', intdiv($ms, 1000)) . sprintf('.%03dZ', $ms % 1000);
+        $out .= '<trkpt lat="' . $p['lat'] . '" lon="' . $p['lon'] . '">'
+            . ($p['ele'] !== null ? '<ele>' . $p['ele'] . '</ele>' : '')
+            . '<time>' . $time . '</time>'
+            . ($p['accuracy_m'] !== null ? '<extensions><mitspor:accuracy_m>' . (int) $p['accuracy_m'] . '</mitspor:accuracy_m></extensions>' : '')
+            . "</trkpt>\n";
+    }
+
+    return $out . "</trkseg></trk>\n</gpx>\n";
+}
+
+// ---------------------------------------------------------------------
 // Sletning
 // ---------------------------------------------------------------------
 

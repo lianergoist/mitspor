@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/gpx.php';
 require_once __DIR__ . '/image_storage.php';
+require_once __DIR__ . '/live.php';
 
 /*
  * Eksport af alle brugerens data som ZIP (ruter, grupper, billeder,
@@ -159,7 +160,7 @@ function data_export_create_zip(PDO $pdo, array $user): string
             $zipName = null;
             if ((int) $stage['point_count'] > 0) {
                 $zipName = 'livesendinger/' . $event['public_id'] . '-etape-' . (int) $stage['position'] . '.gpx';
-                $zip->addFromString($zipName, data_export_live_gpx($pdo, (int) $stage['id'], (string) $event['title'], (string) $stage['title']));
+                $zip->addFromString($zipName, live_stage_gpx($pdo, (int) $stage['id'], $stage['title'] !== '' ? $event['title'] . ' – ' . $stage['title'] : (string) $event['title']));
             }
             $stages[] = [
                 'position'         => (int) $stage['position'],
@@ -193,40 +194,6 @@ function data_export_create_zip(PDO $pdo, array $user): string
     $zip->close();
 
     return $tmpZipPath;
-}
-
-/**
- * En etapes rå livepunkter som GPX 1.1. GPS'ens nøjagtighed (meter) ligger
- * i <extensions>, da GPX ikke har et felt til den.
- */
-function data_export_live_gpx(PDO $pdo, int $stageId, string $eventTitle, string $stageTitle): string
-{
-    $x = static fn(string $s): string => htmlspecialchars($s, ENT_XML1 | ENT_QUOTES, 'UTF-8');
-    $name = $stageTitle !== '' ? $eventTitle . ' – ' . $stageTitle : $eventTitle;
-
-    $out = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
-        . '<gpx version="1.1" creator="MitSpor" xmlns="http://www.topografix.com/GPX/1/1"'
-        . ' xmlns:mitspor="https://mitspor.dk/gpx/1">' . "\n"
-        . '<trk><name>' . $x($name) . '</name><trkseg>' . "\n";
-
-    $stmt = $pdo->prepare(
-        'SELECT lat, lon, ele, accuracy_m, FLOOR(UNIX_TIMESTAMP(recorded_at) * 1000) AS t
-         FROM live_points
-         WHERE stage_id = :sid
-         ORDER BY recorded_at'
-    );
-    $stmt->execute(['sid' => $stageId]);
-    foreach ($stmt as $p) {
-        $ms = (int) $p['t'];
-        $time = gmdate('Y-m-d\TH:i:s', intdiv($ms, 1000)) . sprintf('.%03dZ', $ms % 1000);
-        $out .= '<trkpt lat="' . $p['lat'] . '" lon="' . $p['lon'] . '">'
-            . ($p['ele'] !== null ? '<ele>' . $p['ele'] . '</ele>' : '')
-            . '<time>' . $time . '</time>'
-            . ($p['accuracy_m'] !== null ? '<extensions><mitspor:accuracy_m>' . (int) $p['accuracy_m'] . '</mitspor:accuracy_m></extensions>' : '')
-            . "</trkpt>\n";
-    }
-
-    return $out . "</trkseg></trk>\n</gpx>\n";
 }
 
 /**
