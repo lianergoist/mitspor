@@ -63,9 +63,10 @@ a { color: var(--primary); }
     font-size: 18px;
 }
 .brand-logo {
-    height: 32px;
+    height: 38px;
     width: auto;
     display: block;
+    border-radius: 9px;
 }
 
 /* I appen står "‹ Appen" i stedet for logoet på forsiden
