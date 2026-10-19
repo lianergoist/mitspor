@@ -17,6 +17,7 @@ const files = {
     'network.js': ['@capacitor/network/dist/plugin.js'],
     'app.js': ['@capacitor/app/dist/plugin.js'],
     'share.js': ['@capacitor/share/dist/plugin.js'],
+    'camera.js': ['@capacitor/camera/dist/plugin.js'],
     'background-geolocation.js': ['@capgo/background-geolocation/dist/plugin.js'],
     'secure-storage.js': ['capacitor-secure-storage-plugin/dist/plugin.js'],
     // Filesystem bruger hjælpebiblioteket synapse via den globale variabel

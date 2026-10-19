@@ -8,6 +8,11 @@
 // Turens id bruges som client_upload_id, så et nyt forsøg efter en netfejl
 // aldrig giver en dublet på sitet. Ture uploades som private.
 //
+// Billeder til waypoints sendes først (api/v1/upload-image.php, med
+// billedets id som client_upload_id). Deres url gemmes i waypoints.json og
+// sættes ind som <link> i GPX-filen, før den sendes. Afviser sitet et
+// billede (fx filtype eller lagerplads), kommer turen med uden det billede.
+//
 // meta.upload: { status, titel, aktivitet, fejl, forsoeg, naeste, url }
 //   status 'koe'      venter på at blive sendt
 //          'fejl'     afvist af sitet (fx ugyldig GPX eller kvote) — kan sendes igen
@@ -19,12 +24,14 @@
     var Network = window.capacitorNetwork.Network;
     var App = window.capacitorApp.App;
     var Lager = window.MitSporLager;
+    var Gpx = window.MitSporGpx;
     var Konto = window.MitSporKonto;
 
     var TJEK_INTERVAL_MS = 60 * 1000;
     var FOERSTE_PAUSE_MS = 30 * 1000;    // ventetid efter første serverfejl, fordobles
     var MAX_PAUSE_MS = 30 * 60 * 1000;
     var UPLOAD_TIMEOUT_MS = 2 * 60 * 1000;
+    var BILLEDE_TIMEOUT_MS = 2 * 60 * 1000;
 
     var koerer = null;     // promise, mens køen sendes
     var igen = false;      // køen skal køres igen, når den er færdig
@@ -94,12 +101,87 @@
         return senere(m, fejl).then(function () { return false; });
     }
 
+    // Sender billederne, der mangler. Svarer true, når de alle er sendt eller
+    // afvist (så GPX-filen kan sendes), og false, når køen skal stoppe
+    // (intet net, udløbet login eller en midlertidig fejl).
+    function sendBilleder(m, waypoints, login) {
+        var mangler = [];
+        waypoints.forEach(function (w) {
+            (w.billeder || []).forEach(function (b) {
+                if (!b.url && !b.fejl) {
+                    mangler.push(b);
+                }
+            });
+        });
+
+        function afvis(b, tekst) {
+            b.fejl = tekst;
+            return Lager.gemWaypoints(m.id, waypoints).then(naeste);
+        }
+
+        function naeste() {
+            var b = mangler.shift();
+            if (!b) {
+                return true;
+            }
+            return Lager.laesBillede(m.id, b)
+                .then(function (blob) {
+                    var data = new FormData();
+                    data.append('client_upload_id', b.id);
+                    data.append('image', blob, b.fil.split('/').pop());
+                    return Konto.api('upload-image.php', { method: 'POST', token: login.token, body: data, timeout: BILLEDE_TIMEOUT_MS });
+                }, function () {
+                    var fejl = new Error('Billedet kunne ikke læses på enheden.');
+                    fejl.lokal = true;
+                    throw fejl;
+                })
+                .then(function (svar) {
+                    var data = svar.data || {};
+                    var tekst = data.error || 'Ukendt fejl (' + svar.status + ').';
+                    if ((svar.status === 200 || svar.status === 201) && data.success && data.image) {
+                        b.url = data.image.url;
+                        return Lager.gemWaypoints(m.id, waypoints).then(naeste);
+                    }
+                    if (svar.status === 401) {
+                        return Konto.glem().then(function () { return false; });
+                    }
+                    if (svar.status === 400 || svar.status === 413 || svar.status === 422) {
+                        return afvis(b, tekst);
+                    }
+                    return senere(m, 'Billede: ' + tekst).then(function () { return false; });
+                }, function (fejl) {
+                    if (fejl.lokal) {
+                        return afvis(b, fejl.message);
+                    }
+                    return false;
+                });
+        }
+
+        return Promise.resolve().then(naeste);
+    }
+
     function uploadEn(m, login) {
         igang = m.id;
         meld();
 
+        return Lager.hentWaypoints(m.id)
+            .then(function (waypoints) {
+                return sendBilleder(m, waypoints, login).then(function (klar) {
+                    return klar ? sendGpx(m, waypoints, login) : false;
+                });
+            })
+            .finally(function () {
+                igang = null;
+                meld();
+            });
+    }
+
+    function sendGpx(m, waypoints, login) {
         return Lager.laesGpx(m)
             .then(function (gpx) {
+                if (waypoints.length) {
+                    gpx = Gpx.medWaypoints(gpx, waypoints);
+                }
                 var data = new FormData();
                 data.append('client_upload_id', m.id);
                 data.append('title', m.upload.titel);
@@ -122,10 +204,6 @@
                 }
                 // Intet net: stop her. Køen prøver igen, når nettet er tilbage.
                 return false;
-            })
-            .finally(function () {
-                igang = null;
-                meld();
             });
     }
 

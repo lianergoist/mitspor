@@ -134,6 +134,13 @@
             <input type="text" id="wpt-titel" maxlength="200" autocapitalize="sentences">
             <label for="wpt-tekst">Tekst</label>
             <textarea id="wpt-tekst" rows="4" maxlength="2000" autocapitalize="sentences"></textarea>
+            <span class="wpt-label">Billeder</span>
+            <ul class="wpt-billeder" id="wpt-billeder" hidden></ul>
+            <div class="wpt-billed-knapper">
+                <button type="button" class="btn btn-secondary btn-small" id="wpt-tag">Tag billede</button>
+                <button type="button" class="btn btn-secondary btn-small" id="wpt-vaelg">Vælg billeder</button>
+            </div>
+            <p class="start-note wpt-billed-note">Billederne sendes til mitspor.dk sammen med turen.</p>
             <button type="submit" class="btn btn-primary" value="gem">Gem waypoint</button>
             <button type="submit" class="btn btn-secondary" value="annuller" formnovalidate>Annuller</button>
         </form>
@@ -189,6 +196,7 @@
     <script src="vendor/network.js"></script>
     <script src="vendor/app.js"></script>
     <script src="vendor/share.js"></script>
+    <script src="vendor/camera.js"></script>
     <script src="vendor/filesystem.js"></script>
     <script src="vendor/background-geolocation.js"></script>
     <script src="vendor/secure-storage.js"></script>
@@ -198,6 +206,7 @@
     <script src="gpx.js"></script>
     <script src="spor.js"></script>
     <script src="lager.js"></script>
+    <script src="kamera.js"></script>
     <script src="konto.js"></script>
     <script src="hent.js"></script>
     <script src="upload.js"></script>

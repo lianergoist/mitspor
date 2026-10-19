@@ -18,6 +18,7 @@
     var Upload = window.MitSporUpload;
     var UploadVisning = window.MitSporUploadVisning;
     var Live = window.MitSporLive;
+    var Kamera = window.MitSporKamera;
 
     // Smart-mode: alle brugbare GPS-punkter gemmes i punkter.jsonl, og
     // GPX-filen laves af det rensede spor (spor.js).
@@ -68,6 +69,10 @@
     var wptForm = document.getElementById('wpt-form');
     var wptTitel = document.getElementById('wpt-titel');
     var wptTekst = document.getElementById('wpt-tekst');
+    var wptBilleder = document.getElementById('wpt-billeder');
+    var wptTagKnap = document.getElementById('wpt-tag');
+    var wptVaelgKnap = document.getElementById('wpt-vaelg');
+    var MAX_BILLEDER = 10;   // pr. waypoint
 
     // Den aktive optagelse. aktiv er sand, også når den holder pause.
     var aktiv = false;
@@ -80,6 +85,7 @@
     var sidstPos = null;
     var waypoints = [];
     var wptPos = null;    // placeringen til waypointet i dialogen
+    var valgteBilleder = []; // billederne i dialogen (kamera.js), endnu ikke gemt
     var segment = 0;
     var sidstGpx = 0;
     var sidstRens = 0;
@@ -700,9 +706,54 @@
         }
         wptPos = pos;
         wptForm.reset();
+        valgteBilleder = [];
+        visValgteBilleder();
         wptDialog.returnValue = '';
         wptDialog.showModal();
         wptTitel.focus();
+    }
+
+    function visValgteBilleder() {
+        wptBilleder.textContent = '';
+        valgteBilleder.forEach(function (b, i) {
+            var li = document.createElement('li');
+            var img = document.createElement('img');
+            img.src = b.miniature;
+            img.alt = '';
+            var fjern = document.createElement('button');
+            fjern.type = 'button';
+            fjern.className = 'wpt-billede-fjern';
+            fjern.setAttribute('aria-label', 'Fjern billedet');
+            fjern.textContent = '×';
+            fjern.addEventListener('click', function () {
+                valgteBilleder.splice(i, 1);
+                visValgteBilleder();
+            });
+            li.appendChild(img);
+            li.appendChild(fjern);
+            wptBilleder.appendChild(li);
+        });
+        wptBilleder.hidden = !valgteBilleder.length;
+        wptTagKnap.disabled = wptVaelgKnap.disabled = valgteBilleder.length >= MAX_BILLEDER;
+    }
+
+    // hent: Kamera.tag eller Kamera.vaelg. Lukkes dialogen imens, glemmes billederne.
+    function hentBilleder(hent) {
+        var plads = MAX_BILLEDER - valgteBilleder.length;
+        if (plads <= 0) {
+            return;
+        }
+        hent(plads)
+            .then(function (nye) {
+                if (!wptDialog.open) {
+                    return;
+                }
+                valgteBilleder = valgteBilleder.concat(nye).slice(0, MAX_BILLEDER);
+                visValgteBilleder();
+            })
+            .catch(function (fejl) {
+                window.alert('Billedet kunne ikke hentes: ' + (fejl && fejl.message ? fejl.message : fejl));
+            });
     }
 
     function gemWaypoint() {
@@ -713,18 +764,43 @@
         }
         var d = new Date();
         var titel = wptTitel.value.trim() || ('Waypoint kl. ' + to(d.getHours()) + '.' + to(d.getMinutes()));
-        waypoints.push({
+        var w = {
             lat: pos[0],
             lon: pos[1],
             ele: pos[2],
             tid: d.getTime(),
             titel: titel,
-            tekst: wptTekst.value.trim()
-        });
+            tekst: wptTekst.value.trim(),
+            billeder: []
+        };
         var id = meta.id;
-        var kopi = waypoints.slice();
-        iKoe(function () { return Lager.gemWaypoints(id, kopi); });
+        var liste = waypoints;   // turens liste, også hvis turen stoppes imens
+        var valgte = valgteBilleder;
+        valgteBilleder = [];
+        liste.push(w);
+        iKoe(function () { return Lager.gemWaypoints(id, liste.slice()); });
         opdaterTal();
+
+        // Billederne kopieres til turens mappe ét ad gangen. Et billede, der
+        // ikke kan gemmes, springes over, og resten gemmes stadig.
+        var mislykket = [];
+        valgte.forEach(function (b) {
+            iKoe(function () {
+                var billedId = Lager.nyId();
+                return Lager.gemBillede(id, billedId, b.uri).then(function (gemt) {
+                    w.billeder.push({ id: billedId, fil: gemt.fil, type: gemt.type, url: null, fejl: null });
+                }, function (fejl) {
+                    mislykket.push(fejl && fejl.message ? fejl.message : String(fejl));
+                });
+            });
+        });
+        if (valgte.length) {
+            iKoe(function () { return Lager.gemWaypoints(id, liste.slice()); }).then(function () {
+                if (mislykket.length) {
+                    visFejl('Et billede kunne ikke gemmes på enheden: ' + mislykket[0]);
+                }
+            });
+        }
     }
 
     // ---------- Livesending ----------
@@ -839,11 +915,14 @@
         stop(false, sidsteEtape);
     });
     wptKnap.addEventListener('click', aabnWaypoint);
+    wptTagKnap.addEventListener('click', function () { hentBilleder(Kamera.tag); });
+    wptVaelgKnap.addEventListener('click', function () { hentBilleder(Kamera.vaelg); });
     wptDialog.addEventListener('close', function () {
         if (wptDialog.returnValue === 'gem') {
             gemWaypoint();
         }
         wptPos = null;
+        valgteBilleder = [];
     });
     fortsaetKnap.addEventListener('click', fortsaet);
     afslutKnap.addEventListener('click', afslutAfbrudt);

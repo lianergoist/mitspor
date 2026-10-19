@@ -4,6 +4,7 @@
 // optagelser/<id>/meta.json      oplysninger om turen (id er client_upload_id)
 // optagelser/<id>/punkter.jsonl  ét punkt pr. linje, tilføjes løbende
 // optagelser/<id>/waypoints.json waypoints, brugeren har indsat (findes kun, hvis der er nogen)
+// optagelser/<id>/billeder/      billeder til waypoints (<billed-id>.<endelse>)
 // optagelser/<id>/<navn>.gpx     skrives hvert minut og ved stop
 //
 // punkter.jsonl er den egentlige kilde. GPX-filen kan altid laves igen ud fra den.
@@ -127,6 +128,42 @@
             .catch(function () { return []; });
     }
 
+    // Billedfilens type ud fra de første bytes (base64). Sitet tager imod
+    // JPEG, PNG, GIF og WebP; andet (fx HEIC) afvises her.
+    var BILLEDTYPER = [
+        ['/9j/', 'jpg', 'image/jpeg'],
+        ['iVBORw0KGgo', 'png', 'image/png'],
+        ['R0lGOD', 'gif', 'image/gif'],
+        ['UklGR', 'webp', 'image/webp']
+    ];
+
+    // Kopierer et billede fra kameraets midlertidige fil (uri) til turens
+    // mappe. Svarer med { fil, type } til waypointet.
+    function gemBillede(id, billedId, uri) {
+        return Filesystem.readFile({ path: uri }).then(function (svar) {
+            var data = typeof svar.data === 'string' ? svar.data : '';
+            var type = BILLEDTYPER.filter(function (t) { return data.indexOf(t[0]) === 0; })[0];
+            if (!type) {
+                throw new Error('Billedformatet understøttes ikke.');
+            }
+            var fil = 'billeder/' + billedId + '.' + type[1];
+            return Filesystem.writeFile({ path: sti(id, fil), data: data, directory: DIR, recursive: true })
+                .then(function () { return { fil: fil, type: type[2] }; });
+        });
+    }
+
+    // Billedet som Blob til upload.
+    function laesBillede(id, billede) {
+        return Filesystem.readFile({ path: sti(id, billede.fil), directory: DIR }).then(function (svar) {
+            var binaer = atob(svar.data);
+            var bytes = new Uint8Array(binaer.length);
+            for (var i = 0; i < binaer.length; i++) {
+                bytes[i] = binaer.charCodeAt(i);
+            }
+            return new Blob([bytes], { type: billede.type });
+        });
+    }
+
     // Skriver først til en midlertidig fil og omdøber den bagefter, så
     // GPX-filen aldrig er halvt skrevet.
     function gemGpx(meta, gpx) {
@@ -200,11 +237,14 @@
 
     window.MitSporLager = {
         opret: opret,
+        nyId: nyId,
         gemMeta: gemMeta,
         tilfoejPunkt: tilfoejPunkt,
         hentPunkter: hentPunkter,
         gemWaypoints: gemWaypoints,
         hentWaypoints: hentWaypoints,
+        gemBillede: gemBillede,
+        laesBillede: laesBillede,
         gemGpx: gemGpx,
         laesGpx: laesGpx,
         opdaterMeta: opdaterMeta,
