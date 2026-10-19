@@ -1480,8 +1480,9 @@ function markerDefaultPreview(select, box) {
         thin: {
             title: 'Udtynd punkter',
             text: [
-                'Gør filen mindre ved at beholde højst ét punkt pr. 10, 20, 30 eller 60 sekunder. Det er nyttigt, hvis GPS-enheden har logget meget tæt.',
-                'Første gang gemmes den oprindelige fil, så du kan fortryde med Gendan original fil. Udtynd punkter findes kun for ruter med tidsstempler.'
+                'Gør filen mindre ved at fjerne punkter, der ikke ændrer sporets form. Lige strækninger mister mange punkter, mens sving, slingrende stier og bakker bevares. Let, Middel og Kraftig tillader 2, 5 og 10 meters afvigelse fra det oprindelige spor.',
+                'Der bliver højst 50 m og 60 sekunder mellem de punkter, der er tilbage, så højdeprofil og fart stadig kan vises. Før noget gemmes, ser du, hvor mange punkter der fjernes.',
+                'Første gang gemmes den oprindelige fil, så du kan fortryde med Gendan original fil.'
             ]
         },
         group: {

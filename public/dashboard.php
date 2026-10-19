@@ -323,12 +323,10 @@ function render_route_detail(array $route): void
                 <button type="button" class="tool" data-tool-fields="<?= dash_h($id) ?>" data-route-title="<?= dash_h($title) ?>">Visning og datafelter</button>
                 <?= dash_help_btn('fields', 'Visning og datafelter') ?>
             </div>
-            <?php if (!empty($route['has_time_data'])): ?>
-                <div class="tool-row">
-                    <button type="button" class="tool" data-tool-thin="<?= dash_h($id) ?>" data-route-title="<?= dash_h($title) ?>">Udtynd punkter</button>
-                    <?= dash_help_btn('thin', 'Udtynd punkter') ?>
-                </div>
-            <?php endif; ?>
+            <div class="tool-row">
+                <button type="button" class="tool" data-tool-thin="<?= dash_h($id) ?>" data-route-title="<?= dash_h($title) ?>">Udtynd punkter</button>
+                <?= dash_help_btn('thin', 'Udtynd punkter') ?>
+            </div>
             <div class="tool-row">
                 <button type="button" class="tool" data-add-to-group="<?= dash_h($id) ?>" data-route-title="<?= dash_h($title) ?>">Grupper</button>
                 <?= dash_help_btn('group', 'Grupper') ?>
@@ -574,13 +572,13 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
 
     <div id="tool-thin-errors" class="modal-errors" hidden></div>
 
-    <p class="hint">Behold højst ét punkt pr. valgt antal sekunder — nyttigt, hvis GPS-enheden har logget meget hyppigt. Første gang gemmes den oprindelige fil, så den kan gendannes.</p>
+    <p class="hint">Fjerner punkter på lige strækninger og bevarer sving, slingrende stier og bakker. Tallet er, hvor meget sporet højst må afvige fra det oprindelige. Der er højst 50 m og 60 sekunder mellem de punkter, der bliver tilbage. Første gang gemmes den oprindelige fil, så den kan gendannes.</p>
     <div class="tool-thin-buttons">
-        <button type="button" class="btn" data-thin-interval="10">10 sek.</button>
-        <button type="button" class="btn" data-thin-interval="20">20 sek.</button>
-        <button type="button" class="btn" data-thin-interval="30">30 sek.</button>
-        <button type="button" class="btn" data-thin-interval="60">60 sek.</button>
+        <button type="button" class="btn" data-thin-tolerance="2">Let</button>
+        <button type="button" class="btn" data-thin-tolerance="5">Middel</button>
+        <button type="button" class="btn" data-thin-tolerance="10">Kraftig</button>
     </div>
+    <p class="hint">Let: højst 2 m afvigelse · Middel: 5 m · Kraftig: 10 m</p>
     <p id="tool-thin-status" class="hint" hidden></p>
 </dialog>
 
@@ -1125,10 +1123,10 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
 <script src="vendor/sortablejs/Sortable.min.js"></script>
 <script src="assets/route-meta-dialog.js?v=2"></script>
 <script src="assets/gpx-field-labels.js?v=3"></script>
-<script src="assets/gpx-tools.js?v=1"></script>
+<script src="assets/gpx-tools.js?v=2"></script>
 <script src="assets/genindlaes.js?v=1"></script>
-<script src="assets/dashboard.js?v=17"></script>
-<script src="assets/dashboard-tools.js?v=3"></script>
+<script src="assets/dashboard.js?v=18"></script>
+<script src="assets/dashboard-tools.js?v=4"></script>
 <script src="assets/activity-marker.js?v=1"></script>
 <script src="assets/dashboard-map.js?v=6"></script>
 <script src="assets/dashboard-live.js?v=2"></script>

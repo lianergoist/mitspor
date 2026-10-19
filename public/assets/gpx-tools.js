@@ -8,7 +8,7 @@
 
      var gpx = GpxTools.parse(text);
      GpxTools.detectFields(gpx);              // ['ele', 'time', 'hr', ...]
-     GpxTools.thinPlan(gpx, 30);              // { plans, total }
+     GpxTools.thinPlan(gpx, 5);               // tolerance i meter → { plans, total }
      GpxTools.applyThin(gpx, plan);
      GpxTools.stripField(gpx, 'time');        // antal fjernede værdier
      await GpxTools.fetchElevation(gpx, { proxyUrl, onProgress });
@@ -101,34 +101,112 @@ window.GpxTools = (function () {
     }
 
     // ---------- Udtynd punkter ----------
-    function removalForSegment(seg, intervalSeconds) {
-        var lastKeptTime = null;
-        var toRemove = [];
+    // Udtynder efter formen på sporet (Douglas-Peucker), ikke efter tid:
+    // et punkt fjernes kun, hvis linjen uden det afviger mindre end
+    // tolerancen (meter) fra det oprindelige spor. Lige strækninger mister
+    // mange punkter, mens sving og slingrende stier bevares. Højden regnes
+    // med, når alle segmentets punkter har en, så bakketoppe og dale
+    // bevares. Bagefter fyldes huller, så der højst er THIN_MAX_METERS og
+    // (når der er tidsstempler) THIN_MAX_SECONDS mellem bevarede punkter,
+    // så højdeprofil og fart stadig har opløsning. Punkterne flyttes aldrig.
+    var THIN_MAX_METERS = 50;
+    var THIN_MAX_SECONDS = 60;
 
-        for (var i = 0; i < seg.length; i++) {
-            var p = seg[i];
-            var isFirst = i === 0;
-            var isLast = i === seg.length - 1;
-            var t = p.time ? Date.parse(p.time) : NaN;
-
-            if (isFirst || isLast || isNaN(t)) {
-                // Første/sidste punkt og punkter uden tidsstempel bevares
-                // altid — de kan ikke vurderes sikkert.
-                if (!isNaN(t)) lastKeptTime = t;
-                continue;
-            }
-
-            if (lastKeptTime !== null && (t - lastKeptTime) / 1000 < intervalSeconds) {
-                toRemove.push(p);
-            } else {
-                lastKeptTime = t;
-            }
-        }
-        return toRemove;
+    // Punkterne i lokale meter omkring segmentets første punkt.
+    function toMeters(seg) {
+        var lat0 = seg[0].lat;
+        var lon0 = seg[0].lon;
+        var kx = 111320 * Math.cos(lat0 * Math.PI / 180);
+        var ky = 110540;
+        var useEle = seg.every(function (p) { return p.ele !== null && isFinite(parseFloat(p.ele)); });
+        return seg.map(function (p) {
+            return {
+                x: (p.lon - lon0) * kx,
+                y: (p.lat - lat0) * ky,
+                z: useEle ? parseFloat(p.ele) : 0,
+                t: p.time ? Date.parse(p.time) : NaN
+            };
+        });
     }
 
-    function thinPlan(gpx, intervalSeconds) {
-        var plans = gpx.segments.map(function (seg) { return removalForSegment(seg, intervalSeconds); });
+    function dist(a, b) {
+        var dx = b.x - a.x, dy = b.y - a.y, dz = b.z - a.z;
+        return Math.sqrt(dx * dx + dy * dy + dz * dz);
+    }
+
+    // Afstand i anden fra punkt p til linjestykket a-b.
+    function segmentDist2(p, a, b) {
+        var dx = b.x - a.x, dy = b.y - a.y, dz = b.z - a.z;
+        var ex = p.x - a.x, ey = p.y - a.y, ez = p.z - a.z;
+        var l2 = dx * dx + dy * dy + dz * dz;
+        if (l2 > 0) {
+            var t = Math.max(0, Math.min(1, (ex * dx + ey * dy + ez * dz) / l2));
+            ex -= t * dx;
+            ey -= t * dy;
+            ez -= t * dz;
+        }
+        return ex * ex + ey * ey + ez * ez;
+    }
+
+    // Uden rekursion, så meget lange spor ikke sprænger kaldstakken.
+    function douglasPeucker(m, keep, tolerance) {
+        var t2 = tolerance * tolerance;
+        var stack = [[0, m.length - 1]];
+        while (stack.length) {
+            var part = stack.pop();
+            var a = part[0], b = part[1];
+            var max = -1, index = -1;
+            for (var i = a + 1; i < b; i++) {
+                var d2 = segmentDist2(m[i], m[a], m[b]);
+                if (d2 > max) {
+                    max = d2;
+                    index = i;
+                }
+            }
+            if (index > 0 && max > t2) {
+                keep[index] = 1;
+                stack.push([a, index], [index, b]);
+            }
+        }
+    }
+
+    // Bevarer ekstra punkter, hvor der ellers ville blive for langt
+    // (afstand eller tid) mellem to bevarede punkter.
+    function fillGaps(m, keep) {
+        var last = 0;
+        for (var i = 1; i < m.length; i++) {
+            if (keep[i]) {
+                last = i;
+                continue;
+            }
+            var next = m[i + 1];
+            var tooFar = dist(m[last], next) > THIN_MAX_METERS;
+            var tooLong = !isNaN(m[last].t) && !isNaN(next.t) && (next.t - m[last].t) / 1000 > THIN_MAX_SECONDS;
+            if (tooFar || tooLong) {
+                keep[i] = 1;
+                last = i;
+            }
+        }
+    }
+
+    function removalForSegment(seg, tolerance) {
+        if (seg.length < 3) return [];
+        // Punkter uden gyldige koordinater kan ikke vurderes og bevares.
+        var valid = seg.filter(function (p) { return isFinite(p.lat) && isFinite(p.lon); });
+        if (valid.length < 3) return [];
+
+        var m = toMeters(valid);
+        var keep = new Uint8Array(valid.length);
+        keep[0] = 1;
+        keep[valid.length - 1] = 1;
+        douglasPeucker(m, keep, tolerance);
+        fillGaps(m, keep);
+
+        return valid.filter(function (p, i) { return !keep[i]; });
+    }
+
+    function thinPlan(gpx, toleranceMeters) {
+        var plans = gpx.segments.map(function (seg) { return removalForSegment(seg, toleranceMeters); });
         var total = plans.reduce(function (sum, arr) { return sum + arr.length; }, 0);
         return { plans: plans, total: total };
     }
