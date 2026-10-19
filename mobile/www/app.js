@@ -24,7 +24,7 @@
             // Kun lige efter log ud i appen ryddes cookies, så sitet også logges ud.
             clearCache: rydCookies,
             clearSessionCache: rydCookies,
-            // "MitSporApp/7 (…)" fortæller sitet, at det kører i appen (fælles login).
+            // "MitSporApp/8 (…)" fortæller sitet, at det kører i appen (fælles login).
             customWebViewUserAgent: userAgent,
             showURL: false,
             // Ingen topbar med "Luk": sitet viser selv knappen "‹ Appen"
@@ -75,13 +75,15 @@
     // ---------- Fælles login med sitet (se app/app_login.php på sitet) ----------
     //
     // Appen sender oplysningerne i WebView'ets user-agent, så der ikke skal
-    // vises mellemsider: "MitSporApp/7 (par=…; kode=…)".
+    // vises mellemsider: "MitSporApp/8 (par=…; kode=…)".
     // Version 3: WebView'et har ingen topbar, sitet viser knappen "‹ Appen".
     // Version 4: download-links går til /app-hent.php, og appen henter filen (hent.js).
     // Version 5: tok sendes ikke længere. Log ud på sitet går til
     //   /app-logget-ud.php, og appen logger selv ud, når den ser siden.
     // Version 6: hent.js kan hente en hel gruppe (/app-hent.php?type=gruppe).
     // Version 7: optageren kan sende live til en livesending (live.js).
+    // Version 8: "Ny livesending" i optageren åbner /dashboard.php?ny_live=app;
+    //   efter Gem går sitet til /app-luk.php?live=<id>, og optageren vælger den.
     //   kode: engangskode, der logger sitet ind (/app-login.php omdirigerer straks)
     //   par:  SHA-256 af en hemmelighed; logger brugeren ind på sitet, kan appen
     //         veksle hemmeligheden til et token
@@ -123,7 +125,7 @@
                 }
                 return {
                     url: kode ? config.siteUrl + '/app-login.php?til=' + encodeURIComponent(path) : config.siteUrl + path,
-                    userAgent: navigator.userAgent + ' MitSporApp/7' + (dele.length ? ' (' + dele.join('; ') + ')' : '')
+                    userAgent: navigator.userAgent + ' MitSporApp/8' + (dele.length ? ' (' + dele.join('; ') + ')' : '')
                 };
             });
         });
@@ -222,7 +224,8 @@
     }
 
     // Sider med en særlig betydning for appen:
-    //   /app-luk.php   sitets link "‹ Appen": WebView'et lukkes
+    //   /app-luk.php   sitets link "‹ Appen": WebView'et lukkes. Med ?live=<id>
+    //                  er en ny livesending oprettet fra optageren.
     //   /app-hent.php  et download-link: appen henter filen (hent.js)
     //   /app-logget-ud.php  brugeren loggede ud på sitet: appen logger også ud
     function stiFra(url) {
@@ -233,10 +236,23 @@
         }
     }
 
+    function nyLivesending(url) {
+        try {
+            var id = new URL(url).searchParams.get('live') || '';
+            return /^[0-9]{8}$/.test(id) ? id : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
     function sideIndlaest(data) {
         var sti = data ? stiFra(data.url) : '';
         if (sti === '/app-luk.php') {
+            var live = nyLivesending(data.url);
             browser.InAppBrowser.close().catch(function () {});
+            if (live) {
+                document.dispatchEvent(new CustomEvent('mitspor:ny-livesending', { detail: live }));
+            }
             return;
         }
         if (sti === '/app-hent.php') {

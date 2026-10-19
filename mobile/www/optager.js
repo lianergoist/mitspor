@@ -56,6 +56,8 @@
     var tomFelt = document.getElementById('optag-tom');
     var liveValg = document.getElementById('optag-live-valg');
     var liveSelect = document.getElementById('optag-live');
+    var liveLabel = document.getElementById('optag-live-label');
+    var liveNyKnap = document.getElementById('optag-live-ny');
     var liveStatus = document.getElementById('optag-live-status');
 
     // Den aktive optagelse. aktiv er sand, også når den holder pause.
@@ -143,7 +145,9 @@
         startKnap.disabled = !!afbrudt;
         aabnKnap.textContent = !aktiv ? 'Optag tur' : (pauset ? 'Optagelse på pause' : 'Optagelse i gang');
         afbrudtBoks.hidden = !afbrudt || aktiv;
-        liveValg.hidden = aktiv || !!afbrudt || !logget || !livesendinger.length;
+        // Vises også uden livesendinger, så man kan oprette en ("Ny livesending").
+        liveValg.hidden = aktiv || !!afbrudt || !logget;
+        liveLabel.textContent = liveSelect.value ? 'Send live til' : 'Send live';
         if (afbrudt) {
             afbrudtTekst.textContent = afbrudt.navn + ' blev ikke afsluttet. Vil du fortsætte optagelsen eller afslutte og gemme den?';
         }
@@ -435,6 +439,7 @@
                 }
                 // Næste optagelse sendes kun live, hvis den vælges igen.
                 liveSelect.value = '';
+                opdaterKnapper();
                 punkter = [];
                 sidst = null;
                 segment = 0;
@@ -648,14 +653,15 @@
     }
 
     // Valget starter altid på "Nej": der sendes kun live, når brugeren selv vælger det.
-    function hentLivesendinger() {
+    // vaelg: id på en livesending, brugeren lige har oprettet fra optageren.
+    function hentLivesendinger(vaelg) {
         if (!logget) {
             livesendinger = [];
             opdaterKnapper();
             return;
         }
         Live.hentLivesendinger().then(function (liste) {
-            var valgt = liveSelect.value;
+            var valgt = vaelg || liveSelect.value;
             livesendinger = liste;
             liveSelect.textContent = '';
             var nej = document.createElement('option');
@@ -704,6 +710,21 @@
     }
 
     // ---------- Hændelser ----------
+
+    liveSelect.addEventListener('change', opdaterKnapper);
+
+    // Opret en livesending på sitet. Efter Gem lukker sitet WebView'et
+    // (/app-luk.php?live=<id>), og app.js sender 'mitspor:ny-livesending'.
+    liveNyKnap.addEventListener('click', function () {
+        window.MitSporApp.aabnSite('/dashboard.php?ny_live=app');
+    });
+    document.addEventListener('mitspor:ny-livesending', function (ev) {
+        if (aktiv) {
+            return;
+        }
+        visView(true);
+        hentLivesendinger(ev.detail);
+    });
 
     aabnKnap.addEventListener('click', function () {
         visView(true);

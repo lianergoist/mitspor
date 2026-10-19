@@ -65,9 +65,12 @@ Optageren kan sende turen live til en livesending, som brugeren har oprettet
 på mitspor.dk (Kontrolpanel → Live). Koden ligger i `www/live.js`, og sitets
 side er `/api/v1/live-events.php`, `live-stage.php` og `live-points.php`.
 
-- Valget "Send live til" vises før start, når brugeren er logget ind og har
-  åbne livesendinger. Det starter altid på "Nej", og listen gemmes
-  (localStorage, kun titler og id'er), så den kan vælges uden net.
+- Valget "Send live" vises før start, når brugeren er logget ind. Det
+  starter altid på "Nej", og listen gemmes (localStorage, kun titler og
+  id'er), så den kan vælges uden net.
+- "Ny livesending" (fra MitSporApp/8) åbner `/dashboard.php?ny_live=app` i
+  WebView'et. Efter Gem går sitet til `/app-luk.php?live=<id>`. Appen lukker
+  WebView'et, og optageren vælger den nye livesending.
 - Hver optagelse er én etape med turens id som `client_upload_id`. Ubekræftede
   punkter sendes højst hvert minut, udløst af GPS-punkterne, så det også sker
   i baggrunden. Sitet springer punkter over, det allerede har.
