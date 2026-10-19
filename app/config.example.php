@@ -57,6 +57,9 @@ define('API_DOWNLOAD_RATE_LIMIT_MAX_ATTEMPTS', 120);
 define('API_DOWNLOAD_RATE_LIMIT_WINDOW_SECONDS', 3600); // 1 time
 define('API_EXPORT_RATE_LIMIT_MAX_ATTEMPTS', 10);
 define('API_EXPORT_RATE_LIMIT_WINDOW_SECONDS', 3600); // 1 time
+// Billeder fra appen (api/v1/upload-image.php) pr. bruger inden for tidsvinduet.
+define('API_IMAGE_RATE_LIMIT_MAX_ATTEMPTS', 200);
+define('API_IMAGE_RATE_LIMIT_WINDOW_SECONDS', 3600); // 1 time
 // Live-tracking (api/v1/live-*.php): forespørgsler pr. bruger inden for
 // tidsvinduet. Appen sender punkter ca. hvert minut og igen efter netfejl.
 define('API_LIVE_RATE_LIMIT_MAX_ATTEMPTS', 600);
