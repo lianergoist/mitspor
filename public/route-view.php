@@ -721,10 +721,9 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
     // bevæger sig mod vest → "2"). Findes kun hvis aktiviteten har et
     // matchende markørsæt i public/markers/ (activity_icon fra PHP) —
     // ellers falder vi tilbage til de simple farvede prikker ovenfor.
+    // Ruter og spor viser begge markøren (den valgte eller aktivitetens
+    // standard), ligesom "Standard" i metadata-dialogen viser.
     var activityIconUrls = <?= json_encode(marker_image_urls($route['activity_icon'] ?: null)) ?>;
-    // Spor viser altid markøren. En rute viser den kun, når ejeren selv har
-    // valgt en markør (routes.marker_icon); ellers den blå prik som hidtil.
-    var showActivityIcon = isSpor || <?= json_encode(!empty($route['marker_icon'])) ?>;
     var activityIconEast = null;
     var activityIconWest = null;
     if (activityIconUrls && window.ActivityMarker) {
@@ -1506,7 +1505,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
         var prevPoint = idx > 0 ? allPoints[idx - 1] : null;
 
         var markerIcon;
-        if (showActivityIcon && activityIconEast && activityIconWest) {
+        if (activityIconEast && activityIconWest) {
             // Bevæger vi os mod øst (længdegraden stiger)? Så "1"-ikonet,
             // ellers "2". Uden et forrige punkt antages øst som standard.
             markerIcon = (!prevPoint || currentPoint.lng > prevPoint.lng) ? activityIconEast : activityIconWest;
