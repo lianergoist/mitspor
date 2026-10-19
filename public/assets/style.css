@@ -62,12 +62,6 @@ a { color: var(--primary); }
     color: var(--text);
     font-size: 18px;
 }
-.brand-logo {
-    height: 38px;
-    width: auto;
-    display: block;
-    border-radius: 9px;
-}
 
 /* I appen står "‹ Appen" i stedet for logoet på forsiden
    (app/app_tilbage.php). Samme højde som logoet, så topbaren ikke ændres. */
@@ -1218,6 +1212,10 @@ a { color: var(--primary); }
     .brand-text,
     .brand-secondary {
         display: none;
+    }
+    /* Forsiden og privatlivspolitikken har ingen pil, kun navnet. */
+    .brand-navn .brand-text {
+        display: inline;
     }
 
     /* Filterknapper + søgefelt rykkes ned på deres egen linje under

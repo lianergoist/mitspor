@@ -66,7 +66,7 @@ $showIntro = !is_app_webview() && is_file($introVideoFile);
     <meta name="twitter:card" content="summary_large_image">
 
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/style.css?v=29">
+    <link rel="stylesheet" href="assets/style.css?v=30">
     <style>
         html, body { height: 100%; margin: 0; }
         .start-dot { width: 11px; height: 11px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 3px rgba(0,0,0,.55); }
@@ -81,7 +81,7 @@ $showIntro = !is_app_webview() && is_file($introVideoFile);
         <?php if (show_app_back_link()): ?>
         <a href="/app-luk.php" class="app-tilbage"><span aria-hidden="true">‹</span>Appen</a>
         <?php else: ?>
-        <span class="brand"><img src="grafik/favicon.svg" alt="" class="brand-logo"><span class="brand-text">MitSpor</span></span>
+        <span class="brand brand-navn"><span class="brand-text">MitSpor</span></span>
         <?php endif; ?>
 
         <div class="topbar-filters">

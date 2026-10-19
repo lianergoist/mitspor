@@ -14,7 +14,7 @@ require_once __DIR__ . '/../app/config.php';
     <meta name="description" content="Sådan behandler MitSpor dine oplysninger: hvad vi gemmer, hvorfor, hvor længe, og hvordan du selv kan downloade eller slette dine data.">
     <link rel="canonical" href="<?= APP_BASE_URL ?>/privatlivspolitik.php">
 
-    <link rel="stylesheet" href="assets/style.css?v=29">
+    <link rel="stylesheet" href="assets/style.css?v=30">
     <style>
         .policy { max-width: 780px; }
         .policy h1 { margin: 0 0 4px; font-size: 26px; }
@@ -38,7 +38,7 @@ require_once __DIR__ . '/../app/config.php';
 <body>
 
 <header class="topbar">
-    <a href="index.php" class="brand"><img src="grafik/favicon.svg" alt="" class="brand-logo"><span class="brand-text">MitSpor</span></a>
+    <a href="index.php" class="brand brand-navn"><span class="brand-text">MitSpor</span></a>
     <a href="index.php" class="btn">Til forsiden</a>
 </header>
 
