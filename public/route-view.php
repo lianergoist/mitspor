@@ -469,7 +469,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
                 <li><strong>Spor</strong>, der er optaget med en GPS-enhed, og som viser tid og hastighed (hvis filen indeholder tidsdata).</li>
                 <li><strong>Ruter</strong>, der er plottet ind på et kort — de viser aldrig tid/hastighed, og bruger altid en simpel blå prik som bevægelig markør.</li>
             </ul>
-            <p>Knapperne under kortet (<strong>◀◀ ◀ ▶ ▶▶</strong>) lader dig bevæge dig punkt for punkt eller 5 punkter ad gangen langs ruten — den blå/farvede markør følger med. Indeholder filen data til det (fx højde, puls, kadence eller watt), og ejeren har slået det til, vises en graf nederst på siden fra start. Du kan skjule og vise den igen med <strong>Grafer</strong>-knappen øverst — findes der data til flere typer, skifter du mellem dem med fanebladene øverst i grafen.</p>
+            <p>Knapperne under kortet (<strong>◀◀ ◀ ▶ ▶▶</strong>) lader dig bevæge dig punkt for punkt eller i spring på 1/25 af ruten (højst 25 klik fra start til slut) langs ruten — den blå/farvede markør følger med. Indeholder filen data til det (fx højde, puls, kadence eller watt), og ejeren har slået det til, vises en graf nederst på siden fra start. Du kan skjule og vise den igen med <strong>Grafer</strong>-knappen øverst — findes der data til flere typer, skifter du mellem dem med fanebladene øverst i grafen.</p>
             <p>Pilen øverst til venstre tager dig tilbage til det, du kom fra. <strong>Download</strong> henter rutens GPX-fil, når ejeren har tilladt det.</p>
             <p>Er ruten <strong>offentlig</strong>, kan alle se den; er den <strong>privat</strong>, kræver det enten at du er ejeren, eller at du har et gyldigt del-link.</p>
             <?php if ($isOwner): ?>
@@ -499,10 +499,10 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
 
     <div class="scrubber" id="scrubber" hidden>
         <button id="btn-start" title="Start"><img src="route-icons/start.png" alt="Start"></button>
-        <button id="btn-prev5" title="5 punkter tilbage"><img src="route-icons/prev5.png" alt="5 tilbage"></button>
+        <button id="btn-prev5" title="Spring tilbage (1/25 af ruten)"><img src="route-icons/prev5.png" alt="Spring tilbage"></button>
         <button id="btn-prev" title="Forrige"><img src="route-icons/prev.png" alt="Forrige"></button>
         <button id="btn-next" title="Næste"><img src="route-icons/next.png" alt="Næste"></button>
-        <button id="btn-next5" title="5 punkter frem"><img src="route-icons/next5.png" alt="5 frem"></button>
+        <button id="btn-next5" title="Spring frem (1/25 af ruten)"><img src="route-icons/next5.png" alt="Spring frem"></button>
         <button id="btn-end" title="Slut"><img src="route-icons/end.png" alt="Slut"></button>
     </div>
 
@@ -1560,9 +1560,12 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
 
     document.getElementById('btn-start').addEventListener('click', function () { currentIndex = 1; updateRoute(); });
     document.getElementById('btn-prev').addEventListener('click', function () { if (currentIndex > 1) currentIndex--; updateRoute(); });
-    document.getElementById('btn-prev5').addEventListener('click', function () { currentIndex = Math.max(1, currentIndex - 5); updateRoute(); });
+    // De dobbelte pile springer 1/25 af ruten, så man højst skal klikke 25
+    // gange fra start til slut. Beregnes ved hvert klik (livesider vokser).
+    function bigStep() { return Math.max(1, Math.ceil(allPoints.length / 25)); }
+    document.getElementById('btn-prev5').addEventListener('click', function () { currentIndex = Math.max(1, currentIndex - bigStep()); updateRoute(); });
     document.getElementById('btn-next').addEventListener('click', function () { if (currentIndex < allPoints.length) currentIndex++; updateRoute(); });
-    document.getElementById('btn-next5').addEventListener('click', function () { currentIndex = Math.min(allPoints.length, currentIndex + 5); updateRoute(); });
+    document.getElementById('btn-next5').addEventListener('click', function () { currentIndex = Math.min(allPoints.length, currentIndex + bigStep()); updateRoute(); });
     document.getElementById('btn-end').addEventListener('click', function () { currentIndex = allPoints.length; updateRoute(); });
     document.getElementById('btn-graphs-toggle').addEventListener('click', toggleGraphsPanel);
 
