@@ -309,6 +309,6 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <script src="../vendor/sortablejs/Sortable.min.js"></script>
 <script src="../assets/route-meta-dialog.js?v=2"></script>
 <script src="../assets/gpx-tools.js?v=2"></script>
-<script src="app.js?v=43"></script>
+<script src="app.js?v=44"></script>
 </body>
 </html>

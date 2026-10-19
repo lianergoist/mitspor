@@ -372,8 +372,54 @@
     input.click();
   }
 
+  // Billeder gøres mindre i browseren før upload: højst SHRINK_MAX_SIDE px
+  // på den længste side, som appens kamera (mobile/www/kamera.js). Det
+  // sparer hukommelse og upload-tid på telefoner og plads i brugerens
+  // kvote. GIF (kan være animeret) og små filer sendes uændret, og går
+  // noget galt, sendes originalen.
+  const SHRINK_MAX_SIDE = 2048;
+  const SHRINK_MIN_BYTES = 1024 * 1024;
+  const SHRINK_QUALITY = 0.85;
+
+  function shrinkImage(file) {
+    if (file.type === "image/gif" || file.size < SHRINK_MIN_BYTES) return Promise.resolve(file);
+    return new Promise((resolve) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      const done = (result) => {
+        URL.revokeObjectURL(url);
+        img.src = "";
+        resolve(result);
+      };
+      img.onerror = () => done(file);
+      img.onload = () => {
+        // Billedet tegnes med den rigtige orientering (EXIF), så det står ret.
+        const scale = Math.min(1, SHRINK_MAX_SIDE / Math.max(img.naturalWidth, img.naturalHeight));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#ffffff"; // gennemsigtige PNG'er får hvid baggrund i JPEG
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+          canvas.width = 0; // frigiv hukommelsen med det samme
+          canvas.height = 0;
+          if (!blob || blob.size >= file.size) {
+            done(file);
+            return;
+          }
+          const name = file.name.replace(/\.[^./\\]+$/, "") + ".jpg";
+          done(new File([blob], name, { type: "image/jpeg" }));
+        }, "image/jpeg", SHRINK_QUALITY);
+      };
+      img.src = url;
+    });
+  }
+
   // Uploader til vores nye, login-krævende endpoint (public/upload-image.php)
-  async function uploadImage(file) {
+  async function uploadImage(originalFile) {
+    const file = await shrinkImage(originalFile);
     const formData = new FormData();
     formData.append("image", file);
     formData.append("csrf_token", csrfToken());
@@ -697,6 +743,15 @@
     const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     return new RegExp("^(?:/|\\.\\./)?" + escaped + "[0-9a-f]{32}(?:-thumb)?\\.(?:jpe?g|png|gif|webp)$", "i")
       .test(String(href || "").trim());
+  }
+
+  // Miniaturen til et af brugerens egne billeder hedder <navn>-thumb.jpg
+  // (se image_generate_thumbnail()). Store originaler fylder meget i
+  // hukommelsen på ældre telefoner, så dialogen viser miniaturen.
+  function ownThumbHref(href) {
+    const h = String(href || "").trim();
+    if (!isOwnImageHref(h) || /-thumb\.jpg$/i.test(h)) return null;
+    return h.replace(/\.(?:jpe?g|png|gif|webp)$/i, "-thumb.jpg");
   }
 
   // Billeder ligger under public/billeder/, ét niveau over editor/-mappen.
@@ -1061,12 +1116,21 @@
       <li class="image-row" data-key="${row.key}">
         <span class="image-row-handle" title="Træk for at ændre rækkefølge">⠿</span>
         ${row.thumbnailUrl || isOwnImageHref(row.href)
-          ? `<img class="image-row-thumb" src="${escapeHtml(imagePreviewUrl(row.thumbnailUrl || row.href))}" alt="">`
+          ? `<img class="image-row-thumb" src="${escapeHtml(imagePreviewUrl(row.thumbnailUrl || row.href))}" data-fallback="${escapeHtml(imagePreviewUrl(row.href))}" alt="">`
           : `<span class="image-row-thumb image-row-foreign" title="${escapeHtml(row.href)}">Vises ikke</span>`}
         <textarea class="image-row-comment" data-key="${row.key}" placeholder="Kommentar til billedet">${escapeHtml(row.text)}</textarea>
         <button type="button" class="image-row-remove" data-key="${row.key}" title="Fjern billede">✕</button>
       </li>
     `).join("");
+
+    // Ældre billeder kan mangle en miniature: vis så selve billedet.
+    list.querySelectorAll("img.image-row-thumb[data-fallback]").forEach((img) => {
+      img.addEventListener("error", () => {
+        const fallback = img.getAttribute("data-fallback");
+        img.removeAttribute("data-fallback");
+        if (fallback && img.getAttribute("src") !== fallback) img.src = fallback;
+      }, { once: true });
+    });
 
     list.querySelectorAll(".image-row-comment").forEach((textarea) => {
       textarea.addEventListener("input", () => {
@@ -1125,7 +1189,7 @@
       href: lnk.href,
       text: lnk.text || "",
       type: lnk.type || "",
-      thumbnailUrl: null // findes ikke gemt for allerede-tilknyttede billeder — falder tilbage til selve billedet
+      thumbnailUrl: ownThumbHref(lnk.href) // egen miniature; falder tilbage til selve billedet, hvis den mangler
     }));
     el("edit-images-dialog-title").textContent = "Billeder";
     el("edit-images-waypoint-name").value = w.name || "";
