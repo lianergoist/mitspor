@@ -7,8 +7,8 @@ require_once __DIR__ . '/og_image.php';
 /**
  * Opretter en ny rute: validerer input og GPX-indhold, tjekker kvoter,
  * gemmer filen på disk, og indsætter raden i databasen. Al logik er
- * samlet ét sted, så upload-route.php og create-route.php (fra
- * editoren) opfører sig 100% ens.
+ * samlet ét sted, så upload-route.php, editor-save.php (editoren og
+ * kontrolpanelet) og app-API'et opfører sig ens.
  *
  * Der tjekkes bevidst IKKE for usandsynlig hastighed eller hyppig
  * logningsfrekvens ved upload/gem — aktivitetstypen har udelukkende
