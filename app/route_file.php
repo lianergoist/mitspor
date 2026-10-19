@@ -27,7 +27,7 @@ function route_file_find(PDO $pdo, string $publicId, ?int $viewerId, string $sha
     }
 
     $stmt = $pdo->prepare(
-        "SELECT id, user_id, title, visibility, status, allow_download, gpx_file_path, share_token
+        "SELECT id, user_id, title, visibility, status, allow_download, gpx_file_path, share_token, route_type
          FROM routes
          WHERE public_id = :public_id
          LIMIT 1"
@@ -104,6 +104,11 @@ function route_file_attachment_header(string $rawFilename): string
  * Billedlinks (se app/image_links.php): billedlinks til andre brugeres
  * billeder end rutens ejer fjernes altid, også i ejerens egen download.
  * Downloader en anden end ejeren, fjernes alle billedlinks.
+ *
+ * Er filen markeret som rute (ikke spor), fjernes alle tidsstempler ved
+ * download, også i ejerens egen. En rute er en planlagt vej, og tider i
+ * filen får nogle GPS-enheder og apps til at behandle den som et spor.
+ * Dataeksporten giver stadig ejeren den gemte fil uændret.
  */
 function route_file_send(array $route, bool $download, bool $isOwner): never
 {
@@ -114,6 +119,9 @@ function route_file_send(array $route, bool $download, bool $isOwner): never
         error_log('GPX kunne ikke renses for billedlinks: rute ' . $route['id']);
         http_response_code(500);
         exit;
+    }
+    if ($download && $route['route_type'] === 'rute') {
+        $content = gpx_strip_all_times($content);
     }
 
     header('Content-Type: application/gpx+xml; charset=UTF-8');
