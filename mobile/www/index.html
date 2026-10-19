@@ -102,11 +102,13 @@
                     <option value="">Nej</option>
                 </select>
             </div>
-            <p class="start-note">Andre kan følge turen på livesiden, mens du optager.</p>
+            <p class="start-note">Andre kan følge turen på livesiden</p>
         </div>
 
         <nav class="start-actions">
             <button type="button" class="btn btn-primary" id="optag-start">Start optagelse</button>
+            <button type="button" class="btn btn-secondary" id="optag-wpt" hidden>Indsæt waypoint</button>
+            <p class="start-note optag-wpt-antal" id="optag-wpt-antal" hidden></p>
             <button type="button" class="btn btn-secondary" id="optag-pause" hidden>Pause</button>
             <button type="button" class="btn btn-primary" id="optag-genoptag" hidden>Fortsæt</button>
             <button type="button" class="btn btn-danger" id="optag-stop" hidden>Stop og gem</button>
@@ -123,6 +125,19 @@
             <ul class="ture-liste" id="optag-liste"></ul>
         </section>
     </main>
+
+    <!-- Waypoint under optagelse: placeringen tages, når der trykkes på knappen. -->
+    <dialog class="wpt-dialog" id="wpt-dialog">
+        <form class="formular" id="wpt-form" method="dialog" novalidate>
+            <h2>Indsæt waypoint</h2>
+            <label for="wpt-titel">Titel</label>
+            <input type="text" id="wpt-titel" maxlength="200" autocapitalize="sentences">
+            <label for="wpt-tekst">Tekst</label>
+            <textarea id="wpt-tekst" rows="4" maxlength="2000" autocapitalize="sentences"></textarea>
+            <button type="submit" class="btn btn-primary" value="gem">Gem waypoint</button>
+            <button type="submit" class="btn btn-secondary" value="annuller" formnovalidate>Annuller</button>
+        </form>
+    </dialog>
 
     <!-- Login i appen (giver et token til upload af ture). -->
     <main class="start optag" id="view-login" hidden>

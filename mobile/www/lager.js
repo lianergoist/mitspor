@@ -3,6 +3,7 @@
 //
 // optagelser/<id>/meta.json      oplysninger om turen (id er client_upload_id)
 // optagelser/<id>/punkter.jsonl  ét punkt pr. linje, tilføjes løbende
+// optagelser/<id>/waypoints.json waypoints, brugeren har indsat (findes kun, hvis der er nogen)
 // optagelser/<id>/<navn>.gpx     skrives hvert minut og ved stop
 //
 // punkter.jsonl er den egentlige kilde. GPX-filen kan altid laves igen ud fra den.
@@ -112,6 +113,20 @@
         });
     }
 
+    function gemWaypoints(id, waypoints) {
+        return skriv(sti(id, 'waypoints.json'), JSON.stringify(waypoints));
+    }
+
+    // Ingen fil (eller en ulæselig) betyder ingen waypoints.
+    function hentWaypoints(id) {
+        return laes(sti(id, 'waypoints.json'))
+            .then(function (tekst) {
+                var liste = JSON.parse(tekst);
+                return Array.isArray(liste) ? liste : [];
+            })
+            .catch(function () { return []; });
+    }
+
     // Skriver først til en midlertidig fil og omdøber den bagefter, så
     // GPX-filen aldrig er halvt skrevet.
     function gemGpx(meta, gpx) {
@@ -188,6 +203,8 @@
         gemMeta: gemMeta,
         tilfoejPunkt: tilfoejPunkt,
         hentPunkter: hentPunkter,
+        gemWaypoints: gemWaypoints,
+        hentWaypoints: hentWaypoints,
         gemGpx: gemGpx,
         laesGpx: laesGpx,
         opdaterMeta: opdaterMeta,

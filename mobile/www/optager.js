@@ -62,6 +62,12 @@
     var forrigeLive = '';
     var liveStatus = document.getElementById('optag-live-status');
     var laasTekst = document.getElementById('optag-laas');
+    var wptKnap = document.getElementById('optag-wpt');
+    var wptAntal = document.getElementById('optag-wpt-antal');
+    var wptDialog = document.getElementById('wpt-dialog');
+    var wptForm = document.getElementById('wpt-form');
+    var wptTitel = document.getElementById('wpt-titel');
+    var wptTekst = document.getElementById('wpt-tekst');
 
     // Den aktive optagelse. aktiv er sand, også når den holder pause.
     var aktiv = false;
@@ -69,6 +75,11 @@
     var meta = null;
     var punkter = [];
     var sidst = null;
+    // Sidste brugbare position, også én, der ikke blev gemt som punkt
+    // (fx når man står stille). Bruges til waypoints.
+    var sidstPos = null;
+    var waypoints = [];
+    var wptPos = null;    // placeringen til waypointet i dialogen
     var segment = 0;
     var sidstGpx = 0;
     var sidstRens = 0;
@@ -138,6 +149,8 @@
         punkterFelt.textContent = String(meta ? meta.antalPunkter : 0);
         liveStatus.textContent = meta ? Live.status(meta.live) : '';
         liveStatus.hidden = !liveStatus.textContent;
+        wptAntal.textContent = waypoints.length === 1 ? '1 waypoint indsat' : waypoints.length + ' waypoints indsat';
+        wptAntal.hidden = !aktiv || !waypoints.length;
     }
 
     // Sendes turen live lige nu? Så bliver brugeren i optageren: åbnes sitet
@@ -152,6 +165,7 @@
         pauseKnap.hidden = !aktiv || pauset;
         genoptagKnap.hidden = !aktiv || !pauset;
         stopKnap.hidden = !aktiv;
+        wptKnap.hidden = !aktiv;
         startKnap.disabled = !!afbrudt;
         aabnKnap.textContent = !aktiv ? 'Optag tur' : (pauset ? 'Optagelse på pause' : 'Optagelse i gang');
         afbrudtBoks.hidden = !afbrudt || aktiv;
@@ -385,6 +399,8 @@
         visGps('GPS: ±' + noejagtighed + ' m');
 
         var tid = pos.time || Date.now();
+        var hoejde = (typeof pos.altitude === 'number') ? Math.round(pos.altitude * 10) / 10 : null;
+        sidstPos = [pos.latitude, pos.longitude, hoejde, tid];
 
         if (sidst && tid <= sidst[3]) {
             return;
@@ -397,7 +413,6 @@
             }
         }
 
-        var hoejde = (typeof pos.altitude === 'number') ? Math.round(pos.altitude * 10) / 10 : null;
         var punkt = [pos.latitude, pos.longitude, hoejde, tid, noejagtighed, segment];
         var id = meta.id;
 
@@ -421,7 +436,7 @@
     function gemGpx() {
         var m = meta;
         rensNu();
-        var gpx = Gpx.lav(m.navn, m.start, renset);
+        var gpx = Gpx.lav(m.navn, m.start, renset, waypoints);
         if (gpx.length > MAX_GPX_BYTES) {
             stop().then(function () {
                 window.alert('Turen er nu så lang, at GPX-filen nærmer sig grænsen på 10 MB. Optagelsen er stoppet og gemt. Start en ny optagelse for at fortsætte.');
@@ -455,6 +470,8 @@
                 opdaterKnapper();
                 punkter = [];
                 sidst = null;
+                sidstPos = null;
+                waypoints = [];
                 segment = 0;
                 sidstGpx = Date.now();
                 sidstRens = 0;
@@ -484,12 +501,15 @@
     // Henter en optagelse, der ikke blev afsluttet, ind som den aktive.
     // Sporet fortsætter, hvor det slap (samme segment).
     function indlaes(m) {
-        return Lager.hentPunkter(m.id).then(function (gemte) {
+        return Promise.all([Lager.hentPunkter(m.id), Lager.hentWaypoints(m.id)]).then(function (svar) {
+            var gemte = svar[0];
+            waypoints = svar[1];
             meta = m;
             meta.pauseMs = meta.pauseMs || 0;
             meta.pauseStart = meta.pauseStart || null;
             punkter = gemte;
             sidst = gemte.length ? gemte[gemte.length - 1] : null;
+            sidstPos = null;
             segment = sidst ? sidst[5] : 0;
             rensNu();
             sidstGpx = Date.now();
@@ -582,20 +602,23 @@
         visGps('–');
 
         var liste = punkter;
+        var wpts = waypoints;
         return bgStop
-            .then(function () { return afslut(m, liste, stille); })
+            .then(function () { return afslut(m, liste, wpts, stille); })
             .then(function () { return afslutLive(m, liste, !!sidsteEtape); })
             .then(function () {
                 meta = null;
                 punkter = [];
                 sidst = null;
+                sidstPos = null;
+                waypoints = [];
                 opdaterTal();
                 return visListe();
             });
     }
 
     // Gemmer en optagelse som afsluttet. Uden punkter slettes den.
-    function afslut(m, liste, stille) {
+    function afslut(m, liste, wpts, stille) {
         if (!liste.length) {
             return iKoe(function () { return Lager.slet(m.id); }).then(function () {
                 if (!stille) {
@@ -604,7 +627,7 @@
             });
         }
         var ren = Spor.rens(liste);
-        var gpx = Gpx.lav(m.navn, m.start, ren);
+        var gpx = Gpx.lav(m.navn, m.start, ren, wpts);
         m.afstandM = samletAfstand(ren);
         m.antalPunkter = ren.length;
         return iKoe(function () {
@@ -646,16 +669,62 @@
         if (!m) {
             return;
         }
-        Lager.hentPunkter(m.id)
-            .then(function (gemte) {
+        Promise.all([Lager.hentPunkter(m.id), Lager.hentWaypoints(m.id)])
+            .then(function (svar) {
+                var gemte = svar[0];
                 m.status = 'afsluttet';
                 // Afbrudt under en pause: turen sluttede, da pausen begyndte.
                 m.slut = m.pauseStart || (gemte.length ? gemte[gemte.length - 1][3] : m.start);
                 m.pauseStart = null;
                 afbrudt = null;
-                return afslut(m, gemte).then(function () { return afslutLive(m, gemte, false); });
+                return afslut(m, gemte, svar[1]).then(function () { return afslutLive(m, gemte, false); });
             })
             .then(visListe);
+    }
+
+    // ---------- Waypoints ----------
+
+    // Placeringen tages, når der trykkes på knappen, ikke når der gemmes,
+    // så det ikke gør noget, at man går videre, mens man skriver.
+    function aabnWaypoint() {
+        if (!aktiv) {
+            return;
+        }
+        var pos = sidstPos;
+        if (sidst && (!pos || sidst[3] > pos[3])) {
+            pos = sidst;
+        }
+        if (!pos) {
+            window.alert('Der er endnu ingen præcis GPS-placering. Vent, til GPS\'en har fundet dig, og prøv igen.');
+            return;
+        }
+        wptPos = pos;
+        wptForm.reset();
+        wptDialog.returnValue = '';
+        wptDialog.showModal();
+        wptTitel.focus();
+    }
+
+    function gemWaypoint() {
+        var pos = wptPos;
+        wptPos = null;
+        if (!aktiv || !meta || !pos) {
+            return;
+        }
+        var d = new Date();
+        var titel = wptTitel.value.trim() || ('Waypoint kl. ' + to(d.getHours()) + '.' + to(d.getMinutes()));
+        waypoints.push({
+            lat: pos[0],
+            lon: pos[1],
+            ele: pos[2],
+            tid: d.getTime(),
+            titel: titel,
+            tekst: wptTekst.value.trim()
+        });
+        var id = meta.id;
+        var kopi = waypoints.slice();
+        iKoe(function () { return Lager.gemWaypoints(id, kopi); });
+        opdaterTal();
     }
 
     // ---------- Livesending ----------
@@ -769,6 +838,13 @@
         );
         stop(false, sidsteEtape);
     });
+    wptKnap.addEventListener('click', aabnWaypoint);
+    wptDialog.addEventListener('close', function () {
+        if (wptDialog.returnValue === 'gem') {
+            gemWaypoint();
+        }
+        wptPos = null;
+    });
     fortsaetKnap.addEventListener('click', fortsaet);
     afslutKnap.addEventListener('click', afslutAfbrudt);
 
@@ -776,7 +852,9 @@
     // stedet for at blive lukket, så optagelsen ikke stopper.
     App.addListener('backButton', function () {
         var side = window.MitSporApp.aktivSide();
-        if (side === 'view-login' || side === 'view-upload') {
+        if (wptDialog.open) {
+            wptDialog.close();
+        } else if (side === 'view-login' || side === 'view-upload') {
             visView(true);
         } else if (side === 'view-optag' && sendesLive()) {
             // Bliv i optageren; i baggrunden sendes der fint.
