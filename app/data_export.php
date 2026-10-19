@@ -6,8 +6,8 @@ require_once __DIR__ . '/gpx.php';
 require_once __DIR__ . '/image_storage.php';
 
 /*
- * Eksport af alle brugerens data som ZIP (ruter, grupper, billeder og
- * data.json). Bruges af export-data.php (sitet) og api/v1/export-data.php
+ * Eksport af alle brugerens data som ZIP (ruter, grupper, billeder,
+ * livesendinger og data.json). Bruges af export-data.php (sitet) og api/v1/export-data.php
  * (appen), så indholdet kun bygges ét sted.
  */
 
@@ -53,6 +53,16 @@ function data_export_create_zip(PDO $pdo, array $user): string
     $stmt->execute(['uid' => (int) $user['id']]);
     $images = $stmt->fetchAll();
 
+    $stmt = $pdo->prepare(
+        'SELECT id, public_id, title, description, activity_type_id, status, visibility,
+                delay_minutes, planned_start_at, created_at, ended_at
+         FROM live_events
+         WHERE user_id = :uid
+         ORDER BY created_at'
+    );
+    $stmt->execute(['uid' => (int) $user['id']]);
+    $liveEvents = $stmt->fetchAll();
+
     $tmpZipPath = tempnam(sys_get_temp_dir(), 'gpx_export_');
     if ($tmpZipPath === false) {
         throw new RuntimeException('Kunne ikke oprette en midlertidig fil. Prøv igen.');
@@ -74,6 +84,7 @@ function data_export_create_zip(PDO $pdo, array $user): string
         'groups' => [],
         'routes' => [],
         'images' => [],
+        'live_events' => [],
     ];
 
     $usedZipNames = [];
@@ -133,11 +144,89 @@ function data_export_create_zip(PDO $pdo, array $user): string
         ];
     }
 
+    // Livesendinger: hver etapes rå punkter (som appen sendte dem) som GPX.
+    // Delingsnøglen kommer ikke med, da den giver adgang til livesiden.
+    $stageStmt = $pdo->prepare(
+        'SELECT id, position, title, status, started_at, ended_at, point_count, route_id
+         FROM live_stages
+         WHERE event_id = :eid
+         ORDER BY position'
+    );
+    foreach ($liveEvents as $event) {
+        $stageStmt->execute(['eid' => $event['id']]);
+        $stages = [];
+        foreach ($stageStmt->fetchAll() as $stage) {
+            $zipName = null;
+            if ((int) $stage['point_count'] > 0) {
+                $zipName = 'livesendinger/' . $event['public_id'] . '-etape-' . (int) $stage['position'] . '.gpx';
+                $zip->addFromString($zipName, data_export_live_gpx($pdo, (int) $stage['id'], (string) $event['title'], (string) $stage['title']));
+            }
+            $stages[] = [
+                'position'         => (int) $stage['position'],
+                'title'            => $stage['title'],
+                'status'           => $stage['status'],
+                'started_at'       => $stage['started_at'],
+                'ended_at'         => $stage['ended_at'],
+                'point_count'      => (int) $stage['point_count'],
+                'route_id'         => $stage['route_id'] !== null ? (int) $stage['route_id'] : null,
+                'gpx_file_in_export' => $zipName,
+            ];
+        }
+
+        $manifest['live_events'][] = [
+            'public_id'        => $event['public_id'],
+            'title'            => $event['title'],
+            'description'      => $event['description'],
+            'activity_type_id' => (int) $event['activity_type_id'],
+            'status'           => $event['status'],
+            'visibility'       => $event['visibility'],
+            'delay_minutes'    => (int) $event['delay_minutes'],
+            'planned_start_at' => $event['planned_start_at'],
+            'created_at'       => $event['created_at'],
+            'ended_at'         => $event['ended_at'],
+            'stages'           => $stages,
+        ];
+    }
+
     $zip->addFromString('data.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
     $zip->close();
 
     return $tmpZipPath;
+}
+
+/**
+ * En etapes rå livepunkter som GPX 1.1. GPS'ens nøjagtighed (meter) ligger
+ * i <extensions>, da GPX ikke har et felt til den.
+ */
+function data_export_live_gpx(PDO $pdo, int $stageId, string $eventTitle, string $stageTitle): string
+{
+    $x = static fn(string $s): string => htmlspecialchars($s, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+    $name = $stageTitle !== '' ? $eventTitle . ' – ' . $stageTitle : $eventTitle;
+
+    $out = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
+        . '<gpx version="1.1" creator="MitSpor" xmlns="http://www.topografix.com/GPX/1/1"'
+        . ' xmlns:mitspor="https://mitspor.dk/gpx/1">' . "\n"
+        . '<trk><name>' . $x($name) . '</name><trkseg>' . "\n";
+
+    $stmt = $pdo->prepare(
+        'SELECT lat, lon, ele, accuracy_m, FLOOR(UNIX_TIMESTAMP(recorded_at) * 1000) AS t
+         FROM live_points
+         WHERE stage_id = :sid
+         ORDER BY recorded_at'
+    );
+    $stmt->execute(['sid' => $stageId]);
+    foreach ($stmt as $p) {
+        $ms = (int) $p['t'];
+        $time = gmdate('Y-m-d\TH:i:s', intdiv($ms, 1000)) . sprintf('.%03dZ', $ms % 1000);
+        $out .= '<trkpt lat="' . $p['lat'] . '" lon="' . $p['lon'] . '">'
+            . ($p['ele'] !== null ? '<ele>' . $p['ele'] . '</ele>' : '')
+            . '<time>' . $time . '</time>'
+            . ($p['accuracy_m'] !== null ? '<extensions><mitspor:accuracy_m>' . (int) $p['accuracy_m'] . '</mitspor:accuracy_m></extensions>' : '')
+            . "</trkpt>\n";
+    }
+
+    return $out . "</trkseg></trk>\n</gpx>\n";
 }
 
 /**
