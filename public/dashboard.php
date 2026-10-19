@@ -49,9 +49,9 @@ $stmt = $pdo->prepare('SELECT COUNT(*) FROM user_images WHERE user_id = :user_id
 $stmt->execute(['user_id' => $userId]);
 $imageCount = (int) $stmt->fetchColumn();
 
-// Lagerplads som "12.3 MB / 500.0 MB" (samme format i profilen og over listen).
-$storageText = number_format($user['storage_used_bytes'] / 1024 / 1024, 1) . ' MB / '
-    . number_format($user['storage_quota_bytes'] / 1024 / 1024, 1) . ' MB';
+// Lagerplads som "12,3 MB / 500,0 MB" (samme format i profilen og over listen).
+$storageText = number_format($user['storage_used_bytes'] / 1024 / 1024, 1, ',', '.') . ' MB / '
+    . number_format($user['storage_quota_bytes'] / 1024 / 1024, 1, ',', '.') . ' MB';
 
 $groups = group_list_for_user($pdo, $userId);
 $liveEvents = live_events_for_dashboard($pdo, $userId);
