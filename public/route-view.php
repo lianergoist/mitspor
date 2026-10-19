@@ -412,7 +412,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
         <?php endif; ?>
         <h1><?= htmlspecialchars($route['title'], ENT_QUOTES, 'UTF-8') ?></h1>
         <?php if ($liveEvent !== null): ?>
-            <p class="live-note"><span class="live-dot" aria-hidden="true"></span> <?= $liveStage['finished'] ? 'Etapen er slut. Det færdige spor vises, når det er uploadet.' : 'Live: etapen er i gang. Siden opdateres hvert minut.' ?><?php if (!$isOwner && (int) $liveEvent['delay_minutes'] > 0): ?> Vises med <?= (int) $liveEvent['delay_minutes'] ?> min. forsinkelse.<?php endif; ?></p>
+            <p class="live-note"><span class="live-dot" aria-hidden="true"></span> <?= $liveStage['finished'] ? 'Etapen er slut. Det færdige spor vises, når det er uploadet.' : 'Live: etapen er i gang. Siden opdateres hvert minut.' ?></p>
         <?php endif; ?>
 
         <?php if ($route['description']): ?>

@@ -146,8 +146,9 @@ function live_view_payload(PDO $pdo, array $event, bool $isOwner, string $client
     $payload = [
         'success'  => true,
         'version'  => $version,
-        'now_ms'   => $nowMs,
-        'delay'    => $delay,
+        // Besøgende får "nu" minus forsinkelsen, så "for 2 min. siden" regnes
+        // i den forsinkede tid. Forsinkelsen skal ikke kunne læses ud af siden.
+        'now_ms'   => $nowMs - $delay * 60000,
         'status'   => 'planlagt',
         'stages'   => null,
         'points'   => [],

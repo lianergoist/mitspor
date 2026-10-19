@@ -106,8 +106,6 @@ $palette = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#0891b2', '#
         <div class="meta" id="live-updated"></div>
         <?php if ($isOwner): ?>
             <div class="meta">Du ser alt uden forsinkelse.<?php if ((int) $event['delay_minutes'] > 0): ?> Andre ser det <?= (int) $event['delay_minutes'] ?> min. senere.<?php endif; ?><?php if ($event['visibility'] !== 'public'): ?> Kun personer med linket kan se siden.<?php endif; ?></div>
-        <?php elseif ((int) $event['delay_minutes'] > 0): ?>
-            <div class="meta">Vises med <?= (int) $event['delay_minutes'] ?> min. forsinkelse.</div>
         <?php endif; ?>
         <div class="meta"><?= $e((string) $event['owner_name']) ?></div>
 
