@@ -130,7 +130,17 @@
 
     // Læser meta.json igen, lader aendr() rette i den og gemmer den.
     // Er turen slettet imens, gemmes intet, og svaret er null.
+    // Kaldene køres ét ad gangen, så upload.js og live.js ikke overskriver
+    // hinandens ændringer.
+    var metaKoe = Promise.resolve();
+
     function opdaterMeta(id, aendr) {
+        var svar = metaKoe.then(function () { return opdaterMetaNu(id, aendr); });
+        metaKoe = svar.catch(function () {});
+        return svar;
+    }
+
+    function opdaterMetaNu(id, aendr) {
         return laes(sti(id, 'meta.json'))
             .then(function (tekst) { return JSON.parse(tekst); })
             .catch(function () { return null; })

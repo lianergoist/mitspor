@@ -465,3 +465,22 @@ body {
 .tur-upload--ok {
     color: #166534;
 }
+
+/* ---------- Livesending ---------- */
+
+.optag-live-valg {
+    margin: 0 0 4px;
+}
+
+.optag-live-valg .start-note {
+    margin: -4px 0 0;
+}
+
+.optag-live-status {
+    margin: 0 0 16px;
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    background: #fee2e2;
+    color: #991b1b;
+    font-size: 15px;
+}
