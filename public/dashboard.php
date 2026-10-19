@@ -718,18 +718,6 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
         </div>
     </div>
 
-    <div id="upload-thinning-suggest" hidden>
-        <p id="upload-thinning-suggest-text"></p>
-        <div class="dialog-nav">
-            <button type="button" class="btn" data-upload-thin-interval="10">Udtynd til hvert 10. sekund</button>
-            <button type="button" class="btn" data-upload-thin-interval="20">Udtynd til hvert 20. sekund</button>
-            <button type="button" class="btn" data-upload-thin-interval="30">Udtynd til hvert 30. sekund</button>
-            <button type="button" class="btn" data-upload-thin-interval="60">Udtynd til hvert 60. sekund</button>
-            <button type="button" id="upload-thinning-keep" class="btn">Behold som den er</button>
-            <button type="button" id="upload-thinning-cancel" class="btn">Annullér</button>
-        </div>
-    </div>
-
     <form id="upload-form">
         <input type="hidden" name="csrf_token" id="upload-csrf-token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
 
@@ -1125,7 +1113,7 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
 <script src="assets/gpx-field-labels.js?v=3"></script>
 <script src="assets/gpx-tools.js?v=2"></script>
 <script src="assets/genindlaes.js?v=1"></script>
-<script src="assets/dashboard.js?v=18"></script>
+<script src="assets/dashboard.js?v=19"></script>
 <script src="assets/dashboard-tools.js?v=4"></script>
 <script src="assets/activity-marker.js?v=1"></script>
 <script src="assets/dashboard-map.js?v=6"></script>
