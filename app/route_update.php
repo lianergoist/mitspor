@@ -27,7 +27,6 @@ function update_route(
     string $visibility,
     bool $allowDownload,
     bool $publicNoticeAcknowledged,
-    string $timeConflictResolution = 'ask',
     bool $hideUploaderName = false,
     ?int $thinIntervalSeconds = null,
     string $routeType = 'rute',
@@ -61,7 +60,7 @@ function update_route(
     }
 
     $stmt = $pdo->prepare(
-        'SELECT id, max_plausible_speed_kmh FROM activity_types WHERE id = :id AND is_active = 1'
+        'SELECT id FROM activity_types WHERE id = :id AND is_active = 1'
     );
     $stmt->execute(['id' => $activityTypeId]);
     $activityType = $stmt->fetch();
@@ -122,8 +121,7 @@ function update_route(
         // bevidst fjernet herfra — de forvirrede mere end de hjalp.
         // Aktivitetstypen har nu udelukkende betydning for hvilken
         // markør ruten vises med. Vil en bruger fjerne tidsstempler
-        // eller udtynde punkter, gøres det manuelt via værktøjskassen
-        // i editoren.
+        // eller udtynde punkter, gøres det manuelt i kontrolpanelet.
 
         $sizeBytes = strlen($gpxContent);
         $backupSizeBytes = $newOriginalStored['size_bytes'] ?? 0;

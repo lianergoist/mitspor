@@ -709,15 +709,6 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
 
     <div id="upload-errors" class="modal-errors" hidden></div>
 
-    <div id="upload-speed-warning" hidden>
-        <p id="upload-speed-warning-text"></p>
-        <div class="dialog-nav">
-            <button type="button" id="upload-speed-keep" class="btn">Behold tiderne alligevel</button>
-            <button type="button" id="upload-speed-strip" class="btn">Fjern alle tidsstempler</button>
-            <button type="button" id="upload-speed-cancel" class="btn">Annullér</button>
-        </div>
-    </div>
-
     <form id="upload-form">
         <input type="hidden" name="csrf_token" id="upload-csrf-token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
 
@@ -1113,8 +1104,8 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
 <script src="assets/gpx-field-labels.js?v=3"></script>
 <script src="assets/gpx-tools.js?v=2"></script>
 <script src="assets/genindlaes.js?v=1"></script>
-<script src="assets/dashboard.js?v=19"></script>
-<script src="assets/dashboard-tools.js?v=4"></script>
+<script src="assets/dashboard.js?v=20"></script>
+<script src="assets/dashboard-tools.js?v=5"></script>
 <script src="assets/activity-marker.js?v=1"></script>
 <script src="assets/dashboard-map.js?v=6"></script>
 <script src="assets/dashboard-live.js?v=2"></script>

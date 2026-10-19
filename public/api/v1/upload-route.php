@@ -133,7 +133,6 @@ $result = create_route(
     'private',
     false,         // allow_download
     false,         // public_notice_ack (ikke relevant for private ruter)
-    'ask',
     false,         // hide_uploader_name
     'spor',
     null,

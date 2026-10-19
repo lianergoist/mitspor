@@ -25,7 +25,6 @@ $activityTypes = $pdo->query(
 
 $errors = [];
 $success = false;
-$speedWarning = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!csrf_validate($_POST['csrf_token'] ?? null)) {
@@ -40,14 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $allowDownload  = isset($_POST['allow_download']);
     $hideUploaderName = isset($_POST['hide_uploader_name']);
     $publicAck      = isset($_POST['public_notice_ack']);
-    $timeResolution = (string) ($_POST['time_resolution'] ?? 'ask');
 
-    // Hvis vi kommer tilbage fra en speed_warning, ligger GPX-indholdet i
-    // en skjult textarea i stedet for i en ny filupload — så brugeren
-    // ikke skal vælge filen igen bare for at svare "behold/fjern tider".
-    $gpxContentOverride = (string) ($_POST['gpx_content_override'] ?? '');
-
-    if (empty($errors) && $gpxContentOverride === '') {
+    if (empty($errors)) {
         if (!isset($_FILES['gpx_file']) || $_FILES['gpx_file']['error'] === UPLOAD_ERR_NO_FILE) {
             $errors[] = 'Vælg en GPX-fil.';
         } elseif ($_FILES['gpx_file']['error'] !== UPLOAD_ERR_OK) {
@@ -60,9 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        if ($gpxContentOverride !== '') {
-            $gpxContent = $gpxContentOverride;
-        } elseif (!is_uploaded_file($_FILES['gpx_file']['tmp_name'])) {
+        if (!is_uploaded_file($_FILES['gpx_file']['tmp_name'])) {
             $errors[] = 'Ugyldig filupload.';
             $gpxContent = null;
         } else {
@@ -80,7 +71,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $visibility,
                 $allowDownload,
                 $publicAck,
-                $timeResolution,
                 $hideUploaderName,
                 $routeType
             );
@@ -91,23 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             }
 
-            if (!empty($result['speed_warning'])) {
-                $speedWarning = [
-                    'max_speed_kmh' => $result['max_speed_kmh'],
-                    'threshold_kmh' => $result['threshold_kmh'],
-                    'gpx_content'   => $gpxContent,
-                    'title'         => $title,
-                    'description'   => $description,
-                    'activity_type_id' => $activityTypeId,
-                    'route_type'    => $routeType,
-                    'visibility'    => $visibility,
-                    'allow_download' => $allowDownload,
-                    'hide_uploader_name' => $hideUploaderName,
-                    'public_ack'    => $publicAck,
-                ];
-            } else {
-                $errors = $result['errors'];
-            }
+            $errors = $result['errors'];
         }
     }
 }
@@ -134,42 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </ul>
 <?php endif; ?>
 
-<?php if ($speedWarning): ?>
-
-    <h2>Usandsynlig hastighed fundet</h2>
-    <p>
-        Nogle af rutens tidsstempler antyder en hastighed på op til
-        <strong><?= htmlspecialchars((string) $speedWarning['max_speed_kmh'], ENT_QUOTES, 'UTF-8') ?> km/t</strong>,
-        hvilket er over den forventede grænse på
-        <?= htmlspecialchars((string) $speedWarning['threshold_kmh'], ENT_QUOTES, 'UTF-8') ?> km/t
-        for den valgte aktivitetstype. Vælg hvordan du vil fortsætte:
-    </p>
-
-    <form method="post" action="upload-route.php">
-        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
-        <input type="hidden" name="title" value="<?= htmlspecialchars($speedWarning['title'], ENT_QUOTES, 'UTF-8') ?>">
-        <input type="hidden" name="description" value="<?= htmlspecialchars($speedWarning['description'], ENT_QUOTES, 'UTF-8') ?>">
-        <input type="hidden" name="activity_type_id" value="<?= (int) $speedWarning['activity_type_id'] ?>">
-        <input type="hidden" name="route_type" value="<?= htmlspecialchars($speedWarning['route_type'], ENT_QUOTES, 'UTF-8') ?>">
-        <input type="hidden" name="visibility" value="<?= htmlspecialchars($speedWarning['visibility'], ENT_QUOTES, 'UTF-8') ?>">
-        <?php if ($speedWarning['allow_download']): ?>
-            <input type="hidden" name="allow_download" value="1">
-        <?php endif; ?>
-        <?php if ($speedWarning['hide_uploader_name']): ?>
-            <input type="hidden" name="hide_uploader_name" value="1">
-        <?php endif; ?>
-        <?php if ($speedWarning['public_ack']): ?>
-            <input type="hidden" name="public_notice_ack" value="1">
-        <?php endif; ?>
-        <textarea name="gpx_content_override" style="display:none" readonly><?= htmlspecialchars($speedWarning['gpx_content'], ENT_QUOTES, 'UTF-8') ?></textarea>
-
-        <button type="submit" name="time_resolution" value="keep">Behold tiderne alligevel</button>
-        <button type="submit" name="time_resolution" value="strip">Fjern alle tidsstempler fra ruten</button>
-    </form>
-
-    <p><a href="upload-route.php">Annullér og start forfra</a></p>
-
-<?php elseif ($success): ?>
+<?php if ($success): ?>
 
     <p>Ruten er oprettet.</p>
 
