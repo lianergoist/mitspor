@@ -28,7 +28,6 @@ CREATE TABLE `activity_types` (
   `category` varchar(20) DEFAULT NULL,
   `name_da` varchar(100) NOT NULL,
   `icon_filename` varchar(255) NOT NULL,
-  `max_plausible_speed_kmh` smallint(5) unsigned DEFAULT NULL,
   `sort_order` smallint(5) unsigned NOT NULL DEFAULT 0,
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`),
