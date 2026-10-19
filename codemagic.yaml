@@ -137,9 +137,12 @@ workflows:
       - name: Brug signeringsprofilen i Xcode-projektet
         script: xcode-project use-profiles
       - name: Sæt build-nummer
+        # 1000 + løbenummeret, så en ad hoc-bygning aldrig kan forveksles med
+        # en App Store-bygning (ios-testflight bruger løbenummeret direkte).
+        # Ad hoc-bygninger kan ikke indsendes til Apple (ITMS-90035).
         script: |
           cd mobile/ios/App
-          agvtool new-version -all "$BUILD_NUMBER"
+          agvtool new-version -all "$((1000 + BUILD_NUMBER))"
       - name: Byg IPA
         script: |
           xcode-project build-ipa --project mobile/ios/App/App.xcodeproj --scheme App
