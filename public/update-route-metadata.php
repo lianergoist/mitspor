@@ -62,7 +62,6 @@ $result = update_route(
     (string) ($_POST['visibility'] ?? 'private'),
     isset($_POST['allow_download']) && $_POST['allow_download'] !== '0' && $_POST['allow_download'] !== '',
     isset($_POST['public_notice_ack']) && $_POST['public_notice_ack'] !== '0' && $_POST['public_notice_ack'] !== '',
-    'ask',
     isset($_POST['hide_uploader_name']) && $_POST['hide_uploader_name'] !== '0' && $_POST['hide_uploader_name'] !== '',
     null,
     (string) ($_POST['route_type'] ?? 'rute')

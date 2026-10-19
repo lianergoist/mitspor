@@ -10,7 +10,6 @@ declare(strict_types=1);
 //           csrf_token: csrfToken,
 //           route_id: routeId,           // tom streng = opret ny rute
 //           gpx_data: gpxXmlString,
-//           time_resolution: 'ask',      // 'ask' | 'keep' | 'strip'
 //           // Metadata KUN ved oprettelse (route_id tom):
 //           title: 'Min tur',
 //           description: '',
@@ -26,12 +25,6 @@ declare(strict_types=1);
 // i databasen (titel, beskrivelse, aktivitet, type, synlighed, download,
 // anonym) — metadata ændres i kontrolpanelet, ikke i editoren. Gruppe
 // røres kun, hvis 'group_id' sendes med.
-//
-// Svar ved usandsynlig hastighed: HTTP 409 med
-//   { success: false, speed_warning: true, max_speed_kmh, threshold_kmh }
-// — editoren skal da spørge brugeren og gensende med time_resolution
-// sat til 'keep' eller 'strip' (gpx_data er allerede i browseren, så
-// intet andet skal sendes med igen).
 // =====================================================================
 
 session_start();
@@ -76,7 +69,6 @@ $visibility     = (string) ($_POST['visibility'] ?? 'private');
 $allowDownload  = isset($_POST['allow_download']) && $_POST['allow_download'] !== '0' && $_POST['allow_download'] !== '';
 $hideUploaderName = isset($_POST['hide_uploader_name']) && $_POST['hide_uploader_name'] !== '0' && $_POST['hide_uploader_name'] !== '';
 $publicAck      = isset($_POST['public_notice_ack']) && $_POST['public_notice_ack'] !== '0' && $_POST['public_notice_ack'] !== '';
-$timeResolution = (string) ($_POST['time_resolution'] ?? 'ask');
 $thinInterval = isset($_POST['thin_interval']) && $_POST['thin_interval'] !== '' ? (int) $_POST['thin_interval'] : null;
 // Markør: kun hvis kalderen sender feltet med (upload-dialogen). Tom = aktivitetens standard.
 $markerIcon = array_key_exists('marker_icon', $_POST) ? (string) $_POST['marker_icon'] : null;
@@ -187,7 +179,6 @@ if ($internalRouteId > 0) {
         $visibility,
         $allowDownload,
         $publicAck,
-        $timeResolution,
         $hideUploaderName,
         $thinInterval,
         $routeType,
@@ -205,23 +196,11 @@ if ($internalRouteId > 0) {
         $visibility,
         $allowDownload,
         $publicAck,
-        $timeResolution,
         $hideUploaderName,
         $routeType,
         $enabledDataFields,
         $enabledFunctions
     );
-}
-
-if (!empty($result['speed_warning'])) {
-    http_response_code(409);
-    echo json_encode([
-        'success'       => false,
-        'speed_warning' => true,
-        'max_speed_kmh' => $result['max_speed_kmh'],
-        'threshold_kmh' => $result['threshold_kmh'],
-    ]);
-    exit;
 }
 
 if (!$result['success']) {

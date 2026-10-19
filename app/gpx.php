@@ -307,60 +307,8 @@ function gpx_haversine_meters(float $lat1, float $lon1, float $lat2, float $lon2
 }
 
 /**
- * Tjek om nogen af GPX-filens tidsstemplede punkter antyder en
- * hastighed, der overstiger $maxSpeedKmh mellem to nabopunkter — eller
- * om tidsstemplerne ikke er stigende (hvilket i sig selv er umuligt).
- * En kæde "nulstilles" ved et punkt uden tid, så vi kun sammenligner
- * nabopunkter, der begge faktisk har et tidsstempel.
- *
- * @param array<int, array{lat: float, lon: float, time_epoch: ?float}> $points
- * @return array{violation: bool, max_speed_kmh: float}
- */
-function gpx_check_speed_plausibility(array $points, float $maxSpeedKmh): array
-{
-    $maxFoundKmh = 0.0;
-    $violation = false;
-    $prev = null;
-
-    foreach ($points as $point) {
-        // Et nyt spor/segment sammenlignes ikke med det forrige: de kan være
-        // optaget på forskellige dage eller stå i en anden rækkefølge.
-        if ($point['time_epoch'] === null || !empty($point['seg_start'])) {
-            $prev = $point['time_epoch'] === null ? null : $point;
-            continue;
-        }
-
-        if ($prev !== null) {
-            $dt = $point['time_epoch'] - $prev['time_epoch'];
-
-            if ($dt <= 0) {
-                // Tid går ikke fremad mellem to på hinanden følgende
-                // punkter — umuligt, og dermed en plausibilitetsfejl i
-                // sig selv, uanset afstand.
-                $violation = true;
-            } else {
-                $distanceMeters = gpx_haversine_meters($prev['lat'], $prev['lon'], $point['lat'], $point['lon']);
-                $speedKmh = ($distanceMeters / $dt) * 3.6;
-
-                if ($speedKmh > $maxFoundKmh) {
-                    $maxFoundKmh = $speedKmh;
-                }
-                if ($speedKmh > $maxSpeedKmh) {
-                    $violation = true;
-                }
-            }
-        }
-
-        $prev = $point;
-    }
-
-    return ['violation' => $violation, 'max_speed_kmh' => $maxFoundKmh];
-}
-
-/**
- * Fjern samtlige <time>-elementer fra en GPX-streng (bruges når
- * brugeren vælger at fjerne tidsstempler efter en plausibilitets-
- * advarsel). Alt andet i filen bevares uændret.
+ * Fjern samtlige <time>-elementer fra en GPX-streng (bruges, når ruter
+ * downloades). Alt andet i filen bevares uændret.
  */
 function gpx_strip_all_times(string $xmlContent): string
 {

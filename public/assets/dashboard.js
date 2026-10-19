@@ -512,10 +512,7 @@ function markerDefaultPreview(select, box) {
             allow_download: document.getElementById('upload-allow-download').checked ? '1' : '0',
             hide_uploader_name: document.getElementById('upload-hide-uploader-name').checked ? '1' : '0',
             public_notice_ack: noticeCheckbox.checked ? '1' : '0',
-            marker_icon: selectedUploadMarker(),
-            // Ingen spørgsmål undervejs ved mange filer: tidsstempler beholdes
-            // som de er (kan ændres bagefter i GPX-editoren).
-            time_resolution: 'keep'
+            marker_icon: selectedUploadMarker()
         };
 
         submitBtn.disabled = true;
@@ -588,9 +585,6 @@ function markerDefaultPreview(select, box) {
     var fileHasTimeData = false;
     var userChoseRouteType = false;
 
-    var warningPanel = document.getElementById('upload-speed-warning');
-    var warningText = document.getElementById('upload-speed-warning-text');
-
     var csrfToken = document.getElementById('upload-csrf-token').value;
     var pendingGpxContent = null;
 
@@ -627,7 +621,6 @@ function markerDefaultPreview(select, box) {
         form.reset();
         updateUploadDefaultMarker();
         form.hidden = false;
-        warningPanel.hidden = true;
         errorsEl.hidden = true;
         // Formularen er lige nulstillet til default (privat) — så
         // GDPR-boksen skal ikke forblive forudfyldt fra en tidligere upload.
@@ -695,7 +688,7 @@ function markerDefaultPreview(select, box) {
         reader.readAsText(fileInput.files[0]);
     });
 
-    function submitUpload(timeResolution) {
+    function submitUpload() {
         var body = new URLSearchParams({
             csrf_token: csrfToken,
             route_id: '',
@@ -708,23 +701,12 @@ function markerDefaultPreview(select, box) {
             allow_download: document.getElementById('upload-allow-download').checked ? '1' : '0',
             hide_uploader_name: document.getElementById('upload-hide-uploader-name').checked ? '1' : '0',
             public_notice_ack: noticeCheckbox.checked ? '1' : '0',
-            marker_icon: selectedUploadMarker(),
-            time_resolution: timeResolution || 'ask'
+            marker_icon: selectedUploadMarker()
         });
 
         fetch('editor-save.php', { method: 'POST', body: body })
             .then(function (res) { return res.json().then(function (data) { return { status: res.status, data: data }; }); })
             .then(function (result) {
-                if (result.status === 409 && result.data.speed_warning) {
-                    form.hidden = true;
-                    warningPanel.hidden = false;
-                    warningText.textContent =
-                        'Nogle af rutens tidsstempler antyder en hastighed på op til ' + result.data.max_speed_kmh +
-                        ' km/t, hvilket er over den forventede grænse på ' + result.data.threshold_kmh +
-                        ' km/t for den valgte aktivitetstype. Vælg hvordan du vil fortsætte:';
-                    return;
-                }
-
                 if (!result.data.success) {
                     errorsEl.textContent = (result.data.errors && result.data.errors.join(' ')) || 'Der skete en fejl. Prøv igen.';
                     errorsEl.hidden = false;
@@ -738,13 +720,6 @@ function markerDefaultPreview(select, box) {
                 errorsEl.hidden = false;
             });
     }
-
-    document.getElementById('upload-speed-keep').addEventListener('click', function () { submitUpload('keep'); });
-    document.getElementById('upload-speed-strip').addEventListener('click', function () { submitUpload('strip'); });
-    document.getElementById('upload-speed-cancel').addEventListener('click', function () {
-        warningPanel.hidden = true;
-        form.hidden = false;
-    });
 
     form.addEventListener('submit', function (ev) {
         ev.preventDefault();
@@ -772,7 +747,7 @@ function markerDefaultPreview(select, box) {
         var reader = new FileReader();
         reader.onload = function () {
             pendingGpxContent = reader.result;
-            submitUpload('ask');
+            submitUpload();
         };
         reader.onerror = function () {
             errorsEl.textContent = 'Kunne ikke læse filen.';

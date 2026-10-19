@@ -32,7 +32,6 @@ function create_route(
     string $visibility,
     bool $allowDownload,
     bool $publicNoticeAcknowledged,
-    string $timeConflictResolution = 'ask',
     bool $hideUploaderName = false,
     string $routeType = 'rute',
     ?string $enabledDataFields = null,
@@ -56,7 +55,7 @@ function create_route(
     }
 
     $stmt = $pdo->prepare(
-        'SELECT id, max_plausible_speed_kmh FROM activity_types WHERE id = :id AND is_active = 1'
+        'SELECT id FROM activity_types WHERE id = :id AND is_active = 1'
     );
     $stmt->execute(['id' => $activityTypeId]);
     $activityType = $stmt->fetch();
@@ -90,7 +89,7 @@ function create_route(
     // Aktivitetstypen har nu udelukkende betydning for hvilken markør
     // ruten vises med, ikke for om filen kan uploades. Ønsker en bruger
     // at fjerne tidsstempler eller udtynde punkter, gøres det manuelt
-    // via værktøjskassen i editoren.
+    // i kontrolpanelet.
     $originalContentForBackup = null;
 
     $sizeBytes = strlen($gpxContent);

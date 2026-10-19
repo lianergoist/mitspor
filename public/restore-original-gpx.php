@@ -71,7 +71,6 @@ $result = update_route(
     $route['visibility'],
     (bool) $route['allow_download'],
     true, // GDPR-boksen er allerede bekræftet tidligere for denne rute
-    'keep', // spring hastighedstjek over — dette ER den originale, ubearbejdede fil
     (bool) $route['hide_uploader_name'],
     0 // ingen ny udtynding — gendan uden yderligere ændringer
 );

@@ -60,7 +60,6 @@ $activityTypeId = (int) ($_POST['activity_type_id'] ?? 0);
 $visibility     = (string) ($_POST['visibility'] ?? 'private');
 $allowDownload  = isset($_POST['allow_download']) && $_POST['allow_download'] !== '0' && $_POST['allow_download'] !== '';
 $publicAck      = isset($_POST['public_notice_ack']) && $_POST['public_notice_ack'] !== '0' && $_POST['public_notice_ack'] !== '';
-$timeResolution = (string) ($_POST['time_resolution'] ?? 'ask');
 
 if ($gpxContent === '') {
     json_fail(['Ingen GPX-data modtaget fra editoren.']);
@@ -81,23 +80,8 @@ $result = create_route(
     $activityTypeId,
     $visibility,
     $allowDownload,
-    $publicAck,
-    $timeResolution
+    $publicAck
 );
-
-if (!empty($result['speed_warning'])) {
-    // Editoren har allerede hele gpx_data'en liggende klient-side, så
-    // her er intet behov for at sende indholdet med tilbage — klienten
-    // gensender blot samme kald med time_resolution sat til 'keep' eller 'strip'.
-    http_response_code(409);
-    echo json_encode([
-        'success'       => false,
-        'speed_warning' => true,
-        'max_speed_kmh' => $result['max_speed_kmh'],
-        'threshold_kmh' => $result['threshold_kmh'],
-    ]);
-    exit;
-}
 
 if (!$result['success']) {
     json_fail($result['errors']);

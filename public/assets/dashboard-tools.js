@@ -115,8 +115,7 @@
                     return saveRoute({
                         route_id: currentId,
                         gpx_data: G.serialize(gpx),
-                        thin_interval: String(tolerance),
-                        time_resolution: "keep"
+                        thin_interval: String(tolerance)
                     }).then(function () { return true; });
                 })
                 .then(function (saved) {
