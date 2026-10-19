@@ -183,7 +183,7 @@ require_once __DIR__ . '/../app/config.php';
     <h2>6. Hvor længe gemmer vi dine oplysninger?</h2>
     <ul>
         <li><strong>Konto, ruter og billeder:</strong> så længe du har din konto.</li>
-        <li><strong>Sletter du en rute:</strong> GPX-filen og en evt. gemt original-fil (sikkerhedskopi fra udtynding) slettes straks, og rutens titel, beskrivelse, delingslink og positioner ryddes. Der bevares kun en tom markering, så personer med et gammelt link kan se, at ruten er slettet. Billeder i din billedsamling bliver liggende, til du sletter din konto (eller beder os fjerne dem).</li>
+        <li><strong>Sletter du en rute:</strong> GPX-filen og en evt. gemt original-fil (sikkerhedskopi fra udtynding) slettes straks, og rutens titel, beskrivelse, delingslink og positioner ryddes. Der bevares kun en tom markering, så personer med et gammelt link kan se, at ruten er slettet. Billeder i din billedsamling bliver liggende, til du selv sletter dem under <em>Mine billeder</em> eller sletter din konto.</li>
         <li><strong>Sletter du din konto:</strong> alle dine ruter og billeder (inklusive miniaturer) slettes, og din e-mail, dit navn og din adgangskode fjernes med det samme.</li>
         <li><strong>Livesendinger:</strong> Livesendingen og de punkter, appen har sendt live, gemmes, til du sletter livesendingen eller din konto. De færdige etaper er almindelige ruter og bliver liggende, til du sletter dem.</li>
         <li><strong>Ture på telefonen</strong> (med waypoints og billeder): bliver liggende i appen, også efter upload, til du sletter dem i appen eller afinstallerer appen. Vi kan ikke se eller slette dem.</li>
@@ -199,7 +199,7 @@ require_once __DIR__ . '/../app/config.php';
     <ul>
         <li><strong>Indsigt og dataportabilitet:</strong> Under din profil kan du selv hente alle dine data (<em>Download alle mine data</em>) som en ZIP-fil med dine GPX-filer, billeder, livesendinger (med de punkter, appen har sendt live) og oplysninger om din konto.</li>
         <li><strong>Berigtigelse:</strong> Du kan selv rette dit navn og din e-mail i din profil.</li>
-        <li><strong>Sletning:</strong> Du kan selv slette enkelte ruter og hele din konto, også fra appen via din profil. Vil du have et enkelt billede fjernet, kan du skrive til os.</li>
+        <li><strong>Sletning:</strong> Du kan selv slette enkelte ruter og hele din konto, også fra appen via din profil. Billeder sletter du under <em>Mine billeder</em> i din profil. Et billede, der stadig bruges i en af dine ruter, skal først fjernes fra ruten i editoren.</li>
         <li><strong>Begrænsning og indsigelse:</strong> Du kan bede os begrænse behandlingen eller gøre indsigelse mod den, når den bygger på vores legitime interesse.</li>
         <li><strong>Tilbagekaldelse af samtykke:</strong> Fx ved at gøre en rute privat, fjerne data som puls fra en fil eller stoppe, afslutte eller slette en livesending.</li>
     </ul>
