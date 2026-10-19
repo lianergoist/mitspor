@@ -126,6 +126,7 @@ $showIntro = !is_app_webview() && is_file($introVideoFile);
             </ul>
             <p>MitSpor er gratis at bruge. Alt det kræver er en emailadresse, og så er du i gang. Du kan downloade dine data og slette din profil som det passer dig. Ingen tracking, ingen sporings- eller reklamecookies, ingen deling af dine data med andre. Ægte gratis.</p>
             <p>Har du spørgsmål eller kommentarer, er du velkommen til at skrive til <a href="mailto:info@mitspor.dk">info@mitspor.dk</a>.</p>
+            <p>Læs <a href="/privatlivspolitik.php">privatlivspolitikken</a>.</p>
         </div>
     </dialog>
 

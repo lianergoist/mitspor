@@ -203,6 +203,7 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
     <nav class="dialog-nav">
         <a href="/manage-images.php">Mine billeder</a>
         <a href="<?= dash_h(data_export_url()) ?>">Download alle mine data</a>
+        <a href="/privatlivspolitik.php">Privatlivspolitik</a>
         <a href="delete-account.php" class="danger">Slet min konto</a>
     </nav>
 </dialog>
