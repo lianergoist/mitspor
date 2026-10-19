@@ -94,7 +94,7 @@
             // Hvid kant under den farvede linje, som på gruppesiden.
             var edge = L.polyline(pts, { color: "#fff", weight: 8, opacity: 0.9, interactive: false }).addTo(stageLayer);
             var line = L.polyline(pts, { color: c, weight: 5, opacity: 0.95 }).addTo(stageLayer);
-            line.bindPopup(escapeHtml(st.position + ". " + stageName(st)));
+            line.bindPopup(popupHtml(st));
             if (!st.route) {
                 liveLines[st.position] = { line: line, edge: edge };
             }
@@ -103,6 +103,18 @@
 
         renderList(stages);
         return bounds;
+    }
+
+    // Etapens side (route-view.php) findes først, når etapen er slut, og
+    // sporet er uploadet. Indtil da forklarer popuppen det.
+    function popupHtml(st) {
+        var html = "<strong>" + escapeHtml(st.position + ". " + stageName(st)) + "</strong>";
+        if (st.link) {
+            html += '<br><a href="' + escapeHtml(st.link) + '">Vis etapen med grafer</a>';
+        } else if (st.state === "live") {
+            html += "<br>Etapen er i gang. Dens side kommer, når den er slut.";
+        }
+        return html;
     }
 
     function renderList(stages) {

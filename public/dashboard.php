@@ -59,7 +59,7 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
     <title>Mit kontrolpanel</title>
     <link rel="stylesheet" href="assets/style.css?v=22">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/dashboard.css?v=17">
+    <link rel="stylesheet" href="assets/dashboard.css?v=18">
 </head>
 <body>
 
@@ -442,14 +442,16 @@ function render_live_detail(array $ev): void
             </p>
         <?php endif; ?>
 
-        <label class="live-link">
-            Link til livesiden<?= $ev['visibility'] === 'public' ? '' : ' (alle med linket kan se den)' ?>
-            <input type="text" readonly value="<?= dash_h($url) ?>" data-live-url>
-        </label>
+        <div class="live-link">
+            <label for="live-url-<?= dash_h($id) ?>">Link til livesiden<?= $ev['visibility'] === 'public' ? '' : ' (alle med linket kan se den)' ?></label>
+            <div class="live-link-row">
+                <input type="text" readonly value="<?= dash_h($url) ?>" id="live-url-<?= dash_h($id) ?>" data-live-url>
+                <button type="button" class="icon-btn" data-live-copy title="Kopiér link" aria-label="Kopiér link"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+            </div>
+        </div>
 
         <div class="tool-list">
             <a class="tool" href="<?= dash_h(live_url($ev)) ?>">Vis livesiden</a>
-            <button type="button" class="tool" data-live-copy>Kopiér link</button>
             <button type="button" class="tool" data-live-edit="<?= dash_h(json_encode($editData, JSON_UNESCAPED_UNICODE)) ?>">Rediger livesending</button>
             <?php if ($ev['visibility'] !== 'public'): ?>
                 <button type="button" class="tool" data-live-action="new_link" data-live-id="<?= dash_h($id) ?>" data-live-confirm="Lav et nyt link? Det gamle link holder op med at virke.">Lav nyt link</button>
@@ -1115,7 +1117,7 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
 <script src="assets/dashboard-tools.js?v=3"></script>
 <script src="assets/activity-marker.js?v=1"></script>
 <script src="assets/dashboard-map.js?v=6"></script>
-<script src="assets/dashboard-live.js?v=1"></script>
+<script src="assets/dashboard-live.js?v=2"></script>
 
 </body>
 </html>
