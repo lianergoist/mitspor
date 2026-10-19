@@ -196,7 +196,7 @@ require_once __DIR__ . '/../app/config.php';
     <h2>7. Dine rettigheder</h2>
     <p>Du har efter GDPR ret til:</p>
     <ul>
-        <li><strong>Indsigt og dataportabilitet:</strong> Under din profil kan du selv hente alle dine data (<em>Download alle mine data</em>) som en ZIP-fil med dine GPX-filer, billeder og oplysninger om din konto. Punkter, der kun er sendt live, er ikke med i filen, men du kan få dem ved at skrive til os.</li>
+        <li><strong>Indsigt og dataportabilitet:</strong> Under din profil kan du selv hente alle dine data (<em>Download alle mine data</em>) som en ZIP-fil med dine GPX-filer, billeder, livesendinger (med de punkter, appen har sendt live) og oplysninger om din konto.</li>
         <li><strong>Berigtigelse:</strong> Du kan selv rette dit navn og din e-mail i din profil.</li>
         <li><strong>Sletning:</strong> Du kan selv slette enkelte ruter og hele din konto, også fra appen via din profil. Vil du have et enkelt billede fjernet, kan du skrive til os.</li>
         <li><strong>Begrænsning og indsigelse:</strong> Du kan bede os begrænse behandlingen eller gøre indsigelse mod den, når den bygger på vores legitime interesse.</li>
