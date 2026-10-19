@@ -38,7 +38,7 @@ require_once __DIR__ . '/../app/config.php';
 <body>
 
 <header class="topbar">
-    <a href="index.php" class="brand"><img src="grafik/mitspor_50x50.png" alt="" class="brand-logo"><span class="brand-text">MitSpor</span></a>
+    <a href="index.php" class="brand"><img src="grafik/favicon.svg" alt="" class="brand-logo"><span class="brand-text">MitSpor</span></a>
     <a href="index.php" class="btn">Til forsiden</a>
 </header>
 
