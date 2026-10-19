@@ -6,7 +6,9 @@
 // de punkter, sitet ikke har bekræftet endnu, højst hvert minut. Det sker
 // fra optagerens GPS-punkter, så det også sker, når appen er i baggrunden.
 // Sitet springer punkter over, det allerede har, så et nyt forsøg efter
-// en netfejl giver ingen dubletter.
+// en netfejl giver ingen dubletter. Er der ingen nye punkter (man står
+// stille, eller GPS-signalet er svagt), sendes en tom liste som livstegn,
+// så livesiden kan vise "står stille" i stedet for "ingen kontakt".
 //
 // Tilstanden ligger i meta.live (meta.json), så den overlever et nedbrud:
 //   { event, titel, aktivitet,          livesendingen (fra live-events.php)
@@ -138,11 +140,12 @@
         });
     }
 
-    // Sender de punkter, der er nyere end sidstMs, i bidder.
-    function sendPunkter(meta, punkter, login) {
+    // Sender de punkter, der er nyere end sidstMs, i bidder. Er der ingen
+    // nye punkter i første omgang, og optages der stadig, sendes et livstegn.
+    function sendPunkter(meta, punkter, login, flere) {
         var live = meta.live;
         var nye = punkter.filter(function (p) { return p[3] > live.sidstMs; }).slice(0, MAX_PUNKTER);
-        if (!nye.length) {
+        if (!nye.length && (flere || live.slut)) {
             return Promise.resolve(true);
         }
         var body = JSON.stringify({
@@ -157,8 +160,10 @@
                 }
                 // Sitet svarer med sit seneste punkt. Det kan ikke være
                 // ældre end det, vi lige har sendt.
-                live.sidstMs = Math.max(live.sidstMs, svar.data.last_ms || 0, nye[nye.length - 1][3]);
-                return sendPunkter(meta, punkter, login);
+                if (nye.length) {
+                    live.sidstMs = Math.max(live.sidstMs, svar.data.last_ms || 0, nye[nye.length - 1][3]);
+                }
+                return nye.length ? sendPunkter(meta, punkter, login, true) : true;
             });
         });
     }
