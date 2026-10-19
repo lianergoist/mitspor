@@ -81,6 +81,11 @@ side er `/api/v1/live-events.php`, `live-stage.php` og `live-points.php`.
   senere, ligesom uploads.
 - Er livesendingen slettet eller afsluttet på sitet, stopper afsendelsen med
   en besked, mens optagelsen fortsætter.
+- Mens der sendes live (ikke under pause), kan sitet ikke åbnes i appen.
+  Ligger sitets WebView over optagerens, pauser Capacitor optagerens
+  WebView, og så sendes der ikke (punkterne gemmes og sendes bagefter).
+  "‹ Tilbage" er skjult, Android-tilbageknappen lægger appen i baggrunden,
+  og `MitSporApp.aabnSite()` viser en forklaring i stedet.
 
 ## Fælles login i appen og på sitet
 

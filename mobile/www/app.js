@@ -144,7 +144,17 @@
             .finally(function () { veksler = false; });
     }
 
+    // Optageren kan spærre for sitet, mens en tur sendes live: når sitets
+    // WebView ligger over optagerens, sendes der ikke (Capacitor pauser
+    // optagerens WebView). Punkterne gemmes stadig og sendes bagefter.
+    var spaerSite = null;
+
     function openSite(path) {
+        if (spaerSite && spaerSite()) {
+            window.alert('Mens turen sendes live, kan mitspor.dk ikke åbnes i appen, for så holder afsendelsen pause.\n\n' +
+                'Sæt optagelsen på pause eller stop den først. Livesiden kan følges i telefonens browser.');
+            return;
+        }
         openSiteButton.disabled = true;
         isConnected()
             .then(function (connected) {
@@ -206,6 +216,7 @@
 
     window.MitSporApp = {
         aabnSite: openSite,
+        spaerSite: function (fn) { spaerSite = fn; },
         visSide: visSide,
         aktivSide: aktivSide
     };
