@@ -93,14 +93,34 @@
     document.getElementById("live-edit-close").addEventListener("click", function () { dialog.close(); });
     closeOnBackdrop(dialog);
 
+    // Fra appens optager (MitSporApp/8): dashboard.php?ny_live=app åbner
+    // "Ny livesending" med det samme, og efter Gem går turen tilbage til
+    // appen via /app-luk.php?live=<id>, så optageren kan vælge den.
+    var params = new URLSearchParams(location.search);
+    var fraApp = params.get("ny_live") === "app";
+    if (params.has("ny_live")) {
+        params.delete("ny_live");
+        var q = params.toString();
+        try { history.replaceState(null, "", location.pathname + (q ? "?" + q : "") + location.hash); } catch (e) { /* ikke kritisk */ }
+        var liveTab = document.querySelector('.tab-btn[data-tab-target="tab-live"]');
+        if (liveTab) liveTab.click();
+        var nyKnap = document.querySelector('[data-live-edit=""]');
+        if (nyKnap) nyKnap.click();
+    }
+
     form.addEventListener("submit", function (ev) {
         ev.preventDefault();
         var body = new FormData(form);
         if (planSelect.disabled) body.set("plan", "keep");
+        var ny = !document.getElementById("live-edit-id").value;
         post(body)
             .then(function (data) {
                 if (!data.success) {
                     showErrors(errorsBox, data.errors);
+                    return;
+                }
+                if (fraApp && ny) {
+                    window.location.replace("/app-luk.php?live=" + encodeURIComponent(data.event_id));
                     return;
                 }
                 // Vis den gemte livesending, når siden er hentet igen.
@@ -110,12 +130,26 @@
             .catch(function () { showErrors(errorsBox, null); });
     });
 
+    var KOPI_IKON = btnIkon();
+    var OK_IKON = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12l5 5 9-10"/></svg>';
+
+    function btnIkon() {
+        var btn = document.querySelector("[data-live-copy]");
+        return btn ? btn.innerHTML : "";
+    }
+
     document.querySelectorAll("[data-live-copy]").forEach(function (btn) {
         btn.addEventListener("click", function () {
             var input = btn.closest(".detail-panel").querySelector("[data-live-url]");
             var done = function () {
-                btn.textContent = "Kopieret";
-                setTimeout(function () { btn.textContent = "Kopiér link"; }, 2000);
+                btn.innerHTML = OK_IKON;
+                btn.classList.add("is-copied");
+                btn.title = "Kopieret";
+                setTimeout(function () {
+                    btn.innerHTML = KOPI_IKON;
+                    btn.classList.remove("is-copied");
+                    btn.title = "Kopiér link";
+                }, 2000);
             };
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(input.value).then(done, function () { input.select(); });
