@@ -85,6 +85,7 @@ function live_view_payload(PDO $pdo, array $event, bool $isOwner, string $client
                 s.started_at <= :c1 AS started_visible,
                 s.ended_at IS NOT NULL AND s.ended_at <= :c2 AS ended_visible,
                 r.public_id AS route_public_id, r.title AS route_title, r.visibility AS route_visibility,
+                r.share_token AS route_share_token,
                 r.gpx_file_path AS route_gpx, r.updated_at AS route_updated,
                 pr.gpx_file_path AS planned_gpx, pr.updated_at AS planned_updated
          FROM live_stages s
@@ -126,7 +127,7 @@ function live_view_payload(PDO $pdo, array $event, bool $isOwner, string $client
         $stages[] = ['row' => $row, 'state' => $state, 'route_shown' => $routeShown];
         $versionParts[] = implode(':', [
             $row['id'], $row['position'], $row['title'], $state,
-            $routeShown ? $row['route_public_id'] . '@' . $row['route_updated'] : '',
+            $routeShown ? $row['route_public_id'] . '@' . $row['route_updated'] . '@' . $row['route_visibility'] . ($row['route_share_token'] !== null ? 's' : '') : '',
             $row['planned_gpx'] !== null ? $row['planned_updated'] : '',
         ]);
     }
@@ -190,9 +191,16 @@ function live_view_payload(PDO $pdo, array $event, bool $isOwner, string $client
         $payload['stages'] = [];
         foreach ($stages as $st) {
             $row = $st['row'];
-            $routeLink = $st['route_shown'] && ($isOwner || $row['route_visibility'] === 'public')
-                ? '/route-view.php?id=' . $row['route_public_id']
-                : null;
+            // Ejeren og offentlige spor: almindeligt link. Private spor: med
+            // del-linket (se live_sync()), hvis ejeren ikke har slettet det.
+            $routeLink = null;
+            if ($st['route_shown']) {
+                if ($isOwner || $row['route_visibility'] === 'public') {
+                    $routeLink = '/route-view.php?id=' . $row['route_public_id'];
+                } elseif ($row['route_share_token'] !== null) {
+                    $routeLink = '/route-view.php?id=' . $row['route_public_id'] . '&share=' . $row['route_share_token'];
+                }
+            }
             $payload['stages'][] = [
                 'position' => (int) $row['position'],
                 'title'    => $row['title'] !== '' ? $row['title'] : ($st['route_shown'] ? (string) $row['route_title'] : ''),

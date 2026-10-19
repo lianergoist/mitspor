@@ -421,8 +421,13 @@ function live_sync_locked(PDO $pdo, int $eventId): void
     $stmt->execute(['uid' => $userId, 'eid' => $eventId]);
     $newlyLinked = [];
     $upd = $pdo->prepare('UPDATE live_stages SET route_id = :rid WHERE id = :sid');
+    // Et del-link, så dem, der kan se livesiden, også kan åbne etapens side
+    // (route-view.php?share=…), selv om sporet er privat. Har sporet allerede
+    // et, bruges det. Sletter ejeren det senere, laves det ikke igen.
+    $share = $pdo->prepare('UPDATE routes SET share_token = :token WHERE id = :rid AND share_token IS NULL');
     foreach ($stmt->fetchAll() as $row) {
         $upd->execute(['rid' => $row['route_id'], 'sid' => $row['stage_id']]);
+        $share->execute(['token' => bin2hex(random_bytes(24)), 'rid' => $row['route_id']]);
         $newlyLinked[(int) $row['route_id']] = true;
     }
 
