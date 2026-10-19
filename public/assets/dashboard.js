@@ -513,10 +513,9 @@ function markerDefaultPreview(select, box) {
             hide_uploader_name: document.getElementById('upload-hide-uploader-name').checked ? '1' : '0',
             public_notice_ack: noticeCheckbox.checked ? '1' : '0',
             marker_icon: selectedUploadMarker(),
-            // Ingen spørgsmål undervejs ved mange filer: tidsstempler og punkter
-            // beholdes som de er (kan ændres bagefter i GPX-editoren).
-            time_resolution: 'keep',
-            thin_interval: '0'
+            // Ingen spørgsmål undervejs ved mange filer: tidsstempler beholdes
+            // som de er (kan ændres bagefter i GPX-editoren).
+            time_resolution: 'keep'
         };
 
         submitBtn.disabled = true;
@@ -591,8 +590,6 @@ function markerDefaultPreview(select, box) {
 
     var warningPanel = document.getElementById('upload-speed-warning');
     var warningText = document.getElementById('upload-speed-warning-text');
-    var thinningPanel = document.getElementById('upload-thinning-suggest');
-    var thinningText = document.getElementById('upload-thinning-suggest-text');
 
     var csrfToken = document.getElementById('upload-csrf-token').value;
     var pendingGpxContent = null;
@@ -631,7 +628,6 @@ function markerDefaultPreview(select, box) {
         updateUploadDefaultMarker();
         form.hidden = false;
         warningPanel.hidden = true;
-        thinningPanel.hidden = true;
         errorsEl.hidden = true;
         // Formularen er lige nulstillet til default (privat) — så
         // GDPR-boksen skal ikke forblive forudfyldt fra en tidligere upload.
@@ -699,7 +695,7 @@ function markerDefaultPreview(select, box) {
         reader.readAsText(fileInput.files[0]);
     });
 
-    function submitUpload(timeResolution, thinInterval) {
+    function submitUpload(timeResolution) {
         var body = new URLSearchParams({
             csrf_token: csrfToken,
             route_id: '',
@@ -713,8 +709,7 @@ function markerDefaultPreview(select, box) {
             hide_uploader_name: document.getElementById('upload-hide-uploader-name').checked ? '1' : '0',
             public_notice_ack: noticeCheckbox.checked ? '1' : '0',
             marker_icon: selectedUploadMarker(),
-            time_resolution: timeResolution || 'ask',
-            thin_interval: (thinInterval === undefined || thinInterval === null) ? '' : String(thinInterval)
+            time_resolution: timeResolution || 'ask'
         });
 
         fetch('editor-save.php', { method: 'POST', body: body })
@@ -727,16 +722,6 @@ function markerDefaultPreview(select, box) {
                         'Nogle af rutens tidsstempler antyder en hastighed på op til ' + result.data.max_speed_kmh +
                         ' km/t, hvilket er over den forventede grænse på ' + result.data.threshold_kmh +
                         ' km/t for den valgte aktivitetstype. Vælg hvordan du vil fortsætte:';
-                    return;
-                }
-
-                if (result.status === 409 && result.data.thinning_suggested) {
-                    form.hidden = true;
-                    thinningPanel.hidden = false;
-                    thinningText.textContent =
-                        'Ruten logger i gennemsnit hvert ' + result.data.detected_interval_seconds +
-                        '. sekund. Det er ofte flere punkter, end der reelt er brug for. ' +
-                        'Vil du udtynde ruten, før den gemmes?';
                     return;
                 }
 
@@ -758,17 +743,6 @@ function markerDefaultPreview(select, box) {
     document.getElementById('upload-speed-strip').addEventListener('click', function () { submitUpload('strip'); });
     document.getElementById('upload-speed-cancel').addEventListener('click', function () {
         warningPanel.hidden = true;
-        form.hidden = false;
-    });
-
-    document.querySelectorAll('#upload-thinning-suggest [data-upload-thin-interval]').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            submitUpload('ask', parseInt(btn.getAttribute('data-upload-thin-interval'), 10));
-        });
-    });
-    document.getElementById('upload-thinning-keep').addEventListener('click', function () { submitUpload('ask', 0); });
-    document.getElementById('upload-thinning-cancel').addEventListener('click', function () {
-        thinningPanel.hidden = true;
         form.hidden = false;
     });
 

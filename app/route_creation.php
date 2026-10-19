@@ -13,8 +13,8 @@ require_once __DIR__ . '/og_image.php';
  * Der tjekkes bevidst IKKE for usandsynlig hastighed eller hyppig
  * logningsfrekvens ved upload/gem — aktivitetstypen har udelukkende
  * betydning for hvilken markør ruten vises med. Vil en bruger fjerne
- * tidsstempler eller udtynde punkter, gøres det manuelt via
- * værktøjskassen i editoren.
+ * tidsstempler eller udtynde punkter, gøres det manuelt i
+ * kontrolpanelet.
  *
  * $clientUploadId bruges af mobil-API'et (public/api/v1/upload-route.php)
  * til at genkende gentagne uploads af samme fil. Findes id'et allerede
@@ -34,7 +34,6 @@ function create_route(
     bool $publicNoticeAcknowledged,
     string $timeConflictResolution = 'ask',
     bool $hideUploaderName = false,
-    ?int $thinIntervalSeconds = null,
     string $routeType = 'rute',
     ?string $enabledDataFields = null,
     ?string $enabledFunctions = null,

@@ -207,7 +207,6 @@ if ($internalRouteId > 0) {
         $publicAck,
         $timeResolution,
         $hideUploaderName,
-        $thinInterval,
         $routeType,
         $enabledDataFields,
         $enabledFunctions
@@ -221,16 +220,6 @@ if (!empty($result['speed_warning'])) {
         'speed_warning' => true,
         'max_speed_kmh' => $result['max_speed_kmh'],
         'threshold_kmh' => $result['threshold_kmh'],
-    ]);
-    exit;
-}
-
-if (!empty($result['thinning_suggested'])) {
-    http_response_code(409);
-    echo json_encode([
-        'success'                   => false,
-        'thinning_suggested'        => true,
-        'detected_interval_seconds' => $result['detected_interval_seconds'],
     ]);
     exit;
 }

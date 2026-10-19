@@ -135,7 +135,6 @@ $result = create_route(
     false,         // public_notice_ack (ikke relevant for private ruter)
     'ask',
     false,         // hide_uploader_name
-    null,          // ingen udtynding
     'spor',
     null,
     null,
