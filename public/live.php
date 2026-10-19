@@ -126,7 +126,7 @@ window.MITSPOR_LIVE = <?= json_encode($config, JSON_UNESCAPED_UNICODE | JSON_HEX
 window.MITSPOR_LIVE.palette = <?= json_encode($palette) ?>;
 </script>
 <script src="vendor/leaflet/leaflet.js"></script>
-<script src="assets/live.js?v=4"></script>
+<script src="assets/live.js?v=5"></script>
 
 </body>
 </html>

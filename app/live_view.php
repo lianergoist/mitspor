@@ -288,3 +288,61 @@ function live_gpx_points(string $relativePath): array
 
     return is_file($full) ? group_simplify_for_map(og_read_points($full)) : [];
 }
+
+/**
+ * Etape nr. $position til route-view.php, set med den besøgendes forsinkelse.
+ * 'link' er den færdige rutes side, når den må vises (som på livesiden);
+ * ellers vises etapens rå punkter. Null, hvis etapen ikke findes.
+ */
+function live_stage_for_view(PDO $pdo, array $event, int $position, bool $isOwner): ?array
+{
+    $delay = $isOwner ? 0 : (int) $event['delay_minutes'];
+    $stmt = $pdo->prepare('SELECT NOW() - INTERVAL :d MINUTE');
+    $stmt->execute(['d' => $delay]);
+    $cutoff = (string) $stmt->fetchColumn();
+
+    $stmt = $pdo->prepare(
+        "SELECT s.id, s.position, s.title, s.status, s.started_at,
+                s.started_at <= :c1 AS started_visible,
+                s.ended_at IS NOT NULL AND s.ended_at <= :c2 AS ended_visible,
+                r.public_id AS route_public_id, r.visibility AS route_visibility, r.share_token AS route_share_token
+         FROM live_stages s
+         LEFT JOIN routes r ON r.id = s.route_id AND r.status = 'active'
+         WHERE s.event_id = :eid AND s.position = :pos
+         LIMIT 1"
+    );
+    $stmt->execute(['c1' => $cutoff, 'c2' => $cutoff, 'eid' => $event['id'], 'pos' => $position]);
+    $row = $stmt->fetch();
+    if (!$row || $row['started_at'] === null) {
+        return null;
+    }
+
+    $link = null;
+    if ($row['ended_visible'] && $row['route_public_id'] !== null) {
+        if ($isOwner || $row['route_visibility'] === 'public') {
+            $link = '/route-view.php?id=' . $row['route_public_id'];
+        } elseif ($row['route_share_token'] !== null) {
+            $link = '/route-view.php?id=' . $row['route_public_id'] . '&share=' . $row['route_share_token'];
+        }
+    }
+
+    return [
+        'id'              => (int) $row['id'],
+        'position'        => (int) $row['position'],
+        'title'           => (string) $row['title'],
+        'started_visible' => (bool) $row['started_visible'],
+        'finished'        => $row['status'] === 'afsluttet' && (bool) $row['ended_visible'],
+        'cutoff'          => $cutoff,
+        'link'            => $link,
+    ];
+}
+
+/** Etapens navn, som route-view.php viser det. */
+function live_stage_name(array $event, array $stage): string
+{
+    if ($stage['title'] !== '') {
+        return $stage['title'];
+    }
+
+    return $stage['position'] > 1 ? $event['title'] . ' – etape ' . $stage['position'] : (string) $event['title'];
+}
