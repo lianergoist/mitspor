@@ -424,6 +424,8 @@
                 if (valgt) {
                     meta.live = Live.ny(valgt);
                 }
+                // Næste optagelse sendes kun live, hvis den vælges igen.
+                liveSelect.value = '';
                 punkter = [];
                 sidst = null;
                 segment = 0;
