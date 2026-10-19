@@ -425,7 +425,8 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             <span class="meta-type"><?= htmlspecialchars($route['activity_name'], ENT_QUOTES, 'UTF-8') ?></span>
             <span class="meta-sep">&middot;</span>
             <span class="meta-vis"><?= $route['visibility'] === 'public' ? 'offentlig' : 'privat' ?></span>
-            <?php if (!$route['hide_uploader_name']): ?>
+            <?php // Uploaderen vises kun på offentlige ruter (ikke på private/del-link). ?>
+            <?php if ($route['visibility'] === 'public' && !$route['hide_uploader_name']): ?>
                 <span class="meta-sep-uploader">&middot;</span>
                 <span class="meta-uploader">Uploadet af: <?= htmlspecialchars($route['uploader_name'], ENT_QUOTES, 'UTF-8') ?></span>
             <?php endif; ?>
