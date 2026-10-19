@@ -4,12 +4,14 @@ declare(strict_types=1);
 require_once __DIR__ . '/route_deletion.php';
 require_once __DIR__ . '/route_groups.php';
 require_once __DIR__ . '/image_storage.php';
+require_once __DIR__ . '/live.php';
 
 /**
  * Sletter en brugers konto permanent:
  * - alle brugerens aktive ruter slettes enkeltvis via delete_route()
  *   (samme tombesten-mekanisme som ved individuel rutesletning)
  * - alle uploadede billeder slettes (rækker + originalfiler + miniaturer)
+ * - livesendinger slettes med etaper og rå punkter
  * - selve brugerrækken anonymiseres og markeres 'deleted' — raden
  *   bevares (i stedet for hård sletning), fordi de tombesten-markerede
  *   ruter stadig peger på den via user_id (fremmednøgle)
@@ -33,6 +35,9 @@ function delete_account(PDO $pdo, array $user): void
         group_invalidate_cache((string) $groupPublicId);
     }
     $pdo->prepare('DELETE FROM route_groups WHERE user_id = :uid')->execute(['uid' => $userId]);
+
+    // --- Slet livesendinger med etaper og rå punkter (sporene er slettet ovenfor) ---
+    live_delete_for_user($pdo, $userId);
 
     // --- Slet alle uploadede billeder (både original og miniature) ---
     $stmt = $pdo->prepare('SELECT id, relative_path, thumbnail_relative_path FROM user_images WHERE user_id = :uid');

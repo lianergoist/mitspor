@@ -14,6 +14,7 @@ require_once __DIR__ . '/../app/auth.php';
 require_once __DIR__ . '/../app/route_groups.php';
 require_once __DIR__ . '/../app/app_hent.php';
 require_once __DIR__ . '/../app/markers.php';
+require_once __DIR__ . '/../app/live.php';
 
 $userId = require_login();
 $user = current_user($userId);
@@ -45,6 +46,7 @@ $stmt->execute(['user_id' => $userId]);
 $routes = $stmt->fetchAll();
 
 $groups = group_list_for_user($pdo, $userId);
+$liveEvents = live_events_for_dashboard($pdo, $userId);
 ?>
 <!DOCTYPE html>
 <html lang="da">
@@ -57,7 +59,7 @@ $groups = group_list_for_user($pdo, $userId);
     <title>Mit kontrolpanel</title>
     <link rel="stylesheet" href="assets/style.css?v=22">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/dashboard.css?v=16">
+    <link rel="stylesheet" href="assets/dashboard.css?v=17">
 </head>
 <body>
 
@@ -382,6 +384,86 @@ function render_group_detail(array $g): void
     <?php
 }
 
+const LIVE_STATUS_LABELS = ['planlagt' => 'Planlagt', 'live' => 'Live nu', 'pause' => 'Pause', 'afsluttet' => 'Afsluttet'];
+
+function dash_live_summary(array $ev): string
+{
+    $parts = [LIVE_STATUS_LABELS[$ev['status']] ?? ''];
+    if ($ev['planned_start_at'] !== null && $ev['status'] === 'planlagt') {
+        $parts[] = 'start ' . date('d.m.Y H.i', strtotime((string) $ev['planned_start_at']));
+    }
+    $stages = (int) $ev['started_count'] + (int) $ev['planned_count'];
+    if ($stages > 0) {
+        $parts[] = $stages . ($stages === 1 ? ' etape' : ' etaper');
+    }
+    $parts[] = $ev['visibility'] === 'public' ? 'offentlig' : 'kun med link';
+    if ((int) $ev['delay_minutes'] > 0) {
+        $parts[] = (int) $ev['delay_minutes'] . ' min. forsinkelse';
+    }
+
+    return implode(' · ', $parts);
+}
+
+function render_live_item(array $ev): void
+{
+    $key = 'live:' . $ev['public_id'];
+    ?>
+    <li data-item="<?= dash_h($key) ?>">
+        <button type="button" class="hub-item-main" data-select-item="<?= dash_h($key) ?>">
+            <span class="route-title"><?= dash_h($ev['title']) ?></span>
+            <span class="hub-item-sub"><?= dash_h(dash_live_summary($ev)) ?></span>
+        </button>
+    </li>
+    <?php
+}
+
+function render_live_detail(array $ev): void
+{
+    $id = $ev['public_id'];
+    $url = APP_BASE_URL . live_url($ev);
+    $editData = [
+        'id'               => $id,
+        'title'            => $ev['title'],
+        'description'      => (string) ($ev['description'] ?? ''),
+        'activity_type_id' => (int) $ev['activity_type_id'],
+        'visibility'       => $ev['visibility'],
+        'delay_minutes'    => (int) $ev['delay_minutes'],
+        'planned_start_at' => $ev['planned_start_at'] !== null ? date('Y-m-d\TH:i', strtotime((string) $ev['planned_start_at'])) : '',
+        'planned_count'    => (int) $ev['planned_count'],
+        'finished'         => $ev['status'] === 'afsluttet',
+    ];
+    ?>
+    <section class="detail-panel" data-detail="live:<?= dash_h($id) ?>" hidden>
+        <h2><?= dash_h($ev['title']) ?></h2>
+        <p class="detail-summary"><?= dash_h(dash_live_summary($ev)) ?></p>
+        <?php if ($ev['group_public_id'] !== null): ?>
+            <p class="detail-meta">Etaperne ligger i gruppen
+                <button type="button" class="link-btn" data-goto="group:<?= dash_h($ev['group_public_id']) ?>"><?= dash_h($ev['title']) ?></button>
+            </p>
+        <?php endif; ?>
+
+        <label class="live-link">
+            Link til livesiden<?= $ev['visibility'] === 'public' ? '' : ' (alle med linket kan se den)' ?>
+            <input type="text" readonly value="<?= dash_h($url) ?>" data-live-url>
+        </label>
+
+        <div class="tool-list">
+            <a class="tool" href="<?= dash_h(live_url($ev)) ?>">Vis livesiden</a>
+            <button type="button" class="tool" data-live-copy>Kopiér link</button>
+            <button type="button" class="tool" data-live-edit="<?= dash_h(json_encode($editData, JSON_UNESCAPED_UNICODE)) ?>">Rediger livesending</button>
+            <?php if ($ev['visibility'] !== 'public'): ?>
+                <button type="button" class="tool" data-live-action="new_link" data-live-id="<?= dash_h($id) ?>" data-live-confirm="Lav et nyt link? Det gamle link holder op med at virke.">Lav nyt link</button>
+            <?php endif; ?>
+            <?php if ($ev['status'] !== 'afsluttet'): ?>
+                <button type="button" class="tool" data-live-action="finish" data-live-id="<?= dash_h($id) ?>" data-live-confirm="Afslut livesendingen? Appen kan derefter ikke sende flere etaper til den.">Afslut livesendingen</button>
+            <?php endif; ?>
+            <button type="button" class="tool danger" data-live-delete="<?= dash_h($id) ?>" data-live-title="<?= dash_h($ev['title']) ?>">Slet livesending</button>
+        </div>
+        <p class="hint">Afsendelsen startes i MitSpor-appen (kræver den nyeste version): vælg livesendingen, når du starter en optagelse. Hver optagelse bliver en etape.</p>
+    </section>
+    <?php
+}
+
 $ruteRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'] !== 'spor');
 $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'] === 'spor');
 
@@ -395,6 +477,7 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
                 <button type="button" class="tab-btn" data-tab-target="tab-spor">Spor (<?= count($sporRoutes) ?>)</button>
                 <button type="button" class="tab-btn" data-tab-target="tab-rute">Ruter (<?= count($ruteRoutes) ?>)</button>
                 <button type="button" class="tab-btn" data-tab-target="tab-grupper">Grupper (<?= count($groups) ?>)</button>
+                <button type="button" class="tab-btn" data-tab-target="tab-live">Live (<?= count($liveEvents) ?>)</button>
             </div>
 
             <div id="tab-alle" class="tab-panel">
@@ -436,6 +519,17 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
                     </ul>
                 <?php endif; ?>
             </div>
+
+            <div id="tab-live" class="tab-panel" hidden>
+                <button type="button" class="btn btn-primary live-new-btn" data-live-edit="">Ny livesending</button>
+                <?php if (empty($liveEvents)): ?>
+                    <p class="empty-state">Med en livesending kan andre følge din tur på kortet, mens du er undervejs. Opret den på forhånd, og del linket. Selve afsendelsen startes i MitSpor-appen, når du optager.</p>
+                <?php else: ?>
+                    <ul class="hub-items">
+                        <?php foreach ($liveEvents as $ev): render_live_item($ev); endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+            </div>
         </div>
 
         <div class="hub-detail card">
@@ -445,6 +539,7 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
 
             <?php foreach ($routes as $route): render_route_detail($route); endforeach; ?>
             <?php foreach ($groups as $g): render_group_detail($g); endforeach; ?>
+            <?php foreach ($liveEvents as $ev): render_live_detail($ev); endforeach; ?>
         </div>
     </div>
 
@@ -850,6 +945,119 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
     </form>
 </dialog>
 
+<dialog id="live-edit-dialog" class="modal-dialog">
+    <button type="button" id="live-edit-close" class="modal-close" aria-label="Luk">&times;</button>
+    <h2 id="live-edit-heading">Ny livesending</h2>
+
+    <div id="live-edit-errors" class="modal-errors" hidden></div>
+
+    <form id="live-edit-form">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
+        <input type="hidden" name="action" value="save">
+        <input type="hidden" name="event_id" id="live-edit-id">
+
+        <label>
+            Titel
+            <input type="text" name="title" id="live-edit-title" required maxlength="200">
+        </label>
+        <label>
+            Beskrivelse
+            <textarea name="description" id="live-edit-description"></textarea>
+        </label>
+        <label>
+            Aktivitet
+            <select name="activity_type_id" id="live-edit-activity" required>
+                <?php foreach ($activityTypes as $type): ?>
+                    <option value="<?= (int) $type['id'] ?>"><?= dash_h($type['name_da']) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </label>
+        <label>
+            Planlagt start (valgfri)
+            <input type="datetime-local" name="planned_start_at" id="live-edit-start">
+        </label>
+
+        <label>
+            Plan (vises stiplet på livesiden)
+            <select name="plan" id="live-edit-plan">
+                <option value="keep" id="live-edit-plan-keep">Behold den nuværende plan</option>
+                <option value="none">Ingen plan</option>
+                <?php if ($groups): ?>
+                    <optgroup label="Gruppe (én etape pr. rute)">
+                        <?php foreach ($groups as $g): ?>
+                            <option value="group:<?= dash_h($g['public_id']) ?>"><?= dash_h($g['title']) ?> (<?= (int) $g['stage_count'] ?> etaper)</option>
+                        <?php endforeach; ?>
+                    </optgroup>
+                <?php endif; ?>
+                <?php if ($routes): ?>
+                    <optgroup label="Én rute">
+                        <?php foreach ($routes as $r): ?>
+                            <option value="route:<?= dash_h($r['public_id']) ?>"><?= dash_h($r['title']) ?></option>
+                        <?php endforeach; ?>
+                    </optgroup>
+                <?php endif; ?>
+            </select>
+        </label>
+        <p class="hint" id="live-edit-plan-hint">Etaper, der allerede er startet, røres ikke.</p>
+
+        <label>
+            Forsinkelse
+            <select name="delay_minutes" id="live-edit-delay">
+                <?php foreach (LIVE_DELAY_CHOICES as $minutes): ?>
+                    <option value="<?= $minutes ?>"><?= $minutes === 0 ? 'Ingen' : $minutes . ' minutter' ?></option>
+                <?php endforeach; ?>
+            </select>
+        </label>
+        <p class="hint">Andre ser din position så mange minutter efter. Du ser selv alt med det samme.</p>
+
+        <fieldset>
+            <legend>Hvem kan se livesiden?</legend>
+            <label class="checkbox-field">
+                <input type="radio" name="visibility" value="private" id="live-vis-private" checked>
+                Kun personer med linket
+            </label>
+            <label class="checkbox-field">
+                <input type="radio" name="visibility" value="public" id="live-vis-public">
+                Alle (offentlig)
+            </label>
+        </fieldset>
+
+        <p class="notice-field" id="live-vis-notice" hidden>
+            <label class="checkbox-field">
+                <input type="checkbox" name="public_notice_ack" value="1" id="live-vis-ack">
+                Jeg forstår, at alle kan følge min position, mens livesendingen er i gang.
+            </label>
+        </p>
+
+        <button type="submit" class="btn btn-primary btn-full">Gem</button>
+    </form>
+</dialog>
+
+<dialog id="live-delete-dialog" class="modal-dialog">
+    <button type="button" id="live-delete-close" class="modal-close" aria-label="Luk">&times;</button>
+    <h2>Slet livesending</h2>
+
+    <div id="live-delete-errors" class="modal-errors" hidden></div>
+
+    <p>
+        Du er ved at slette livesendingen <strong id="live-delete-title"></strong>. Livesiden og de
+        rå punkter slettes. Etapernes færdige spor og gruppen bliver stående.
+    </p>
+
+    <form id="live-delete-form">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
+        <input type="hidden" name="action" value="delete">
+        <input type="hidden" name="event_id" id="live-delete-id">
+
+        <label>
+            Indtast livesendingens navn for at bekræfte
+            <input type="text" name="confirm_title" id="live-delete-confirm-title" required autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+        </label>
+
+        <button type="submit" class="btn btn-danger" id="live-delete-submit-btn" disabled>Slet livesendingen</button>
+    </form>
+</dialog>
+
 <dialog id="group-edit-dialog" class="modal-dialog">
     <button type="button" id="group-edit-close" class="modal-close" aria-label="Luk">&times;</button>
     <h2>Rediger gruppe</h2>
@@ -903,10 +1111,11 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
 <script src="assets/gpx-field-labels.js?v=3"></script>
 <script src="assets/gpx-tools.js?v=1"></script>
 <script src="assets/genindlaes.js?v=1"></script>
-<script src="assets/dashboard.js?v=16"></script>
+<script src="assets/dashboard.js?v=17"></script>
 <script src="assets/dashboard-tools.js?v=3"></script>
 <script src="assets/activity-marker.js?v=1"></script>
 <script src="assets/dashboard-map.js?v=6"></script>
+<script src="assets/dashboard-live.js?v=1"></script>
 
 </body>
 </html>
