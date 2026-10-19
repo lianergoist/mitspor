@@ -476,11 +476,6 @@ body {
     margin: 0;
 }
 
-.optag-live-valg .start-note .link-btn {
-    padding: 4px 0;
-    font-size: inherit;
-}
-
 /* "Send live" og valget på samme linje. */
 .optag-live-linje {
     display: flex;

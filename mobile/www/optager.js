@@ -57,7 +57,9 @@
     var liveValg = document.getElementById('optag-live-valg');
     var liveSelect = document.getElementById('optag-live');
     var liveLabel = document.getElementById('optag-live-label');
-    var liveNyKnap = document.getElementById('optag-live-ny');
+    // Punktet "Opret ny livesending …" i valget. Det kan aldrig stå som valgt.
+    var NY_LIVE = 'ny';
+    var forrigeLive = '';
     var liveStatus = document.getElementById('optag-live-status');
     var laasTekst = document.getElementById('optag-laas');
 
@@ -449,6 +451,7 @@
                 }
                 // Næste optagelse sendes kun live, hvis den vælges igen.
                 liveSelect.value = '';
+                forrigeLive = '';
                 opdaterKnapper();
                 punkter = [];
                 sidst = null;
@@ -678,6 +681,10 @@
             nej.value = '';
             nej.textContent = 'Nej';
             liveSelect.appendChild(nej);
+            var ny = document.createElement('option');
+            ny.value = NY_LIVE;
+            ny.textContent = 'Opret ny livesending …';
+            liveSelect.appendChild(ny);
             liste.forEach(function (l) {
                 var o = document.createElement('option');
                 o.value = l.event;
@@ -685,6 +692,7 @@
                 liveSelect.appendChild(o);
             });
             liveSelect.value = liste.some(function (l) { return l.event === valgt; }) ? valgt : '';
+            forrigeLive = liveSelect.value;
             opdaterKnapper();
         });
     }
@@ -721,12 +729,16 @@
 
     // ---------- Hændelser ----------
 
-    liveSelect.addEventListener('change', opdaterKnapper);
-
-    // Opret en livesending på sitet. Efter Gem lukker sitet WebView'et
-    // (/app-luk.php?live=<id>), og app.js sender 'mitspor:ny-livesending'.
-    liveNyKnap.addEventListener('click', function () {
-        window.MitSporApp.aabnSite('/dashboard.php?ny_live=app');
+    // "Opret ny livesending …" åbner sitet. Valget springer tilbage til det
+    // forrige; efter Gem lukker sitet WebView'et (/app-luk.php?live=<id>),
+    // og app.js sender 'mitspor:ny-livesending', som vælger den nye.
+    liveSelect.addEventListener('change', function () {
+        if (liveSelect.value === NY_LIVE) {
+            liveSelect.value = forrigeLive;
+            window.MitSporApp.aabnSite('/dashboard.php?ny_live=app');
+        }
+        forrigeLive = liveSelect.value;
+        opdaterKnapper();
     });
     document.addEventListener('mitspor:ny-livesending', function (ev) {
         if (aktiv) {
