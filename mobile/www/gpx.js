@@ -2,6 +2,7 @@
 //
 // Et punkt er et array: [bredde, længde, højde|null, tid (ms), nøjagtighed (m), segment].
 // Arrays fylder mindre end objekter, både i hukommelsen og i punkter.jsonl.
+// Et waypoint er et objekt: { lat, lon, ele|null, tid (ms), titel, tekst }.
 (function () {
     'use strict';
 
@@ -36,14 +37,30 @@
         return linje + '<time>' + new Date(p[3]).toISOString() + '</time></trkpt>\n';
     }
 
+    function wpt(w) {
+        var linje = '  <wpt lat="' + w.lat.toFixed(7) + '" lon="' + w.lon.toFixed(7) + '">';
+        if (w.ele !== null && isFinite(w.ele)) {
+            linje += '<ele>' + w.ele.toFixed(1) + '</ele>';
+        }
+        linje += '<time>' + new Date(w.tid).toISOString() + '</time><name>' + xml(w.titel) + '</name>';
+        if (w.tekst) {
+            linje += '<desc>' + xml(w.tekst) + '</desc>';
+        }
+        return linje + '</wpt>\n';
+    }
+
     // Laver hele GPX-filen. Et nyt segment (fx efter genoptagelse) giver en ny <trkseg>.
-    function lav(navn, startTid, punkter) {
+    // Waypoints skal stå før <trk> (GPX-skemaets rækkefølge).
+    function lav(navn, startTid, punkter, waypoints) {
         var dele = [
             '<?xml version="1.0" encoding="UTF-8"?>\n',
             '<gpx version="1.1" creator="MitSpor-app" xmlns="http://www.topografix.com/GPX/1/1">\n',
-            '  <metadata><name>' + xml(navn) + '</name><time>' + new Date(startTid).toISOString() + '</time></metadata>\n',
-            '  <trk>\n    <name>' + xml(navn) + '</name>\n'
+            '  <metadata><name>' + xml(navn) + '</name><time>' + new Date(startTid).toISOString() + '</time></metadata>\n'
         ];
+        (waypoints || []).forEach(function (w) {
+            dele.push(wpt(w));
+        });
+        dele.push('  <trk>\n    <name>' + xml(navn) + '</name>\n');
         var segment = null;
 
         punkter.forEach(function (p) {
