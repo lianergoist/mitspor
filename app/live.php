@@ -66,7 +66,7 @@ function live_event_find_owned(PDO $pdo, int $userId, string $publicId): ?array
     }
     $stmt = $pdo->prepare(
         'SELECT id, public_id, user_id, title, description, activity_type_id, status,
-                visibility, delay_minutes, group_id
+                visibility, share_token, delay_minutes, planned_start_at, group_id
          FROM live_events
          WHERE public_id = :pid AND user_id = :uid
          LIMIT 1'
@@ -526,4 +526,296 @@ function live_delete_for_user(PDO $pdo, int $userId): void
          WHERE e.user_id = :uid'
     )->execute(['uid' => $userId]);
     $pdo->prepare('DELETE FROM live_events WHERE user_id = :uid')->execute(['uid' => $userId]);
+}
+
+// ---------------------------------------------------------------------
+// Oprettelse og redigering (kontrolpanelet)
+// ---------------------------------------------------------------------
+
+// Valg af forsinkelse i minutter.
+const LIVE_DELAY_CHOICES = [0, 5, 15, 30, 60];
+
+function live_generate_public_id(PDO $pdo): string
+{
+    for ($attempt = 0; $attempt < 10; $attempt++) {
+        $candidate = str_pad((string) random_int(0, 99999999), 8, '0', STR_PAD_LEFT);
+        $stmt = $pdo->prepare('SELECT 1 FROM live_events WHERE public_id = :id LIMIT 1');
+        $stmt->execute(['id' => $candidate]);
+        if (!$stmt->fetch()) {
+            return $candidate;
+        }
+    }
+    throw new RuntimeException('Kunne ikke generere et unikt id til livesendingen.');
+}
+
+/** Delingsnøgle til en privat livesending (som routes.share_token). */
+function live_new_share_token(): string
+{
+    return bin2hex(random_bytes(24));
+}
+
+/** Brugerens livesendinger til kontrolpanelet, nyeste først. */
+function live_events_for_dashboard(PDO $pdo, int $userId): array
+{
+    $stmt = $pdo->prepare(
+        "SELECT e.id, e.public_id, e.title, e.description, e.activity_type_id, e.status, e.visibility,
+                e.share_token, e.delay_minutes, e.planned_start_at, e.created_at,
+                g.public_id AS group_public_id,
+                (SELECT COUNT(*) FROM live_stages s WHERE s.event_id = e.id AND s.started_at IS NOT NULL) AS started_count,
+                (SELECT COUNT(*) FROM live_stages s WHERE s.event_id = e.id AND s.status = 'planlagt') AS planned_count
+         FROM live_events e
+         LEFT JOIN route_groups g ON g.id = e.group_id
+         WHERE e.user_id = :uid
+         ORDER BY (e.status = 'afsluttet') ASC, COALESCE(e.planned_start_at, e.created_at) DESC, e.id DESC"
+    );
+    $stmt->execute(['uid' => $userId]);
+
+    return $stmt->fetchAll();
+}
+
+/** Adressen på livesiden (med nøglen, hvis den er privat). */
+function live_url(array $event): string
+{
+    $url = '/live.php?id=' . $event['public_id'];
+    if ($event['visibility'] !== 'public' && !empty($event['share_token'])) {
+        $url .= '&k=' . $event['share_token'];
+    }
+
+    return $url;
+}
+
+/**
+ * Valider og normaliser felterne fra dialogen.
+ *
+ * @return array{errors: string[], values: array}
+ */
+function live_validate_input(PDO $pdo, array $input): array
+{
+    $errors = [];
+
+    $title = trim((string) ($input['title'] ?? ''));
+    $description = trim((string) ($input['description'] ?? ''));
+    $len = mb_strlen($title);
+    if ($len < GROUP_TITLE_MIN || $len > GROUP_TITLE_MAX) {
+        $errors[] = 'Titlen skal være mellem ' . GROUP_TITLE_MIN . ' og ' . GROUP_TITLE_MAX . ' tegn.';
+    }
+    if (mb_strlen($description) > 5000) {
+        $errors[] = 'Beskrivelsen er for lang (højst 5000 tegn).';
+    }
+
+    $activityTypeId = (int) ($input['activity_type_id'] ?? 0);
+    $stmt = $pdo->prepare('SELECT 1 FROM activity_types WHERE id = :id AND is_active = 1');
+    $stmt->execute(['id' => $activityTypeId]);
+    if (!$stmt->fetch()) {
+        $errors[] = 'Vælg en aktivitet.';
+    }
+
+    $visibility = (string) ($input['visibility'] ?? 'private');
+    if (!in_array($visibility, ['private', 'public'], true)) {
+        $errors[] = 'Ugyldig synlighed valgt.';
+    }
+
+    $delay = (int) ($input['delay_minutes'] ?? 0);
+    if (!in_array($delay, LIVE_DELAY_CHOICES, true)) {
+        $errors[] = 'Ugyldig forsinkelse valgt.';
+    }
+
+    $plannedStart = null;
+    $rawStart = trim((string) ($input['planned_start_at'] ?? ''));
+    if ($rawStart !== '') {
+        $dt = DateTimeImmutable::createFromFormat('!Y-m-d\TH:i', $rawStart);
+        if ($dt === false) {
+            $errors[] = 'Ugyldigt starttidspunkt.';
+        } else {
+            $plannedStart = $dt->format('Y-m-d H:i:s');
+        }
+    }
+
+    return [
+        'errors' => $errors,
+        'values' => [
+            'title'            => $title,
+            'description'      => $description !== '' ? $description : null,
+            'activity_type_id' => $activityTypeId,
+            'visibility'       => $visibility,
+            'delay_minutes'    => $delay,
+            'planned_start_at' => $plannedStart,
+        ],
+    ];
+}
+
+/**
+ * Opret en livesending ($event = null) eller ret en eksisterende.
+ * Offentlig kræver afkrydsning af advarslen om, at positionen kan ses.
+ * $plan: se live_set_plan(); 'keep' rører ikke de planlagte etaper.
+ *
+ * @return array{success: bool, errors?: string[], public_id?: string}
+ */
+function live_event_save(PDO $pdo, int $userId, ?array $event, array $input, bool $publicAck, string $plan): array
+{
+    $checked = live_validate_input($pdo, $input);
+    $errors = $checked['errors'];
+    $v = $checked['values'];
+
+    $becomesPublic = $v['visibility'] === 'public' && ($event === null || $event['visibility'] !== 'public');
+    if ($becomesPublic && !$publicAck) {
+        $errors[] = 'Du skal bekræfte, at alle kan følge din position, for at gøre livesendingen offentlig.';
+    }
+    if ($event !== null && $event['status'] === 'afsluttet' && $plan !== 'keep') {
+        $errors[] = 'Planen kan ikke ændres, når livesendingen er afsluttet.';
+    }
+    if ($errors) {
+        return ['success' => false, 'errors' => $errors];
+    }
+
+    $pdo->beginTransaction();
+    try {
+        if ($event === null) {
+            $publicId = live_generate_public_id($pdo);
+            $pdo->prepare(
+                'INSERT INTO live_events
+                    (public_id, user_id, title, description, activity_type_id, visibility, share_token, delay_minutes, planned_start_at)
+                 VALUES (:pid, :uid, :title, :descr, :act, :vis, :token, :delay, :start)'
+            )->execute([
+                'pid'   => $publicId,
+                'uid'   => $userId,
+                'title' => $v['title'],
+                'descr' => $v['description'],
+                'act'   => $v['activity_type_id'],
+                'vis'   => $v['visibility'],
+                'token' => live_new_share_token(),
+                'delay' => $v['delay_minutes'],
+                'start' => $v['planned_start_at'],
+            ]);
+            $eventId = (int) $pdo->lastInsertId();
+        } else {
+            $publicId = (string) $event['public_id'];
+            $eventId = (int) $event['id'];
+            $pdo->prepare(
+                'UPDATE live_events
+                 SET title = :title, description = :descr, activity_type_id = :act, visibility = :vis,
+                     delay_minutes = :delay, planned_start_at = :start
+                 WHERE id = :id'
+            )->execute([
+                'title' => $v['title'],
+                'descr' => $v['description'],
+                'act'   => $v['activity_type_id'],
+                'vis'   => $v['visibility'],
+                'delay' => $v['delay_minutes'],
+                'start' => $v['planned_start_at'],
+                'id'    => $eventId,
+            ]);
+        }
+
+        if ($plan !== 'keep') {
+            $result = live_set_plan($pdo, $userId, $eventId, $plan);
+            if (!$result['success']) {
+                $pdo->rollBack();
+
+                return $result;
+            }
+        }
+
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        error_log('Live: livesendingen kunne ikke gemmes: ' . $e->getMessage());
+
+        return ['success' => false, 'errors' => ['Der skete en fejl. Prøv igen.']];
+    }
+
+    return ['success' => true, 'public_id' => $publicId];
+}
+
+/**
+ * Erstat de planlagte etaper (dem, der ikke er startet).
+ * $plan: 'none', 'route:<public_id>' eller 'group:<public_id>' — en af
+ * brugerens egne ruter eller grupper. En gruppe giver én etape pr. rute.
+ *
+ * @return array{success: bool, errors?: string[]}
+ */
+function live_set_plan(PDO $pdo, int $userId, int $eventId, string $plan): array
+{
+    $routes = [];
+    if (str_starts_with($plan, 'route:')) {
+        $stmt = $pdo->prepare(
+            "SELECT id, title FROM routes WHERE public_id = :pid AND user_id = :uid AND status = 'active' LIMIT 1"
+        );
+        $stmt->execute(['pid' => substr($plan, 6), 'uid' => $userId]);
+        $routes = $stmt->fetchAll();
+        if (!$routes) {
+            return ['success' => false, 'errors' => ['Ruten blev ikke fundet, eller tilhører dig ikke.']];
+        }
+    } elseif (str_starts_with($plan, 'group:')) {
+        $group = group_find_owned($pdo, $userId, substr($plan, 6));
+        if ($group === null) {
+            return ['success' => false, 'errors' => ['Gruppen blev ikke fundet, eller tilhører dig ikke.']];
+        }
+        $routes = group_members($pdo, (int) $group['id'], true);
+    } elseif ($plan !== 'none') {
+        return ['success' => false, 'errors' => ['Ugyldig plan valgt.']];
+    }
+
+    $pdo->prepare("DELETE FROM live_stages WHERE event_id = :eid AND status = 'planlagt'")
+        ->execute(['eid' => $eventId]);
+
+    $stmt = $pdo->prepare('SELECT COALESCE(MAX(position), 0) FROM live_stages WHERE event_id = :eid');
+    $stmt->execute(['eid' => $eventId]);
+    $position = (int) $stmt->fetchColumn();
+
+    $ins = $pdo->prepare(
+        'INSERT INTO live_stages (event_id, position, title, planned_route_id) VALUES (:eid, :pos, :title, :rid)'
+    );
+    foreach ($routes as $route) {
+        $ins->execute([
+            'eid'   => $eventId,
+            'pos'   => ++$position,
+            'title' => mb_substr((string) $route['title'], 0, 200),
+            'rid'   => $route['id'],
+        ]);
+    }
+
+    return ['success' => true];
+}
+
+/** Afslut livesendingen fra kontrolpanelet (en igangværende etape afsluttes). */
+function live_event_finish(PDO $pdo, array $event): void
+{
+    $pdo->prepare(
+        "UPDATE live_stages
+         SET status = 'afsluttet', ended_at = GREATEST(COALESCE(last_point_at, NOW()), started_at)
+         WHERE event_id = :eid AND status = 'live'"
+    )->execute(['eid' => $event['id']]);
+    $pdo->prepare(
+        "UPDATE live_events SET status = 'afsluttet', ended_at = COALESCE(ended_at, NOW()) WHERE id = :id"
+    )->execute(['id' => $event['id']]);
+}
+
+/** Lav en ny delingsnøgle; det gamle link holder op med at virke. */
+function live_event_regenerate_token(PDO $pdo, array $event): void
+{
+    $pdo->prepare('UPDATE live_events SET share_token = :token WHERE id = :id')
+        ->execute(['token' => live_new_share_token(), 'id' => $event['id']]);
+}
+
+/**
+ * Slet livesendingen med etaper og rå punkter. Etapernes færdige spor og
+ * gruppen er almindelige ruter og bliver stående.
+ */
+function live_event_delete(PDO $pdo, array $event): void
+{
+    $pdo->beginTransaction();
+    try {
+        $pdo->prepare(
+            'DELETE p FROM live_points p JOIN live_stages s ON s.id = p.stage_id WHERE s.event_id = :eid'
+        )->execute(['eid' => $event['id']]);
+        $pdo->prepare('DELETE FROM live_stages WHERE event_id = :eid')->execute(['eid' => $event['id']]);
+        $pdo->prepare('DELETE FROM live_events WHERE id = :id')->execute(['id' => $event['id']]);
+        $pdo->commit();
+    } catch (Throwable $e) {
+        $pdo->rollBack();
+        throw $e;
+    }
 }
