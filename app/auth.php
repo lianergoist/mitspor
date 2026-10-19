@@ -36,6 +36,18 @@ function current_user(int $userId): ?array
     );
     $stmt->execute(['id' => $userId]);
     $user = $stmt->fetch();
+    if (!$user) {
+        return null;
+    }
 
-    return $user ?: null;
+    // Aktivitet (sitet eller appen) registreres højst én gang i døgnet og
+    // annullerer en evt. advarsel om sletning af inaktiv konto
+    // (se app/inactive_accounts.php).
+    $pdo->prepare(
+        'UPDATE users
+         SET last_active_at = NOW(), inactivity_warning_level = 0, inactivity_warned_at = NULL
+         WHERE id = :id AND (last_active_at IS NULL OR last_active_at < CURDATE())'
+    )->execute(['id' => $userId]);
+
+    return $user;
 }

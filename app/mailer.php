@@ -125,3 +125,38 @@ function send_email_change_notice(string $oldEmail, string $newEmail): bool
         '-f' . MAIL_ENVELOPE_SENDER
     );
 }
+
+/**
+ * Advarer om, at en inaktiv konto snart slettes (se app/inactive_accounts.php).
+ *
+ * @param array{display_name: string, route_count: int, image_count: int, storage_used_bytes: int} $account
+ */
+function send_inactivity_warning(string $toEmail, array $account, int $daysLeft, string $deleteDate): bool
+{
+    $subject = 'Din konto på MitSpor slettes om ' . $daysLeft . ' dage';
+    $mb = number_format($account['storage_used_bytes'] / 1024 / 1024, 1, ',', '.');
+
+    $message  = 'Hej ' . $account['display_name'] . ",\r\n\r\n";
+    $message .= "Du har ikke brugt din konto på MitSpor i næsten et år. For at spare plads sletter vi konti, der ikke har været brugt i et år.\r\n\r\n";
+    $message .= 'Din konto bliver slettet den ' . $deleteDate . ' sammen med ' . $account['route_count'] . ' ruter og '
+        . $account['image_count'] . ' billeder (' . $mb . " MB).\r\n\r\n";
+    $message .= "Vil du beholde kontoen, skal du bare logge ind på sitet eller åbne appen inden da:\r\n";
+    $message .= APP_BASE_URL . "/dashboard.php\r\n\r\n";
+    $message .= "Vil du gemme dine ruter og billeder, før kontoen slettes, så log ind og vælg Profil > Download alle mine data. "
+        . "Logger du ind, bliver kontoen ikke slettet. Vil du alligevel af med den, kan du slette den samme sted under Slet min konto.\r\n\r\n";
+    $message .= "Gør du ingenting, slettes kontoen og alt indhold automatisk. Det kan ikke fortrydes.\r\n\r\n";
+    $message .= "Læs mere i privatlivspolitikken:\r\n" . APP_BASE_URL . "/privatlivspolitik.php\r\n";
+
+    $headers = [
+        'From: ' . MAIL_FROM_NAME . ' <' . MAIL_FROM_ADDRESS . '>',
+        'Content-Type: text/plain; charset=UTF-8',
+    ];
+
+    return mail(
+        $toEmail,
+        $subject,
+        $message,
+        implode("\r\n", $headers),
+        '-f' . MAIL_ENVELOPE_SENDER
+    );
+}

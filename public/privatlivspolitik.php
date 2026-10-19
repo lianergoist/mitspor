@@ -59,6 +59,7 @@ require_once __DIR__ . '/../app/config.php';
             <li>Ingen reklamer, ingen statistik- eller sporingsværktøjer og ingen tredjepartscookies.</li>
             <li>Du bestemmer selv, hvem der kan se dine ruter, og hvilke data i en fil andre kan hente.</li>
             <li>Du kan altid downloade alle dine data og slette både ruter og hele din konto.</li>
+            <li>Bruger du ikke din konto i et år, sletter vi den. Du får en mail 30 og 7 dage før.</li>
         </ul>
     </div>
 
@@ -147,7 +148,7 @@ require_once __DIR__ . '/../app/config.php';
 
     <h3>E-mails</h3>
     <p>
-        Vi sender kun tekniske mails: bekræftelse af e-mail, nulstilling af adgangskode og bekræftelse eller advarsel ved skift af e-mailadresse.
+        Vi sender kun tekniske mails: bekræftelse af e-mail, nulstilling af adgangskode, bekræftelse eller advarsel ved skift af e-mailadresse og advarsel, før en inaktiv konto slettes (se afsnit 6).
         Vi sender ikke nyhedsbreve eller markedsføring. Mails sendes via internettets almindelige mailsystem og kan derfor passere din mailudbyders servere.
     </p>
 
@@ -182,7 +183,8 @@ require_once __DIR__ . '/../app/config.php';
 
     <h2>6. Hvor længe gemmer vi dine oplysninger?</h2>
     <ul>
-        <li><strong>Konto, ruter og billeder:</strong> så længe du har din konto.</li>
+        <li><strong>Konto, ruter og billeder:</strong> så længe du har din konto, og du bruger den. MitSpor er gratis og har begrænset plads, så har du ikke været logget ind på sitet eller brugt appen i et år, sletter vi kontoen med alle ruter og billeder, som hvis du selv havde slettet den. Du får en mail 30 dage og igen 7 dage før, og du kan nå at downloade dine data. Logger du ind inden da, sker der ingenting. Vi sletter først, når begge mails er sendt. Afviser din mailudbyder dem, eller havner de i spam, sletter vi alligevel.</li>
+        <li><strong>Konti, hvor e-mailen aldrig er bekræftet:</strong> slettes efter 30 dage uden advarsel.</li>
         <li><strong>Sletter du en rute:</strong> GPX-filen og en evt. gemt original-fil (sikkerhedskopi fra udtynding) slettes straks, og rutens titel, beskrivelse, delingslink og positioner ryddes. Der bevares kun en tom markering, så personer med et gammelt link kan se, at ruten er slettet. Billeder i din billedsamling bliver liggende, til du selv sletter dem under <em>Mine billeder</em> eller sletter din konto.</li>
         <li><strong>Sletter du din konto:</strong> alle dine ruter og billeder (inklusive miniaturer) slettes, og din e-mail, dit navn og din adgangskode fjernes med det samme.</li>
         <li><strong>Livesendinger:</strong> Livesendingen og de punkter, appen har sendt live, gemmes, til du sletter livesendingen eller din konto. De færdige etaper er almindelige ruter og bliver liggende, til du sletter dem.</li>
