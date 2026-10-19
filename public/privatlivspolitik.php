@@ -48,14 +48,14 @@ require_once __DIR__ . '/../app/config.php';
 <article id="privatlivspolitik">
 
     <h1>Privatlivspolitik</h1>
-    <p class="updated">Sidst opdateret: 12. oktober 2026</p>
+    <p class="updated">Sidst opdateret: 19. oktober 2026</p>
 
     <div class="summary">
         <p>Kort fortalt</p>
         <ul>
             <li>MitSpor er gratis, og vi tjener ikke penge på dine oplysninger.</li>
             <li>Vi gemmer kun det, der skal til: din e-mail, dit navn, en krypteret adgangskode og de ruter og billeder, du selv lægger op.</li>
-            <li>Appen optager kun din placering, når du selv har trykket Start, og turen bliver på din telefon, til du selv vælger at uploade den.</li>
+            <li>Appen optager kun din placering, når du selv har trykket Start, og turen bliver på din telefon, til du selv vælger at uploade den. Kun hvis du selv vælger at sende turen live, sendes din placering løbende, og så kun til den livesending, du har valgt.</li>
             <li>Ingen reklamer, ingen statistik- eller sporingsværktøjer og ingen tredjepartscookies.</li>
             <li>Du bestemmer selv, hvem der kan se dine ruter, og hvilke data i en fil andre kan hente.</li>
             <li>Du kan altid downloade alle dine data og slette både ruter og hele din konto.</li>
@@ -106,14 +106,30 @@ require_once __DIR__ . '/../app/config.php';
     <h3>Appen til iPhone og Android</h3>
     <ul>
         <li><strong>Placering:</strong> Appen bruger kun din placering, når du selv har trykket Start, og indtil du trykker Stop. Placeringen bruges også, mens skærmen er slukket eller appen ligger i baggrunden, så hele turen kommer med. På Android vises en notifikation, så længe optagelsen kører. Punkter med dårlig nøjagtighed kasseres.</li>
-        <li><strong>Lagring på telefonen:</strong> Turen gemmes løbende i appens egen mappe på telefonen, så den ikke går tabt, hvis appen lukker. Din placering sendes ikke til os under optagelsen.</li>
-        <li><strong>Upload:</strong> Først når du trykker Upload på en tur, sendes GPX-filen, titlen og aktivitetstypen til os, og ruten oprettes som privat. Hver optagelse har et tilfældigt id, så den samme tur ikke bliver oprettet to gange, hvis uploaden skal prøves igen.</li>
+        <li><strong>Lagring på telefonen:</strong> Turen gemmes løbende i appens egen mappe på telefonen, så den ikke går tabt, hvis appen lukker. Din placering sendes ikke til os under optagelsen, medmindre du har valgt at sende turen live (se <em>Livesending</em> nedenfor).</li>
+        <li><strong>Upload:</strong> Først når du trykker Upload på en tur, sendes GPX-filen, titlen og aktivitetstypen til os, og ruten oprettes som privat. En tur, der er sendt live, uploades dog automatisk, når du stopper den. Hver optagelse har et tilfældigt id, så den samme tur ikke bliver oprettet to gange, hvis uploaden skal prøves igen.</li>
         <li><strong>Login:</strong> Når du logger ind i appen, sendes din e-mail og adgangskode krypteret til os og kontrolleres som ved login på sitet. Appen gemmer ikke din adgangskode. Den får i stedet en adgangsnøgle (token), som gemmes i telefonens sikre nøglering (Keychain på iPhone, Keystore på Android). Hos os gemmes kun en krypteret kode (hash) af nøglen, hvornår den er oprettet og sidst brugt, hvornår den udløber, og om den hører til iPhone- eller Android-appen. Vi gemmer ikke telefonens navn, model eller id.</li>
         <li><strong>Fælles login med sitet:</strong> Appen viser sitet i et indbygget browservindue. For at du ikke skal logge ind to gange, bruges en engangskode, der kun gælder i 60 sekunder og kun kan bruges én gang. Vi gemmer kun en krypteret kode (hash) af den.</li>
         <li><strong>Andet på telefonen:</strong> Listen over aktivitetstyper, den aktivitetstype du sidst valgte, og om introduktionen er vist. Filer, du henter (GPX-filer og dataeksport), lægges midlertidigt i appens cache, så du kan dele eller gemme dem med telefonens del-funktion.</li>
         <li>Appen indeholder ingen reklamer, statistik- eller fejlrapporteringsværktøjer og taler kun med mitspor.dk.</li>
     </ul>
     <p><em>Formål:</em> at du kan optage ture og lægge dem på din konto. <em>Grundlag:</em> aftalen om at bruge tjenesten.</p>
+
+    <h3>Livesending</h3>
+    <p>
+        Med en livesending kan andre følge din tur på et kort, mens du er undervejs. Du opretter selv livesendingen på sitet og vælger
+        i appen, hvilken optagelse der skal sendes live. Der sendes aldrig live, medmindre du selv har valgt det ved start.
+    </p>
+    <ul>
+        <li><strong>Livesendingen:</strong> titel, beskrivelse, aktivitetstype, planlagt start, en evt. plan (en af dine ruter eller grupper), hvem der kan se den, og den valgte forsinkelse.</li>
+        <li><strong>Under optagelsen:</strong> Appen sender ca. hvert minut de nye punkter fra turen: position, tidspunkt, højde og GPS'ens nøjagtighed. Vi gemmer også, hvornår hver etape startede og sluttede.</li>
+        <li><strong>Når en etape slutter:</strong> Den færdige tur uploades automatisk som en privat rute på din konto. Har livesendingen flere etaper, samles de i en gruppe.</li>
+        <li><strong>På telefonen:</strong> Appen gemmer en liste med titlerne på dine åbne livesendinger, så du kan vælge en uden net.</li>
+    </ul>
+    <p>
+        <em>Formål:</em> at andre kan følge din tur, mens den foregår. <em>Grundlag:</em> dit samtykke, når du vælger at sende live (art. 6, stk. 1, litra a).
+        Du kan til enhver tid stoppe ved at stoppe optagelsen, afslutte livesendingen eller slette den.
+    </p>
 
     <h3>Sikkerhed og misbrugsbeskyttelse</h3>
     <ul>
@@ -149,6 +165,7 @@ require_once __DIR__ . '/../app/config.php';
         <li><strong>Offentlige ruter</strong> kan ses af alle på internettet og kan blive fundet af søgemaskiner. Vær opmærksom på, at start- og slutpunktet i en offentlig rute kan afsløre, hvor du bor. Derfor beder vi dig bekræfte, at du forstår det, første gang du gør en rute offentlig.</li>
         <li><strong>Dit navn</strong> vises som uploader af offentlige ruter, medmindre du vælger, at ruten skal være anonym.</li>
         <li><strong>Download:</strong> andre kan kun hente GPX-filen, hvis du har tilladt det. Filen indeholder de data, der ligger i den. Vil du ikke dele fx tid eller puls, kan du fjerne dem fra filen i editoren, før du tillader download.</li>
+        <li><strong>Livesendinger</strong> kan enten ses af alle, der har linket (det indeholder en hemmelig nøgle), eller af alle på internettet, hvis du gør livesendingen offentlig. Livesiden viser, hvor du er, og hvor du har været på turen. Vælger du en forsinkelse, ser andre først din position så mange minutter efter, og det færdige spor vises først, når forsinkelsen er gået. Du kan selv lave et nyt link, så det gamle holder op med at virke. Livesider bliver ikke vist i søgemaskiner. De færdige etaper er private ruter, til du selv gør dem offentlige.</li>
         <li><strong>Billeder</strong> har svære at gætte adresser, men er ikke beskyttet af login. Den, der har adressen til et billede, kan se det – også hvis ruten senere gøres privat.</li>
         <li><strong>Administrator:</strong> Vi kan se anmeldte ruter og anmeldelser. Ud over det bruger vi kun teknisk adgang til data, når det er nødvendigt for drift og sikkerhed.</li>
     </ul>
@@ -167,6 +184,7 @@ require_once __DIR__ . '/../app/config.php';
         <li><strong>Konto, ruter og billeder:</strong> så længe du har din konto.</li>
         <li><strong>Sletter du en rute:</strong> GPX-filen og en evt. gemt original-fil (sikkerhedskopi fra udtynding) slettes straks, og rutens titel, beskrivelse, delingslink og positioner ryddes. Der bevares kun en tom markering, så personer med et gammelt link kan se, at ruten er slettet. Billeder i din billedsamling bliver liggende, til du sletter din konto (eller beder os fjerne dem).</li>
         <li><strong>Sletter du din konto:</strong> alle dine ruter og billeder (inklusive miniaturer) slettes, og din e-mail, dit navn og din adgangskode fjernes med det samme.</li>
+        <li><strong>Livesendinger:</strong> Livesendingen og de punkter, appen har sendt live, gemmes, til du sletter livesendingen eller din konto. De færdige etaper er almindelige ruter og bliver liggende, til du sletter dem.</li>
         <li><strong>Ture på telefonen:</strong> bliver liggende i appen, også efter upload, til du sletter dem i appen eller afinstallerer appen. Vi kan ikke se eller slette dem.</li>
         <li><strong>Adgangsnøgler til appen:</strong> holder op med at virke, når du logger ud i appen, når du skifter eller nulstiller din adgangskode, og når de ikke har været brugt i 180 dage. Oplysningerne om nøglerne slettes sammen med din konto. Engangskoder til fælles login slettes efter et døgn.</li>
         <li><strong>Sikkerhedsnoter (IP-adresser ved login m.m.):</strong> slettes automatisk efter 30 dage.</li>
@@ -178,11 +196,11 @@ require_once __DIR__ . '/../app/config.php';
     <h2>7. Dine rettigheder</h2>
     <p>Du har efter GDPR ret til:</p>
     <ul>
-        <li><strong>Indsigt og dataportabilitet:</strong> Under din profil kan du selv hente alle dine data (<em>Download alle mine data</em>) som en ZIP-fil med dine GPX-filer, billeder og oplysninger om din konto.</li>
+        <li><strong>Indsigt og dataportabilitet:</strong> Under din profil kan du selv hente alle dine data (<em>Download alle mine data</em>) som en ZIP-fil med dine GPX-filer, billeder og oplysninger om din konto. Punkter, der kun er sendt live, er ikke med i filen, men du kan få dem ved at skrive til os.</li>
         <li><strong>Berigtigelse:</strong> Du kan selv rette dit navn og din e-mail i din profil.</li>
         <li><strong>Sletning:</strong> Du kan selv slette enkelte ruter og hele din konto, også fra appen via din profil. Vil du have et enkelt billede fjernet, kan du skrive til os.</li>
         <li><strong>Begrænsning og indsigelse:</strong> Du kan bede os begrænse behandlingen eller gøre indsigelse mod den, når den bygger på vores legitime interesse.</li>
-        <li><strong>Tilbagekaldelse af samtykke:</strong> Fx ved at gøre en rute privat eller fjerne data som puls fra en fil.</li>
+        <li><strong>Tilbagekaldelse af samtykke:</strong> Fx ved at gøre en rute privat, fjerne data som puls fra en fil eller stoppe, afslutte eller slette en livesending.</li>
     </ul>
     <p>
         Skriv til <a href="mailto:info@mitspor.dk">info@mitspor.dk</a>, hvis du vil bruge dine rettigheder. Vi svarer senest inden for en måned.
