@@ -58,7 +58,7 @@
         var titleEl = document.getElementById("tool-thin-title");
         var errorsEl = document.getElementById("tool-thin-errors");
         var statusEl = document.getElementById("tool-thin-status");
-        var buttons = dialog.querySelectorAll("[data-thin-interval]");
+        var buttons = dialog.querySelectorAll("[data-thin-tolerance]");
         var currentId = null;
 
         bindDialogClose(dialog, document.getElementById("tool-thin-close"));
@@ -78,7 +78,7 @@
             });
         });
 
-        function run(interval) {
+        function run(tolerance, label) {
             setText(errorsEl, "");
             setText(statusEl, "Henter ruten…");
             setBusy(true);
@@ -90,20 +90,16 @@
                 .then(function (data) {
                     gpx = G.parse(data.gpx_content);
 
-                    if (!G.hasTimeData(gpx)) {
-                        setText(statusEl, "Ruten har ingen tidsstempler — den kan ikke udtyndes efter tid.");
-                        return null;
-                    }
-
-                    plan = G.thinPlan(gpx, interval);
+                    plan = G.thinPlan(gpx, tolerance);
                     if (plan.total === 0) {
-                        setText(statusEl, "Ingen punkter blev fjernet — de har allerede mindst " + interval + " sekunders mellemrum.");
+                        setText(statusEl, "Ingen punkter kan fjernes med " + label.toLowerCase() + " udtynding.");
                         return null;
                     }
 
                     var before = G.pointCount(gpx);
                     var ok = window.confirm(
-                        "Fjern " + plan.total + " af " + before + " punkter, så der højst gemmes ét punkt hvert " + interval + ". sekund?\n\n" +
+                        label + " udtynding: fjern " + plan.total + " af " + before + " punkter (" +
+                        Math.round(plan.total / before * 100) + " %)? Sporet afviger højst " + tolerance + " m fra det oprindelige.\n\n" +
                         "Den oprindelige fil gemmes, og kan gendannes med \"Gendan original fil\"."
                     );
                     if (!ok) {
@@ -114,10 +110,12 @@
                     G.applyThin(gpx, plan);
                     setText(statusEl, "Gemmer…");
 
+                    // thin_interval fortæller kun serveren, at der er udtyndet
+                    // (så originalen gemmes første gang). Værdien er tolerancen.
                     return saveRoute({
                         route_id: currentId,
                         gpx_data: G.serialize(gpx),
-                        thin_interval: String(interval),
+                        thin_interval: String(tolerance),
                         time_resolution: "keep"
                     }).then(function () { return true; });
                 })
@@ -133,7 +131,7 @@
 
         buttons.forEach(function (b) {
             b.addEventListener("click", function () {
-                run(parseInt(b.getAttribute("data-thin-interval"), 10));
+                run(parseInt(b.getAttribute("data-thin-tolerance"), 10), b.textContent.trim());
             });
         });
     })();
