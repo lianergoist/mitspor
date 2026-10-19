@@ -42,6 +42,14 @@ $stmt = $pdo->query(
      ORDER BY cr.created_at ASC"
 );
 $reports = $stmt->fetchAll();
+
+// Konti, der har fået advarsel om sletning (se app/inactive_accounts.php).
+$warned = $pdo->query(
+    "SELECT id, display_name, email, last_active_at, inactivity_warning_level, inactivity_warned_at, storage_used_bytes
+     FROM users
+     WHERE status = 'active' AND inactivity_warning_level > 0
+     ORDER BY last_active_at ASC"
+)->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="da">
@@ -98,6 +106,28 @@ $reports = $stmt->fetchAll();
         <?php endif; ?>
     </form>
 <?php endforeach; ?>
+
+<hr>
+<h1>Inaktive konti med advarsel (<?= count($warned) ?>)</h1>
+<p>Advarsel 1 sendes 30 dage før sletning, advarsel 2 syv dage før. Logger brugeren ind, nulstilles advarslen.</p>
+
+<?php if (empty($warned)): ?>
+    <p>Ingen konti har fået advarsel lige nu.</p>
+<?php else: ?>
+    <table>
+        <tr><th>Navn</th><th>E-mail</th><th>Sidst aktiv</th><th>Advarsel</th><th>Sendt</th><th>Lager</th></tr>
+        <?php foreach ($warned as $w): ?>
+            <tr>
+                <td><?= htmlspecialchars($w['display_name'], ENT_QUOTES, 'UTF-8') ?></td>
+                <td><?= htmlspecialchars($w['email'], ENT_QUOTES, 'UTF-8') ?></td>
+                <td><?= htmlspecialchars((string) $w['last_active_at'], ENT_QUOTES, 'UTF-8') ?></td>
+                <td><?= (int) $w['inactivity_warning_level'] ?></td>
+                <td><?= htmlspecialchars((string) $w['inactivity_warned_at'], ENT_QUOTES, 'UTF-8') ?></td>
+                <td><?= number_format($w['storage_used_bytes'] / 1024 / 1024, 1, ',', '.') ?> MB</td>
+            </tr>
+        <?php endforeach; ?>
+    </table>
+<?php endif; ?>
 
 </body>
 </html>
