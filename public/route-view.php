@@ -331,6 +331,8 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             .group-nav-controls { gap: 8px; }
             .group-nav-controls .btn { flex: 1 1 0; justify-content: center; text-align: center; }
             .group-nav-pos { flex: 0 0 auto; }
+            /* Kun pilene på knapperne (teksten står i aria-label). */
+            .group-nav-label { display: none; }
 
             /* Waypoint-billeder: modalen bruger hele skærmbredden minus 5 px i hver side,
                og billedet har en tynd hvid ramme (8 px) rundt om sig. */
@@ -397,15 +399,15 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
                 </div>
                 <div class="group-nav-controls">
                     <?php if ($groupContext['prev'] !== null): ?>
-                        <a class="btn" id="btn-group-prev" href="route-view.php?id=<?= htmlspecialchars($groupContext['prev']['public_id'], ENT_QUOTES, 'UTF-8') ?>" title="<?= htmlspecialchars($groupContext['prev']['title'], ENT_QUOTES, 'UTF-8') ?>">&#9664; Forrige</a>
+                        <a class="btn" id="btn-group-prev" href="route-view.php?id=<?= htmlspecialchars($groupContext['prev']['public_id'], ENT_QUOTES, 'UTF-8') ?>" title="<?= htmlspecialchars($groupContext['prev']['title'], ENT_QUOTES, 'UTF-8') ?>" aria-label="Forrige etape">&#9664;<span class="group-nav-label"> Forrige</span></a>
                     <?php else: ?>
-                        <a class="btn" aria-disabled="true">&#9664; Forrige</a>
+                        <a class="btn" aria-disabled="true" aria-label="Forrige etape">&#9664;<span class="group-nav-label"> Forrige</span></a>
                     <?php endif; ?>
                     <span class="group-nav-pos">Etape <?= (int) $groupContext['index'] ?> af <?= (int) $groupContext['total'] ?></span>
                     <?php if ($groupContext['next'] !== null): ?>
-                        <a class="btn" id="btn-group-next" href="route-view.php?id=<?= htmlspecialchars($groupContext['next']['public_id'], ENT_QUOTES, 'UTF-8') ?>" title="<?= htmlspecialchars($groupContext['next']['title'], ENT_QUOTES, 'UTF-8') ?>">Næste &#9654;</a>
+                        <a class="btn" id="btn-group-next" href="route-view.php?id=<?= htmlspecialchars($groupContext['next']['public_id'], ENT_QUOTES, 'UTF-8') ?>" title="<?= htmlspecialchars($groupContext['next']['title'], ENT_QUOTES, 'UTF-8') ?>" aria-label="Næste etape"><span class="group-nav-label">Næste </span>&#9654;</a>
                     <?php else: ?>
-                        <a class="btn" aria-disabled="true">Næste &#9654;</a>
+                        <a class="btn" aria-disabled="true" aria-label="Næste etape"><span class="group-nav-label">Næste </span>&#9654;</a>
                     <?php endif; ?>
                 </div>
             </nav>
