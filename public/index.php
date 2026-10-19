@@ -81,7 +81,7 @@ $showIntro = !is_app_webview() && is_file($introVideoFile);
         <?php if (show_app_back_link()): ?>
         <a href="/app-luk.php" class="app-tilbage"><span aria-hidden="true">‹</span>Appen</a>
         <?php else: ?>
-        <span class="brand"><img src="grafik/mitspor_50x50.png" alt="" class="brand-logo"><span class="brand-text">MitSpor</span></span>
+        <span class="brand"><img src="grafik/favicon.svg" alt="" class="brand-logo"><span class="brand-text">MitSpor</span></span>
         <?php endif; ?>
 
         <div class="topbar-filters">
