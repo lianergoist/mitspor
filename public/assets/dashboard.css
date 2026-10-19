@@ -307,3 +307,15 @@
     overflow-wrap: anywhere;
     line-height: 1.2;
 }
+
+/* Livesendinger (fanen "Live") */
+.live-new-btn { margin: 0 0 10px; }
+.live-link { display: block; margin: 8px 0 12px; font-size: 13px; }
+.live-link input { width: 100%; box-sizing: border-box; margin-top: 4px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
+.modal-dialog input[type="datetime-local"] {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+}

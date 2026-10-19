@@ -1385,7 +1385,7 @@ function markerDefaultPreview(select, box) {
     function activateTabFor(key) {
         var active = hub.querySelector('.tab-panel:not([hidden]) [data-item="' + key + '"]');
         if (active) return;
-        var target = key.indexOf('group:') === 0 ? 'tab-grupper' : 'tab-alle';
+        var target = key.indexOf('group:') === 0 ? 'tab-grupper' : key.indexOf('live:') === 0 ? 'tab-live' : 'tab-alle';
         var tabBtn = hub.querySelector('.tab-btn[data-tab-target="' + target + '"]');
         if (tabBtn) tabBtn.click();
     }
