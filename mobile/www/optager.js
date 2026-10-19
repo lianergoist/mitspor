@@ -59,6 +59,7 @@
     var liveLabel = document.getElementById('optag-live-label');
     var liveNyKnap = document.getElementById('optag-live-ny');
     var liveStatus = document.getElementById('optag-live-status');
+    var laasTekst = document.getElementById('optag-laas');
 
     // Den aktive optagelse. aktiv er sand, også når den holder pause.
     var aktiv = false;
@@ -137,6 +138,13 @@
         liveStatus.hidden = !liveStatus.textContent;
     }
 
+    // Sendes turen live lige nu? Så bliver brugeren i optageren: åbnes sitet
+    // i appen, holder afsendelsen pause (se app.js). Under pause er der
+    // ingen GPS og intet at sende.
+    function sendesLive() {
+        return aktiv && !pauset && !!(meta && meta.live && !meta.live.stoppet);
+    }
+
     function opdaterKnapper() {
         startKnap.hidden = aktiv;
         pauseKnap.hidden = !aktiv || pauset;
@@ -145,6 +153,8 @@
         startKnap.disabled = !!afbrudt;
         aabnKnap.textContent = !aktiv ? 'Optag tur' : (pauset ? 'Optagelse på pause' : 'Optagelse i gang');
         afbrudtBoks.hidden = !afbrudt || aktiv;
+        tilbageKnap.hidden = sendesLive();
+        laasTekst.hidden = !sendesLive();
         // Vises også uden livesendinger, så man kan oprette en ("Ny livesending").
         liveValg.hidden = aktiv || !!afbrudt || !logget;
         liveLabel.textContent = liveSelect.value ? 'Send live til' : 'Send live';
@@ -756,6 +766,9 @@
         var side = window.MitSporApp.aktivSide();
         if (side === 'view-login' || side === 'view-upload') {
             visView(true);
+        } else if (side === 'view-optag' && sendesLive()) {
+            // Bliv i optageren; i baggrunden sendes der fint.
+            App.minimizeApp();
         } else if (side === 'view-optag' || side === 'view-intro') {
             visView(false);
         } else if (aktiv) {
@@ -771,9 +784,11 @@
         visListe();
         hentLivesendinger();
     }
+    window.MitSporApp.spaerSite(sendesLive);
     Upload.onSkift(visListe);
     Live.onSkift(function () {
         opdaterTal();
+        opdaterKnapper();
         if (!aktiv) {
             visListe();
         }

@@ -508,3 +508,9 @@ body {
     color: #991b1b;
     font-size: 15px;
 }
+
+/* Optager under livesending: "‹ Tilbage" er skjult (se optager.js). */
+.optag-laas {
+    margin: -8px 0 16px;
+    text-align: left;
+}
