@@ -7,9 +7,13 @@ require_once __DIR__ . '/image_storage.php';
  * Validerer og gemmer et uploadet billede for den givne bruger.
  * $file skal være ét element fra $_FILES (fx $_FILES['image']).
  *
- * @return array{success: bool, errors?: string[], url?: string, image_id?: int}
+ * $clientUploadId bruges af mobil-API'et (public/api/v1/upload-image.php)
+ * til at genkende gentagne uploads af samme billede. Er id'et indsat
+ * samtidig af en anden forespørgsel, returneres duplicate_client_upload = true.
+ *
+ * @return array{success: bool, errors?: string[], url?: string, image_id?: int, duplicate_client_upload?: bool, server_error?: bool}
  */
-function upload_user_image(PDO $pdo, array $user, array $file): array
+function upload_user_image(PDO $pdo, array $user, array $file, ?string $clientUploadId = null): array
 {
     if ($file['error'] !== UPLOAD_ERR_OK) {
         $uploadErrors = [
@@ -57,15 +61,15 @@ function upload_user_image(PDO $pdo, array $user, array $file): array
         $stored = image_store_uploaded_file((int) $user['id'], $file['tmp_name'], $extension);
     } catch (Throwable $e) {
         error_log('Billedupload fejlede: ' . $e->getMessage());
-        return ['success' => false, 'errors' => ['Kunne ikke gemme billedet. Prøv igen.']];
+        return ['success' => false, 'server_error' => true, 'errors' => ['Kunne ikke gemme billedet. Prøv igen.']];
     }
 
     try {
         $pdo->beginTransaction();
 
         $stmt = $pdo->prepare(
-            'INSERT INTO user_images (user_id, relative_path, thumbnail_relative_path, original_filename, mime_type, size_bytes)
-             VALUES (:user_id, :relative_path, :thumbnail_relative_path, :original_filename, :mime_type, :size_bytes)'
+            'INSERT INTO user_images (user_id, relative_path, thumbnail_relative_path, original_filename, mime_type, size_bytes, client_upload_id)
+             VALUES (:user_id, :relative_path, :thumbnail_relative_path, :original_filename, :mime_type, :size_bytes, :client_upload_id)'
         );
         $stmt->execute([
             'user_id'                 => $user['id'],
@@ -74,6 +78,7 @@ function upload_user_image(PDO $pdo, array $user, array $file): array
             'original_filename'       => basename((string) $file['name']),
             'mime_type'               => $actualMime,
             'size_bytes'              => $stored['size_bytes'],
+            'client_upload_id'        => $clientUploadId,
         ]);
         $imageId = (int) $pdo->lastInsertId();
 
@@ -89,8 +94,13 @@ function upload_user_image(PDO $pdo, array $user, array $file): array
         if ($stored['thumbnail_relative_path'] !== null) {
             @unlink(image_full_path($stored['thumbnail_relative_path']));
         }
+        if ($clientUploadId !== null && $e instanceof PDOException
+            && (int) ($e->errorInfo[1] ?? 0) === 1062
+            && str_contains($e->getMessage(), 'uq_user_images_client_upload')) {
+            return ['success' => false, 'duplicate_client_upload' => true, 'errors' => ['Billedet er allerede uploadet.']];
+        }
         error_log('Billedupload (DB) fejlede: ' . $e->getMessage());
-        return ['success' => false, 'errors' => ['Der skete en fejl under upload. Prøv igen.']];
+        return ['success' => false, 'server_error' => true, 'errors' => ['Der skete en fejl under upload. Prøv igen.']];
     }
 
     return [
