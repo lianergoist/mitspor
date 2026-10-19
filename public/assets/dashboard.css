@@ -33,14 +33,15 @@
 }
 .hub .card { margin-bottom: 0; }
 
-.hub-list .tabs { margin-bottom: 12px; padding: 3px; }
+.hub-list .tabs { margin-bottom: 6px; padding: 3px; }
+.hub-stats { margin: 0 0 10px; color: var(--text-muted); font-size: 12px; text-align: center; }
 .hub-list .tab-btn { flex: 1 1 auto; padding: 8px 6px; font-size: 13px; white-space: nowrap; }
 
 .hub-items {
     list-style: none;
     margin: 0;
     padding: 0;
-    max-height: calc(100vh - 260px);
+    max-height: calc(100vh - 280px);
     overflow-y: auto;
 }
 .hub-items li {
@@ -169,7 +170,8 @@
     /* Mindre luft omkring og inde i listen, så der er plads til titlerne. */
     .dashboard-container { padding: 10px 8px; }
     .hub .card { padding: 10px; }
-    .hub-list .tabs { gap: 2px; margin-bottom: 6px; }
+    .hub-list .tabs { gap: 2px; margin-bottom: 4px; }
+    .hub-stats { margin-bottom: 6px; font-size: 11px; }
     .hub-list .tab-btn { padding: 6px 2px; font-size: 12px; }
     .hub-item-main { padding: 7px 2px; }
     .hub-item-main .route-title { font-size: 15px; }

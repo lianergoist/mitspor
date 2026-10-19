@@ -45,6 +45,14 @@ $stmt = $pdo->prepare(
 $stmt->execute(['user_id' => $userId]);
 $routes = $stmt->fetchAll();
 
+$stmt = $pdo->prepare('SELECT COUNT(*) FROM user_images WHERE user_id = :user_id');
+$stmt->execute(['user_id' => $userId]);
+$imageCount = (int) $stmt->fetchColumn();
+
+// Lagerplads som "12.3 MB / 500.0 MB" (samme format i profilen og over listen).
+$storageText = number_format($user['storage_used_bytes'] / 1024 / 1024, 1) . ' MB / '
+    . number_format($user['storage_quota_bytes'] / 1024 / 1024, 1) . ' MB';
+
 $groups = group_list_for_user($pdo, $userId);
 $liveEvents = live_events_for_dashboard($pdo, $userId);
 ?>
@@ -59,7 +67,7 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
     <title>Mit kontrolpanel</title>
     <link rel="stylesheet" href="assets/style.css?v=22">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/dashboard.css?v=18">
+    <link rel="stylesheet" href="assets/dashboard.css?v=19">
 </head>
 <body>
 
@@ -138,11 +146,11 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
         <dt>Ruter</dt>
         <dd><?= count($routes) ?> / <?= (int) $user['route_quota'] ?></dd>
 
+        <dt>Billeder</dt>
+        <dd><?= $imageCount ?></dd>
+
         <dt>Lagerplads</dt>
-        <dd>
-            <?= number_format($user['storage_used_bytes'] / 1024 / 1024, 1) ?> MB
-            / <?= number_format($user['storage_quota_bytes'] / 1024 / 1024, 1) ?> MB
-        </dd>
+        <dd><?= $storageText ?></dd>
     </dl>
 
     <div id="edit-name-panel" class="inline-edit-panel" hidden>
@@ -482,6 +490,11 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
                 <button type="button" class="tab-btn" data-tab-target="tab-grupper">Grupper (<?= count($groups) ?>)</button>
                 <button type="button" class="tab-btn" data-tab-target="tab-live">Live (<?= count($liveEvents) ?>)</button>
             </div>
+            <p class="hub-stats">
+                <?= count($routes) ?> / <?= (int) $user['route_quota'] ?> ruter
+                · <?= $imageCount ?> <?= $imageCount === 1 ? 'billede' : 'billeder' ?>
+                · <?= $storageText ?> lagerplads
+            </p>
 
             <div id="tab-alle" class="tab-panel">
                 <?php if (empty($routes)): ?>
