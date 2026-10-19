@@ -105,10 +105,11 @@ function route_file_attachment_header(string $rawFilename): string
  * billeder end rutens ejer fjernes altid, også i ejerens egen download.
  * Downloader en anden end ejeren, fjernes alle billedlinks.
  *
- * Er filen markeret som rute (ikke spor), fjernes alle tidsstempler ved
- * download, også i ejerens egen. En rute er en planlagt vej, og tider i
- * filen får nogle GPS-enheder og apps til at behandle den som et spor.
- * Dataeksporten giver stadig ejeren den gemte fil uændret.
+ * Er filen markeret som rute (ikke spor), fjernes alle tidsstempler, både
+ * ved download og i visningsfilen (rutesiden bruger ikke tider for ruter),
+ * også for ejeren. En rute er en planlagt vej, og tider i filen får nogle
+ * GPS-enheder og apps til at behandle den som et spor. Dataeksporten giver
+ * stadig ejeren den gemte fil uændret.
  */
 function route_file_send(array $route, bool $download, bool $isOwner): never
 {
@@ -120,7 +121,7 @@ function route_file_send(array $route, bool $download, bool $isOwner): never
         http_response_code(500);
         exit;
     }
-    if ($download && $route['route_type'] === 'rute') {
+    if ($route['route_type'] === 'rute') {
         $content = gpx_strip_all_times($content);
     }
 
