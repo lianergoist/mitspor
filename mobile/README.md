@@ -38,6 +38,17 @@ kræves ikke tilladelse til placering "hele tiden".
   tur på pause er stadig på pause, hvis appen lukkes og åbnes igen.
 - **Deling:** "Del GPX" åbner telefonens delemenu.
 - Optagelsen stopper af sig selv, før GPX-filen når 10 MB.
+- **Waypoints:** "Indsæt waypoint" åbner en dialog med titel, tekst og
+  billeder. Placeringen tages ved tryk på knappen. Waypoints ligger i
+  `waypoints.json` og skrives som `<wpt>` i GPX-filen.
+- **Billeder:** `@capacitor/camera` (MIT) tager et billede eller henter fra
+  galleriet (`www/kamera.js`), gjort mindre til højst 2048 px. Billedet
+  kopieres til `optagelser/<id>/billeder/`. Ved upload sendes billederne
+  først (`/api/v1/upload-image.php`, billedets id som `client_upload_id`), og
+  deres URL sættes ind som `<link>` på waypointet i GPX-filen. Et billede,
+  sitet afviser, springes over. Android kræver ingen kameratilladelse
+  (telefonens kamera-app bruges); iOS har `NSCameraUsageDescription` og
+  `NSPhotoLibraryUsageDescription`.
 
 ## Upload til mitspor.dk (offline-kø)
 

@@ -45,6 +45,10 @@
 	</dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSCameraUsageDescription</key>
+	<string>MitSpor bruger kameraet, når du selv tager et billede til et waypoint på din tur.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>MitSpor viser dine billeder, når du selv vælger et billede til et waypoint på din tur.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>MitSpor bruger din placering til at optage din tur, når du trykker Start.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
