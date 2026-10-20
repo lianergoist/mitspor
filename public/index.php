@@ -55,12 +55,12 @@ $showIntro = !is_app_webview() && is_file($introVideoFile);
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MitSpor</title>
 
-    <meta name="description" content="MitSpor er et gratis dansk website til at dele og redigere GPX-ruter og -spor. Upload dine spor, tegn ruter direkte på kortet, og del dem med andre. Ingen tracking, ingen sporings- eller reklamecookies, ingen reklamer.">
+    <meta name="description" content="MitSpor er et gratis dansk website til at dele og redigere ruter og spor. Upload dine spor, tegn ruter direkte på kortet, og del dem med andre. Ingen tracking, ingen sporings- eller reklamecookies, ingen reklamer.">
     <link rel="canonical" href="<?= APP_BASE_URL ?>/">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="MitSpor">
-    <meta property="og:title" content="MitSpor — Del og redigér GPX-ruter og -spor">
-    <meta property="og:description" content="Gratis dansk website til at dele og redigere GPX-ruter og -spor. Upload dine spor, tegn ruter direkte på kortet, og del dem med andre.">
+    <meta property="og:title" content="MitSpor — Del og redigér ruter og spor">
+    <meta property="og:description" content="Gratis dansk website til at dele og redigere ruter og spor. Upload dine spor, tegn ruter direkte på kortet, og del dem med andre.">
     <meta property="og:url" content="<?= APP_BASE_URL ?>/">
     <meta property="og:image" content="<?= APP_BASE_URL ?>/grafik/mitspor_full.png">
     <meta name="twitter:card" content="summary_large_image">
