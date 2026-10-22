@@ -4,6 +4,7 @@ declare(strict_types=1);
 session_start();
 
 require_once __DIR__ . '/../app/db.php';
+require_once __DIR__ . '/../app/simple_page.php';
 
 $referringPublicId = (string) ($_GET['route'] ?? '');
 
@@ -27,7 +28,7 @@ $referring = $stmt->fetch();
 
 if (!$referring) {
     http_response_code(404);
-    echo '<h1>Siden blev ikke fundet</h1><p>Der er intet at vise her.</p>';
+    simple_message_page('Siden blev ikke fundet', 'Der er intet at vise her.');
     exit;
 }
 

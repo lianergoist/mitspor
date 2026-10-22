@@ -4,6 +4,7 @@ declare(strict_types=1);
 session_start();
 
 require_once __DIR__ . '/../app/db.php';
+require_once __DIR__ . '/../app/simple_page.php';
 require_once __DIR__ . '/../app/route_groups.php';
 require_once __DIR__ . '/../app/og_image.php';
 require_once __DIR__ . '/../app/group_file.php';
@@ -22,7 +23,7 @@ $members = $group !== null ? group_members($pdo, (int) $group['id'], $isOwner) :
 
 if ($group === null || (!$isOwner && count($members) === 0)) {
     http_response_code(404);
-    echo '<h1>Gruppen blev ikke fundet</h1><p>Der findes ingen gruppe med det ID.</p>';
+    simple_message_page('Gruppen blev ikke fundet', 'Der findes ingen gruppe med det ID.');
     exit;
 }
 
