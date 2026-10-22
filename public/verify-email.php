@@ -4,6 +4,7 @@ declare(strict_types=1);
 session_start();
 
 require_once __DIR__ . '/../app/db.php';
+require_once __DIR__ . '/../app/simple_page.php';
 
 $status = 'invalid'; // invalid | expired | success | already_used
 
@@ -62,34 +63,28 @@ if (is_string($rawToken) && $rawToken !== '') {
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="da">
-<head>
-    <meta charset="UTF-8">
-    <link rel="icon" type="image/svg+xml" href="/grafik/favicon.svg">
-    <link rel="icon" type="image/png" sizes="32x32" href="/grafik/favicon-32.png">
-    <meta name="robots" content="noindex, nofollow">
-    <title>Bekræft e-mail</title>
-</head>
-<body>
+<?php simple_page_start('Bekræft e-mail'); ?>
 
-<?php if ($status === 'success'): ?>
-    <h1>Din e-mail er bekræftet</h1>
-    <p>Du kan nu logge ind.</p>
+        <?php if ($status === 'success'): ?>
+            <h1>Din e-mail er bekræftet</h1>
+            <p>Du kan nu logge ind.</p>
 
-<?php elseif ($status === 'already_used'): ?>
-    <h1>Linket er allerede brugt</h1>
-    <p>Din konto er allerede bekræftet. Du kan logge ind.</p>
+        <?php elseif ($status === 'already_used'): ?>
+            <h1>Linket er allerede brugt</h1>
+            <p>Din konto er allerede bekræftet. Du kan logge ind.</p>
 
-<?php elseif ($status === 'expired'): ?>
-    <h1>Linket er udløbet</h1>
-    <p>Log ind, og bed om at få tilsendt et nyt bekræftelseslink.</p>
+        <?php elseif ($status === 'expired'): ?>
+            <h1>Linket er udløbet</h1>
+            <p>Log ind, og bed om at få tilsendt et nyt bekræftelseslink.</p>
 
-<?php else: ?>
-    <h1>Ugyldigt link</h1>
-    <p>Linket er ugyldigt. Tjek at du har kopieret hele linket fra mailen.</p>
+        <?php else: ?>
+            <h1>Ugyldigt link</h1>
+            <p>Linket er ugyldigt. Tjek at du har kopieret hele linket fra mailen.</p>
 
-<?php endif; ?>
+        <?php endif; ?>
 
-</body>
-</html>
+        <?php if ($status !== 'invalid'): ?>
+            <p><a href="/login.php" class="btn btn-primary">Log ind</a></p>
+        <?php endif; ?>
+
+<?php simple_page_end(); ?>

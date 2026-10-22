@@ -1274,3 +1274,58 @@ a { color: var(--primary); }
         gap: 8px;
     }
 }
+
+/* Enkle sider (slet konto, bekræft e-mail, ingen adgang): ét kort midt
+   på siden med samme formularfelter som dialogerne. */
+.simple-page {
+    max-width: 560px;
+}
+.simple-page .card {
+    background: var(--surface);
+    padding: 24px;
+}
+.simple-page .card > :last-child {
+    margin-bottom: 0;
+}
+.simple-page h1 {
+    margin: 0 0 12px;
+    font-size: 22px;
+}
+.simple-page p,
+.simple-page li {
+    font-size: 15px;
+}
+.simple-page ul {
+    padding-left: 22px;
+    margin: 6px 0 14px;
+}
+.simple-page form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 18px;
+}
+.simple-page label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+.simple-page input[type="text"],
+.simple-page input[type="password"] {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+}
+.simple-page .simple-page-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+.simple-page .modal-errors ul {
+    margin: 0;
+    padding-left: 18px;
+}
