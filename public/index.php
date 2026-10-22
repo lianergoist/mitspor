@@ -9,6 +9,7 @@ require_once __DIR__ . '/../app/route_groups.php';
 require_once __DIR__ . '/../app/auth_dialogs.php';
 require_once __DIR__ . '/../app/app_login.php';
 require_once __DIR__ . '/../app/app_tilbage.php';
+require_once __DIR__ . '/../app/videoer.php';
 
 $loggedIn = !empty($_SESSION['user_id']);
 $displayName = null;
@@ -67,6 +68,7 @@ $showIntro = !is_app_webview() && is_file($introVideoFile);
 
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
     <link rel="stylesheet" href="assets/style.css?v=30">
+    <link rel="stylesheet" href="assets/videoer.css?v=1">
     <style>
         html, body { height: 100%; margin: 0; }
         .start-dot { width: 11px; height: 11px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 3px rgba(0,0,0,.55); }
@@ -125,6 +127,9 @@ $showIntro = !is_app_webview() && is_file($introVideoFile);
                 <li><strong>Privat</strong> betyder, at det kun er dig, der kan se sporet/ruten — med mindre du laver et del-link, der giver adgang til netop den rute.</li>
             </ul>
             <p>MitSpor er gratis at bruge. Alt det kræver er en emailadresse, og så er du i gang. Du kan downloade dine data og slette din profil som det passer dig. Ingen tracking, ingen sporings- eller reklamecookies, ingen deling af dine data med andre. Ægte gratis.</p>
+            <p class="video-btns-title">Videoer</p>
+            <div class="video-btns"><?= video_button('01-find-ruter') ?><?= video_button('02-konto') ?></div>
+            <p><a href="/videoer.php">Se alle videoer</a>, også om upload, editoren, grupper, live-tracking og appen.</p>
             <p>Har du spørgsmål eller kommentarer, er du velkommen til at skrive til <a href="mailto:info@mitspor.dk">info@mitspor.dk</a>.</p>
             <p>Læs <a href="/privatlivspolitik.php">privatlivspolitikken</a>.</p>
         </div>
@@ -666,6 +671,7 @@ $showIntro = !is_app_webview() && is_file($introVideoFile);
 <script src="assets/genindlaes.js?v=1"></script>
 <script src="assets/auth-dialogs.js?v=3"></script>
 <script>MitSporAuth.init({ handleUrl: true });</script>
+<script src="assets/videoer.js?v=1"></script>
 <?php endif; ?>
 
 </body>

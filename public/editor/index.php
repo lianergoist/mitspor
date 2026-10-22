@@ -6,6 +6,7 @@ session_start();
 require_once __DIR__ . '/../../app/db.php';
 require_once __DIR__ . '/../../app/csrf.php';
 require_once __DIR__ . '/../../app/auth.php';
+require_once __DIR__ . '/../../app/videoer.php';
 
 $userId = require_login();
 $user = current_user($userId);
@@ -55,6 +56,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 
 <link rel="stylesheet" href="../vendor/leaflet/leaflet.css" />
 <link rel="stylesheet" href="style.css?v=43" />
+<link rel="stylesheet" href="../assets/videoer.css?v=1">
 </head>
 <body data-image-prefix="<?= htmlspecialchars(IMAGE_PUBLIC_URL_BASE . '/' . $userId . '/', ENT_QUOTES, 'UTF-8') ?>">
 
@@ -267,6 +269,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
     <button id="btn-close-help" class="close-btn" title="Luk">✖</button>
   </div>
   <div class="dialog-content">
+    <div class="video-btns"><?= video_button('05-editor') ?><?= video_button('06-waypoints') ?></div>
     <h3>Grundlæggende brug</h3>
     <ul>
       <li><strong>Ny rute:</strong> Klik på kortet for at placere trackpoints ét efter ét. Ruten oprettes først på platformen, når du klikker <strong>Gem</strong> — her får du lov at sætte titel, type og synlighed. Lukker du siden uden at gemme, er tegningen væk.</li>
@@ -310,5 +313,6 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <script src="../assets/route-meta-dialog.js?v=2"></script>
 <script src="../assets/gpx-tools.js?v=2"></script>
 <script src="app.js?v=44"></script>
+<script src="../assets/videoer.js?v=1"></script>
 </body>
 </html>
