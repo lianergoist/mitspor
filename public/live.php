@@ -8,6 +8,7 @@ declare(strict_types=1);
 session_start();
 
 require_once __DIR__ . '/../app/db.php';
+require_once __DIR__ . '/../app/simple_page.php';
 require_once __DIR__ . '/../app/live_view.php';
 
 $pdo = get_db();
@@ -17,7 +18,7 @@ $sessionUserId = !empty($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : nul
 
 if ($event === null || !live_can_view($event, $sessionUserId, $key)) {
     http_response_code(404);
-    echo '<h1>Livesendingen blev ikke fundet</h1><p>Der findes ingen livesending med det ID.</p>';
+    simple_message_page('Livesendingen blev ikke fundet', 'Der findes ingen livesending med det ID.');
     exit;
 }
 

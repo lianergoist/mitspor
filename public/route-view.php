@@ -4,6 +4,7 @@ declare(strict_types=1);
 session_start();
 
 require_once __DIR__ . '/../app/db.php';
+require_once __DIR__ . '/../app/simple_page.php';
 require_once __DIR__ . '/../app/og_image.php';
 require_once __DIR__ . '/../app/route_groups.php';
 require_once __DIR__ . '/../app/auth.php';
@@ -28,13 +29,13 @@ if (isset($_GET['live'])) {
     $liveUserId = !empty($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
     if ($liveEvent === null || !live_can_view($liveEvent, $liveUserId, $liveKey)) {
         http_response_code(404);
-        echo '<h1>Livesendingen blev ikke fundet</h1><p>Der findes ingen livesending med det ID.</p>';
+        simple_message_page('Livesendingen blev ikke fundet', 'Der findes ingen livesending med det ID.');
         exit;
     }
     $liveStage = live_stage_for_view($pdo, $liveEvent, (int) ($_GET['etape'] ?? 0), $liveUserId === (int) $liveEvent['user_id']);
     if ($liveStage === null || !$liveStage['started_visible']) {
         http_response_code(404);
-        echo '<h1>Etapen er ikke startet endnu</h1><p><a href="' . htmlspecialchars(live_url($liveEvent), ENT_QUOTES, 'UTF-8') . '">Til livesiden</a></p>';
+        simple_message_page('Etapen er ikke startet endnu', '<a href="' . htmlspecialchars(live_url($liveEvent), ENT_QUOTES, 'UTF-8') . '">Til livesiden</a>');
         exit;
     }
     if ($liveStage['link'] !== null) {
@@ -83,7 +84,7 @@ if ($liveEvent !== null) {
 
 if (!$route) {
     http_response_code(404);
-    echo '<h1>Ruten blev ikke fundet</h1><p>Der findes ingen rute med det ID.</p>';
+    simple_message_page('Ruten blev ikke fundet', 'Der findes ingen rute med det ID.');
     exit;
 }
 
@@ -107,13 +108,13 @@ if (!is_array($enabledFunctionsList)) {
 
 if ($route['status'] === 'deleted') {
     http_response_code(410);
-    echo '<h1>Ruten er blevet slettet</h1><p>Ejeren har slettet denne rute.</p>';
+    simple_message_page('Ruten er blevet slettet', 'Ejeren har slettet denne rute.');
     exit;
 }
 
 if ($route['status'] !== 'active') {
     http_response_code(404);
-    echo '<h1>Ruten blev ikke fundet</h1><p>Ruten er ikke tilgængelig.</p>';
+    simple_message_page('Ruten blev ikke fundet', 'Ruten er ikke tilgængelig.');
     exit;
 }
 
@@ -134,7 +135,6 @@ $hasValidShareToken = $route['share_token'] !== null
 
 if ($route['visibility'] === 'private' && !$isOwner && !$hasValidShareToken && $liveEvent === null) {
     http_response_code(403);
-    require_once __DIR__ . '/../app/simple_page.php';
     simple_message_page('Ingen adgang', 'Denne rute er privat.');
     exit;
 }
