@@ -8,6 +8,7 @@ require_once __DIR__ . '/../app/csrf.php';
 require_once __DIR__ . '/../app/auth.php';
 require_once __DIR__ . '/../app/account_deletion.php';
 require_once __DIR__ . '/../app/app_hent.php';
+require_once __DIR__ . '/../app/simple_page.php';
 
 $userId = require_login();
 $user = current_user($userId);
@@ -64,60 +65,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="da">
-<head>
-    <meta charset="UTF-8">
-    <link rel="icon" type="image/svg+xml" href="/grafik/favicon.svg">
-    <link rel="icon" type="image/png" sizes="32x32" href="/grafik/favicon-32.png">
-    <meta name="robots" content="noindex, nofollow">
-    <title>Slet konto</title>
-</head>
-<body>
+<?php simple_page_start('Slet konto'); ?>
 
-<h1>Slet din konto</h1>
+        <h1>Slet din konto</h1>
 
-<p>
-    Dette sletter din konto <strong>permanent</strong>. Det kan ikke fortrydes.
-</p>
+        <p>
+            Dette sletter din konto <strong>permanent</strong>. Det kan ikke fortrydes.
+        </p>
 
-<ul>
-    <li>Alle dine <?= $activeRouteCount ?> rute(r) slettes, inklusiv GPX-filerne.</li>
-    <li>Alle dine uploadede billeder slettes.</li>
-    <li>Alle der har et link til en af dine tidligere offentlige ruter vil se en besked om, at ruten er slettet.</li>
-    <li>Din e-mailadresse frigives, så den kan bruges til at oprette en ny konto senere, hvis du ønsker det.</li>
-</ul>
+        <ul>
+            <li>Alle dine <?= $activeRouteCount ?> rute(r) slettes, inklusiv GPX-filerne.</li>
+            <li>Alle dine uploadede billeder slettes.</li>
+            <li>Alle der har et link til en af dine tidligere offentlige ruter vil se en besked om, at ruten er slettet.</li>
+            <li>Din e-mailadresse frigives, så den kan bruges til at oprette en ny konto senere, hvis du ønsker det.</li>
+        </ul>
 
-<p>
-    Overvejer du i stedet bare at eksportere dine data, uden at slette kontoen?
-    <a href="<?= htmlspecialchars(data_export_url(), ENT_QUOTES, 'UTF-8') ?>">Download alle mine data</a>
-</p>
+        <p>
+            Overvejer du i stedet bare at eksportere dine data, uden at slette kontoen?
+            <a href="<?= htmlspecialchars(data_export_url(), ENT_QUOTES, 'UTF-8') ?>">Download alle mine data</a>
+        </p>
 
-<?php if (!empty($errors)): ?>
-    <ul>
-        <?php foreach ($errors as $error): ?>
-            <li><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></li>
-        <?php endforeach; ?>
-    </ul>
-<?php endif; ?>
+        <form method="post" action="/delete-account.php">
+            <?php if (!empty($errors)): ?>
+                <div class="modal-errors">
+                    <ul>
+                        <?php foreach ($errors as $error): ?>
+                            <li><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            <?php endif; ?>
 
-<form method="post" action="delete-account.php">
-    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
 
-    <label>
-        Skriv "slet min konto" for at bekræfte
-        <input type="text" name="confirmation_text" required autocomplete="off">
-    </label>
+            <label>
+                Skriv "slet min konto" for at bekræfte
+                <input type="text" name="confirmation_text" required autocomplete="off">
+            </label>
 
-    <label>
-        Indtast din adgangskode
-        <input type="password" name="password" required>
-    </label>
+            <label>
+                Indtast din adgangskode
+                <input type="password" name="password" required>
+            </label>
 
-    <button type="submit">Slet min konto permanent</button>
-</form>
+            <div class="simple-page-actions">
+                <button type="submit" class="btn btn-danger">Slet min konto permanent</button>
+                <a href="/dashboard.php" class="btn">Annullér</a>
+            </div>
+        </form>
 
-<p><a href="dashboard.php">Annullér</a></p>
-
-</body>
-</html>
+<?php simple_page_end(); ?>

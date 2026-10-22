@@ -134,7 +134,8 @@ $hasValidShareToken = $route['share_token'] !== null
 
 if ($route['visibility'] === 'private' && !$isOwner && !$hasValidShareToken && $liveEvent === null) {
     http_response_code(403);
-    echo '<h1>Ingen adgang</h1><p>Denne rute er privat.</p>';
+    require_once __DIR__ . '/../app/simple_page.php';
+    simple_message_page('Ingen adgang', 'Denne rute er privat.');
     exit;
 }
 
