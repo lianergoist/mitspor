@@ -35,7 +35,7 @@ $routePublicId = (string) ($_POST['route_id'] ?? '');
 
 $pdo = get_db();
 $stmt = $pdo->prepare(
-    "SELECT id, original_gpx_file_path, title, description, activity_type_id, visibility, allow_download, hide_uploader_name
+    "SELECT id, original_gpx_file_path, title, description, activity_type_id, visibility, allow_download, hide_uploader_name, route_type
      FROM routes
      WHERE public_id = :public_id AND user_id = :user_id AND status = 'active'
      LIMIT 1"
@@ -72,7 +72,8 @@ $result = update_route(
     (bool) $route['allow_download'],
     true, // GDPR-boksen er allerede bekræftet tidligere for denne rute
     (bool) $route['hide_uploader_name'],
-    0 // ingen ny udtynding — gendan uden yderligere ændringer
+    0, // ingen ny udtynding — gendan uden yderligere ændringer
+    (string) $route['route_type'] // behold typen, ellers bliver et spor til en rute
 );
 
 if (!$result['success']) {
