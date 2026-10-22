@@ -199,13 +199,19 @@
         });
     }
 
+    // Turens navn i listen: titlen fra upload (også mens den venter i køen),
+    // ellers navnet fra optagelsen ("Tur 22. okt. 2026 kl. 12.26").
+    function turTitel(m) {
+        return (m.upload && m.upload.titel) || m.navn;
+    }
+
     function listePunkt(m) {
         var li = document.createElement('li');
         li.className = 'tur';
 
         var navn = document.createElement('div');
         navn.className = 'tur-navn';
-        navn.textContent = m.navn;
+        navn.textContent = turTitel(m);
 
         var info = document.createElement('div');
         info.className = 'tur-info';
@@ -851,7 +857,7 @@
         }
         Lager.gpxUri(m)
             .then(function (uri) {
-                return Share.share({ title: m.navn, files: [uri], dialogTitle: 'Del GPX-fil' });
+                return Share.share({ title: turTitel(m), files: [uri], dialogTitle: 'Del GPX-fil' });
             })
             .catch(function (fejl) {
                 // Brugeren lukkede delemenuen: ikke en fejl.
@@ -866,7 +872,7 @@
         var advarsel = m.uploadet
             ? 'Turen bliver ikke slettet på mitspor.dk.'
             : 'Turen er ikke uploadet til mitspor.dk og kan ikke hentes igen.';
-        if (!window.confirm('Slet "' + m.navn + '" fra enheden?\n\n' + advarsel)) {
+        if (!window.confirm('Slet "' + turTitel(m) + '" fra enheden?\n\n' + advarsel)) {
             return;
         }
         iKoe(function () { return Lager.slet(m.id); }).then(visListe);
