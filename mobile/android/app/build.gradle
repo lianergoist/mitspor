@@ -39,6 +39,14 @@ android {
     }
 }
 
+// Dev-udgave til test og appvideoer (scripts/byg-dev-apk.sh): debug-bygning med
+// eget app-id, der bruger dev.mitspor.dk. Den rigtige app påvirkes ikke.
+if (project.hasProperty('mitsporDev')) {
+    android.defaultConfig.applicationIdSuffix = '.dev'
+    android.sourceSets.debug.res.srcDirs = ['src/mitsporDev/res']
+    android.sourceSets.debug.assets.srcDirs = ['build/mitspor-dev-assets']
+}
+
 repositories {
     flatDir{
         dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'

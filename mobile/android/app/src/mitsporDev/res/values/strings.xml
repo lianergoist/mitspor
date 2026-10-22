@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!-- Kun dev-udgaven (scripts/byg-dev-apk.sh): eget navn og URL-skema, så den
+     kan ligge ved siden af den rigtige app uden at Android spørger, hvilken der skal åbne. -->
+<resources>
+    <string name="app_name">MitSpor dev</string>
+    <string name="title_activity_main">MitSpor dev</string>
+    <string name="package_name">dk.mitspor.app.dev</string>
+    <string name="custom_url_scheme">dk.mitspor.app.dev</string>
+</resources>
