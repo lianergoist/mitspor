@@ -11,6 +11,7 @@ require_once __DIR__ . '/../app/csrf.php';
 require_once __DIR__ . '/../app/auth.php';
 require_once __DIR__ . '/../app/image_deletion.php';
 require_once __DIR__ . '/../app/app_hent.php';
+require_once __DIR__ . '/../app/videoer.php';
 
 $userId = require_login();
 $user = current_user($userId);
@@ -157,6 +158,7 @@ $imageUrl = static fn (array $img, bool $thumb): string =>
     <title>Mine billeder</title>
     <link rel="stylesheet" href="/assets/style.css?v=22">
     <link rel="stylesheet" href="/assets/manage-images.css?v=2">
+    <link rel="stylesheet" href="/assets/videoer.css?v=1">
 </head>
 <body>
 
@@ -218,6 +220,7 @@ $imageUrl = static fn (array $img, bool $thumb): string =>
 
 <?php else: ?>
         <h1>Mine billeder</h1>
+        <div class="video-btns"><?= video_button('06-waypoints', 90, 'Video: Mine billeder') ?><?= video_button('06-waypoints', 28.5, 'Video: billeder på waypoints') ?></div>
 
         <?php if (isset($_GET['slettet'])): ?>
             <p class="image-notice">Billedet er slettet.</p>
@@ -270,5 +273,6 @@ $imageUrl = static fn (array $img, bool $thumb): string =>
     </div>
 </div>
 
+<script src="/assets/videoer.js?v=1"></script>
 </body>
 </html>

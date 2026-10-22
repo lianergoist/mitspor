@@ -1407,6 +1407,7 @@ function markerDefaultPreview(select, box) {
         },
         editor: {
             title: 'Rediger i GPX-editor',
+            video: ['05-editor', 0, 'Tegn og rediger i editoren'],
             text: [
                 'Åbner editoren, hvor du retter selve ruten: flytter, tilføjer og sletter punkter og indsætter waypoints og billeder.',
                 'Husk at trykke Gem i editoren. Titel, synlighed og lignende ændres under Rediger metadata, og hvad rutens side viser, vælger du under Visning og datafelter.'
@@ -1414,6 +1415,7 @@ function markerDefaultPreview(select, box) {
         },
         meta: {
             title: 'Rediger metadata',
+            video: ['04-kontrolpanel', 28, 'Kontrolpanelet'],
             text: [
                 'Ændrer titel, beskrivelse, aktivitet, om det er en rute eller et spor, om den er privat eller offentlig, om andre må downloade filen, og om dit navn skjules.',
                 'Selve GPX-filen og dens punkter ændres ikke.'
@@ -1421,6 +1423,7 @@ function markerDefaultPreview(select, box) {
         },
         fields: {
             title: 'Visning og datafelter',
+            video: ['04-kontrolpanel', 36.5, 'Kontrolpanelet'],
             text: [
                 'Vælger, hvad rutens side viser. Fanen Visning styrer de indbyggede visninger (fx højdeprofil, hastighed og puls), og fanen Felter viser alle datafelter i filen.',
                 'Her kan du også slette et felts data helt fra filen, fx tidsstempler, og hente højdedata fra internettet. Dine valg gælder først, når du trykker Gem.'
@@ -1428,6 +1431,7 @@ function markerDefaultPreview(select, box) {
         },
         thin: {
             title: 'Udtynd punkter',
+            video: ['04-kontrolpanel', 45.5, 'Kontrolpanelet'],
             text: [
                 'Gør filen mindre ved at fjerne punkter, der ikke ændrer sporets form. Lige strækninger mister mange punkter, mens sving, slingrende stier og bakker bevares. Let, Middel og Kraftig tillader 2, 5 og 10 meters afvigelse fra det oprindelige spor.',
                 'Der bliver højst 50 m og 60 sekunder mellem de punkter, der er tilbage, så højdeprofil og fart stadig kan vises. Før noget gemmes, ser du, hvor mange punkter der fjernes.',
@@ -1436,6 +1440,7 @@ function markerDefaultPreview(select, box) {
         },
         group: {
             title: 'Grupper',
+            video: ['07-grupper', 0, 'Grupper og flerdagesture'],
             text: [
                 'Sætter ruten i en gruppe, fx en flerdagstur med én rute pr. etape, eller flytter den til en anden gruppe.',
                 'Du kan også oprette en ny gruppe i dialogen. Grupperne findes under fanen Grupper, hvor du kan åbne og ændre dem.'
@@ -1443,6 +1448,7 @@ function markerDefaultPreview(select, box) {
         },
         share: {
             title: 'Del-link',
+            video: ['08-del-link', 0, 'Del en privat rute'],
             text: [
                 'Opretter et link, så alle, der har det, kan se din private rute uden at logge ind.',
                 'Du kan oprette et nyt link, og så holder det gamle op med at virke. Knappen findes kun for private ruter.'
@@ -1456,6 +1462,7 @@ function markerDefaultPreview(select, box) {
         },
         restore: {
             title: 'Gendan original fil',
+            video: ['04-kontrolpanel', 55.5, 'Kontrolpanelet'],
             text: [
                 'Erstatter den nuværende fil med den oprindelige fil, som blev gemt, før ruten blev udtyndet.',
                 'Ændringer, du har lavet efter udtyndingen (fx rettede punkter), går tabt. Titel og øvrige indstillinger røres ikke, og knappen forsvinder bagefter.'
@@ -1490,6 +1497,18 @@ function markerDefaultPreview(select, box) {
                 p.textContent = paragraph;
                 bodyEl.appendChild(p);
             });
+            // Video med det relevante stykke (afspilles af assets/videoer.js).
+            if (entry.video) {
+                var vbtn = document.createElement('button');
+                vbtn.type = 'button';
+                vbtn.className = 'video-btn';
+                vbtn.setAttribute('data-video', entry.video[0]);
+                if (entry.video[1] > 0) vbtn.setAttribute('data-start', String(entry.video[1]));
+                vbtn.setAttribute('data-title', entry.video[2]);
+                vbtn.innerHTML = '<span class="video-btn-icon" aria-hidden="true">▶</span>';
+                vbtn.appendChild(document.createTextNode('Se video'));
+                bodyEl.appendChild(vbtn);
+            }
             dialog.showModal();
         });
     });

@@ -10,6 +10,7 @@ require_once __DIR__ . '/../app/route_groups.php';
 require_once __DIR__ . '/../app/auth.php';
 require_once __DIR__ . '/../app/auth_dialogs.php';
 require_once __DIR__ . '/../app/app_hent.php';
+require_once __DIR__ . '/../app/videoer.php';
 require_once __DIR__ . '/../app/markers.php';
 
 $publicId = (string) ($_GET['id'] ?? '');
@@ -208,6 +209,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
 
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
     <link rel="stylesheet" href="assets/style.css?v=28">
+    <link rel="stylesheet" href="assets/videoer.css?v=1">
     <style>
         html, body { height: 100%; margin: 0; }
         /* Topbar + info-boks: .top-area ligger øverst over kortet, og info-boksen
@@ -465,6 +467,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             <button type="button" id="route-help-dialog-close" class="close-btn" aria-label="Luk">&times;</button>
         </div>
         <div class="dialog-content">
+            <div class="video-btns"><?= video_button('01-find-ruter', 20.5, 'Video: rutens side') ?><?php if ($isOwner): ?><?= video_button('06-waypoints', 74, 'Video: waypoints og billeder') ?><?php endif; ?></div>
             <p>På MitSpor kan man finde to slags "ruter":</p>
             <ul>
                 <li><strong>Spor</strong>, der er optaget med en GPS-enhed, og som viser tid og hastighed (hvis filen indeholder tidsdata).</li>
@@ -1605,6 +1608,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
 <script src="assets/genindlaes.js?v=1"></script>
 <script src="assets/auth-dialogs.js?v=3"></script>
 <script>MitSporAuth.init({ handleUrl: false });</script>
+<script src="assets/videoer.js?v=1"></script>
 <?php endif; ?>
 
 </body>
