@@ -137,7 +137,12 @@ $showIntro = !is_app_webview() && is_file($introVideoFile);
             <button type="button" id="intro-video-close" class="close-btn" aria-label="Luk">&times;</button>
         </div>
         <div class="intro-video-frame">
-            <video src="/grafik/intro.mp4?v=<?= (int) filemtime($introVideoFile) ?>" controls preload="none" playsinline></video>
+            <video src="/grafik/intro.mp4?v=<?= (int) filemtime($introVideoFile) ?>" controls preload="none" playsinline>
+                <?php if (is_file(__DIR__ . '/grafik/intro.vtt')): ?>
+                <?php /* Teksten er brændt ind i videoen; sporet kan slås til i afspilleren, fx til skærmlæsere. */ ?>
+                <track kind="subtitles" src="/grafik/intro.vtt?v=<?= (int) filemtime(__DIR__ . '/grafik/intro.vtt') ?>" srclang="da" label="Dansk">
+                <?php endif; ?>
+            </video>
         </div>
     </dialog>
 
