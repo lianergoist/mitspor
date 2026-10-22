@@ -664,13 +664,12 @@
             });
     }
 
-    // Etapens titel fra planen, ellers livesendingens titel og etapens nummer.
+    // Livesendingens titel og etapens nummer, fx "Vandring på Gudenåstien –
+    // etape 1". Etapens egen titel fra planen bruges ikke: den er den planlagte
+    // rutes titel, så den uploadede tur ville hedde det samme som ruten.
     function liveTitel(live) {
         var etape = live.etape;
-        if (etape && etape.titel) {
-            return etape.titel;
-        }
-        if (etape && etape.position > 1) {
+        if (etape && (etape.titel || etape.position > 1)) {
             return live.titel + ' – etape ' + etape.position;
         }
         return live.titel;
