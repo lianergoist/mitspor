@@ -67,7 +67,7 @@ $h = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
 
     <link rel="stylesheet" href="/assets/style.css?v=32">
     <link rel="stylesheet" href="/assets/videoer.css?v=1">
-    <link rel="stylesheet" href="/assets/forside.css?v=1">
+    <link rel="stylesheet" href="/assets/forside.css?v=2">
 </head>
 <body class="forside">
 
@@ -145,8 +145,6 @@ $h = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
             <span class="hjem-tekst">Upload GPX, del, redigér og saml ruter i grupper.</span>
         </a>
     </nav>
-
-    <p class="hjem-videoer"><a href="/videoer.php">Se videoer om, hvordan MitSpor virker</a></p>
 </main>
 
 <?php else: ?>
