@@ -1431,7 +1431,15 @@ function markerDefaultPreview(select, box) {
             video: ['04-kontrolpanel', 36.5, 'Kontrolpanelet'],
             text: [
                 'Vælger, hvad rutens side viser. Fanen Visning styrer de indbyggede visninger (fx højdeprofil, hastighed og puls), og fanen Felter viser alle datafelter i filen.',
-                'Her kan du også slette et felts data helt fra filen, fx tidsstempler, og hente højdedata fra internettet. Dine valg gælder først, når du trykker Gem.'
+                'Her kan du også slette et felts data helt fra filen, fx tidsstempler. Højdedata ændres under Rediger højdedata. Dine valg gælder først, når du trykker Gem.'
+            ]
+        },
+        ele: {
+            title: 'Rediger højdedata',
+            text: [
+                'Viser, om ruten har højdedata, og rutens laveste og højeste punkt samt samlet stigning og fald.',
+                'Du kan hente højden for alle punkter fra internettet (en højdemodel med 30 m opløsning). Det overskriver de højder, filen har, og er ofte mere præcist end GPS\'ens egen højde. Du kan også slette al højdedata fra filen.',
+                'Ændringen gemmes først, når du trykker Gem.'
             ]
         },
         thin: {
