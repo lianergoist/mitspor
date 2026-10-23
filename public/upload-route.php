@@ -222,7 +222,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <p id="time-in-rute-notice" hidden>
         Denne fil indeholder tidsstempler, men er markeret som en <strong>Rute</strong>, og download er tilladt —
         tidsstemplerne ligger derfor stadig i den fil, andre kan downloade, selvom de ikke vises på rutens side.
-        Vil du undgå det, kan du fjerne dem bagefter i kontrolpanelet under "Visning og datafelter" (fanen Felter).
+        Vil du undgå det, kan du fjerne dem bagefter i kontrolpanelet under "Slet datafelter".
     </p>
 
     <script>

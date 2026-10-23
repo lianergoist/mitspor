@@ -90,7 +90,7 @@ if (!$route) {
 }
 
 // Hvilke GPX-datafelter/-funktioner ejeren har valgt skal kunne vises
-// (sat via "Visning og datafelter" i kontrolpanelet). NULL = ikke taget stilling
+// (sat via "Visning af datafelter" i kontrolpanelet). NULL = ikke taget stilling
 // endnu -> se isFieldEnabled()/isFunctionEnabled() i JS forneden for
 // hvad der så gælder som udgangspunkt.
 $enabledFields = $route['enabled_data_fields'] !== null
@@ -477,7 +477,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             <p>Pilen øverst til venstre tager dig tilbage til det, du kom fra. <strong>Download</strong> henter rutens GPX-fil, når ejeren har tilladt det.</p>
             <p>Er ruten <strong>offentlig</strong>, kan alle se den; er den <strong>privat</strong>, kræver det enten at du er ejeren, eller at du har et gyldigt del-link.</p>
             <?php if ($isOwner): ?>
-                <p><strong>Som ejer</strong> kan du trykke <strong>Editor</strong> for at rette ruten (punkter, waypoints og billeder). Hvad siden viser — højdeprofil, hastighed, puls m.m. — vælger du i kontrolpanelet under <strong>Visning og datafelter</strong>.</p>
+                <p><strong>Som ejer</strong> kan du trykke <strong>Editor</strong> for at rette ruten (punkter, waypoints og billeder). Hvad siden viser — højdeprofil, hastighed, puls m.m. — vælger du i kontrolpanelet under <strong>Visning af datafelter</strong>.</p>
             <?php endif; ?>
             <?php if ($route['visibility'] === 'public' && !$route['hide_uploader_name'] && $liveEvent === null): ?>
                 <p><a href="uploader-routes.php?route=<?= htmlspecialchars($route['public_id'], ENT_QUOTES, 'UTF-8') ?>">Andre ruter fra denne bruger</a></p>
@@ -624,7 +624,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
     var hasTimeData = false; // om GPX-filen rent faktisk INDEHOLDER tidsstempler
     var hasUsableTimeData = false; // isSpor OG hasTimeData — det der reelt styrer visningen
     // Hvilke datafelter ejeren har valgt skal kunne vises (sat via
-    // "Visning og datafelter" i kontrolpanelet) — null = ikke taget stilling
+    // "Visning af datafelter" i kontrolpanelet) — null = ikke taget stilling
     // endnu, og så gælder standardværdierne fra assets/gpx-field-labels.js.
     var enabledFields = <?= $enabledFields !== null ? json_encode($enabledFields) : 'null' ?>;
     function isFieldEnabled(name) {

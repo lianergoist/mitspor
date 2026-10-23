@@ -1415,7 +1415,7 @@ function markerDefaultPreview(select, box) {
             video: ['05-editor', 0, 'Tegn og rediger i editoren'],
             text: [
                 'Åbner editoren, hvor du retter selve ruten: flytter, tilføjer og sletter punkter og indsætter waypoints og billeder.',
-                'Husk at trykke Gem i editoren. Titel, synlighed og lignende ændres under Rediger metadata, og hvad rutens side viser, vælger du under Visning og datafelter.'
+                'Husk at trykke Gem i editoren. Titel, synlighed og lignende ændres under Rediger metadata, og hvad rutens side viser, vælger du under Visning af datafelter.'
             ]
         },
         meta: {
@@ -1427,11 +1427,26 @@ function markerDefaultPreview(select, box) {
             ]
         },
         fields: {
-            title: 'Visning og datafelter',
+            title: 'Visning af datafelter',
             video: ['04-kontrolpanel', 36.5, 'Kontrolpanelet'],
             text: [
-                'Vælger, hvad rutens side viser. Fanen Visning styrer de indbyggede visninger (fx højdeprofil, hastighed og puls), og fanen Felter viser alle datafelter i filen.',
-                'Her kan du også slette et felts data helt fra filen, fx tidsstempler, og hente højdedata fra internettet. Dine valg gælder først, når du trykker Gem.'
+                'Vælger, hvad rutens side viser: de indbyggede visninger (fx højdeprofil, hastighed og puls) og øvrige felter i filen, der kan vises som tal.',
+                'Filen ændres ikke. Dine valg gælder først, når du trykker Gem.'
+            ]
+        },
+        strip: {
+            title: 'Slet datafelter',
+            text: [
+                'Viser de datafelter, filen indeholder (fx tid, højde, puls og kadence), og fjerner et felts data helt fra filen. Så er det heller ikke med i den fil, andre kan downloade.',
+                'Visninger, der bygger på feltet, forsvinder fra rutens side. Sletter du fx tiden, forsvinder hastighed og tid i bevægelse. Ændringen gemmes først, når du trykker Gem.'
+            ]
+        },
+        ele: {
+            title: 'Rediger højdedata',
+            text: [
+                'Viser, om ruten har højdedata, og rutens laveste og højeste punkt samt samlet stigning og fald.',
+                'Du kan hente højden for alle punkter fra internettet (en højdemodel med 30 m opløsning). Det overskriver de højder, filen har, og er ofte mere præcist end GPS\'ens egen højde. Du kan også slette al højdedata fra filen.',
+                'Ændringen gemmes først, når du trykker Gem.'
             ]
         },
         thin: {

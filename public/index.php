@@ -134,15 +134,15 @@ $h = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
             <span class="hjem-titel">Mine ruter på kort</span>
             <span class="hjem-tekst">Alle dine egne ruter og spor på ét kort, også de private.</span>
         </a>
-        <a href="/editor/?new=1" class="hjem-kort">
-            <svg class="hjem-ikon tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
-            <span class="hjem-titel">Tegn ny rute</span>
-            <span class="hjem-tekst">Klik ruten ind på kortet i editoren, og gem den.</span>
-        </a>
         <a href="/dashboard.php" class="hjem-kort">
             <svg class="hjem-ikon tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>
             <span class="hjem-titel">Kontrolpanel</span>
             <span class="hjem-tekst">Upload GPX, del, redigér og saml ruter i grupper.</span>
+        </a>
+        <a href="/editor/?new=1" class="hjem-kort">
+            <svg class="hjem-ikon tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+            <span class="hjem-titel">Tegn ny rute</span>
+            <span class="hjem-tekst">Klik ruten ind på kortet i editoren, og gem den.</span>
         </a>
     </nav>
 </main>

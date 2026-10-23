@@ -77,7 +77,7 @@ if ($markerIcon !== null && !marker_is_valid($markerIcon)) {
 }
 
 // Hvilke GPX-datafelter (puls, kadence, watt, osv.) ejeren har valgt
-// skal kunne vises/bruges — sat via "Visning og datafelter" i
+// skal kunne vises/bruges — sat via "Visning af datafelter" i
 // kontrolpanelet. Sendes som en JSON-liste af feltnavne; null/tom = ikke rørt
 // i denne gemning (update_route() beholder så den eksisterende værdi).
 $enabledDataFields = null;

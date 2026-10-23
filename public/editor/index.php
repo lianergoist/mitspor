@@ -305,7 +305,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
     <h3>Fortryd</h3>
     <ul>
       <li><strong>Fortryd/Gendan:</strong> Brug knapperne Fortryd og Gendan i værktøjslinjen, eller Ctrl+Z og Ctrl+Y.</li>
-      <li>Alle øvrige data i filen (puls, kadence osv.) bevares uændret, når du gemmer. Udtynding af punkter og valg af, hvad rutens side viser (<strong>Visning og datafelter</strong>, inkl. højdedata fra internettet), findes i <strong>Kontrolpanelet</strong>.</li>
+      <li>Alle øvrige data i filen (puls, kadence osv.) bevares uændret, når du gemmer. Udtynding af punkter og valg af, hvad rutens side viser (<strong>Visning af datafelter</strong>), sletning af datafelter og højdedata fra internettet (<strong>Rediger højdedata</strong>) findes i <strong>Kontrolpanelet</strong>.</li>
     </ul>
   </div>
 </dialog>
