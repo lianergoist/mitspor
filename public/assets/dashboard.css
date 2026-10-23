@@ -79,8 +79,8 @@
 .detail-panel[hidden] { display: none; }
 /* Detaljeblokken: tekst og knapper i samme størrelser som listen og den personlige forside. */
 .detail-panel h2 { margin: 0 0 6px; font-size: 1.4rem; line-height: 1.3; overflow-wrap: anywhere; }
-.detail-summary { margin: 0 0 2px; color: var(--text); font-size: 1rem; }
-.detail-meta { margin: 0 0 14px; color: var(--text-muted); font-size: 0.93rem; }
+.detail-summary { margin: 0 0 2px; color: var(--text); font-size: 0.93rem; }
+.detail-meta { margin: 0 0 14px; color: var(--text-muted); font-size: 0.82rem; }
 .detail-panel .hint { font-size: 0.93rem; }
 
 .detail-map {
