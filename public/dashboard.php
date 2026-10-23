@@ -68,7 +68,7 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
     <title>Mit kontrolpanel</title>
     <link rel="stylesheet" href="assets/style.css?v=22">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/dashboard.css?v=26">
+    <link rel="stylesheet" href="assets/dashboard.css?v=27">
     <link rel="stylesheet" href="assets/videoer.css?v=1">
 </head>
 <body>
@@ -656,7 +656,7 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
         <p class="hint">"Hent fra internettet" slår højden op for hvert punkt i en højdemodel (SRTM, 30 m opløsning, via Open Topo Data) og overskriver de højder, filen har. Det er ofte mere præcist end GPS'ens egen højde. Det tager cirka et sekund pr. 100 punkter.</p>
         <div class="tool-thin-buttons">
             <button type="button" class="btn" id="tool-ele-fetch">Hent fra internettet</button>
-            <button type="button" class="btn btn-danger" id="tool-ele-delete">Slet højdedata</button>
+            <button type="button" class="btn btn-danger" id="tool-ele-delete" hidden>Slet højdedata</button>
         </div>
     </div>
 
@@ -1161,7 +1161,7 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
 <script src="assets/gpx-tools.js?v=2"></script>
 <script src="assets/genindlaes.js?v=1"></script>
 <script src="assets/dashboard.js?v=24"></script>
-<script src="assets/dashboard-tools.js?v=7"></script>
+<script src="assets/dashboard-tools.js?v=8"></script>
 <script src="assets/activity-marker.js?v=1"></script>
 <script src="assets/dashboard-map.js?v=6"></script>
 <script src="assets/dashboard-live.js?v=2"></script>
