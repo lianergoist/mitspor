@@ -18,6 +18,9 @@ declare(strict_types=1);
  *
  * Kun aktive, OFFENTLIGE ruter udleveres. Ingen cookies, ingen session,
  * ingen skrivning til databasen.
+ *
+ * Med mine=1 (kortet "Mine ruter", kort.php?mine=1) udleveres i stedet den
+ * indloggede brugers egne ruter, også de private. Kun her læses sessionen.
  */
 
 require_once __DIR__ . '/../app/db.php';
@@ -48,13 +51,30 @@ if (!$ids) {
     exit;
 }
 
+$mine = isset($_GET['mine']);
+$params = $ids;
+if ($mine) {
+    session_start();
+    $userId = (int) ($_SESSION['user_id'] ?? 0);
+    session_write_close();
+    if ($userId <= 0) {
+        http_response_code(403);
+        echo json_encode(['lines' => new stdClass(), 'pending' => []]);
+        exit;
+    }
+    $access = 'user_id = ?';
+    $params[] = $userId;
+} else {
+    $access = "visibility = 'public'";
+}
+
 $placeholders = implode(',', array_fill(0, count($ids), '?'));
 $stmt = get_db()->prepare(
     "SELECT public_id, gpx_file_path
      FROM routes
-     WHERE public_id IN ($placeholders) AND visibility = 'public' AND status = 'active'"
+     WHERE public_id IN ($placeholders) AND $access AND status = 'active'"
 );
-$stmt->execute($ids);
+$stmt->execute($params);
 $routes = $stmt->fetchAll();
 
 @set_time_limit(30);
@@ -81,5 +101,10 @@ foreach ($routes as $route) {
 
 // Ruter kan ændres; en kort cache-tid holder serveren afkølet uden at vise gamle spor for længe.
 // Er noget endnu ikke klar, må svaret ikke caches.
-header($pending ? 'Cache-Control: no-store' : 'Cache-Control: public, max-age=120');
+// Private ruter må kun caches i brugerens egen browser.
+if ($pending) {
+    header('Cache-Control: no-store');
+} else {
+    header($mine ? 'Cache-Control: private, max-age=120' : 'Cache-Control: public, max-age=120');
+}
 echo json_encode(['lines' => (object) $lines, 'pending' => $pending]);
