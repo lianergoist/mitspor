@@ -55,7 +55,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <title>GPX-editor</title>
 
 <link rel="stylesheet" href="../vendor/leaflet/leaflet.css" />
-<link rel="stylesheet" href="style.css?v=43" />
+<link rel="stylesheet" href="style.css?v=44" />
 <link rel="stylesheet" href="../assets/videoer.css?v=1">
 </head>
 <body data-image-prefix="<?= htmlspecialchars(IMAGE_PUBLIC_URL_BASE . '/' . $userId . '/', ENT_QUOTES, 'UTF-8') ?>">
@@ -83,8 +83,13 @@ if ($initialRouteId === '' && !$isNewRoute) {
   </div>
 </div>
 
+<!-- Rutens titel, antal punkter og længde, og under dem den seneste besked. -->
 <div id="route-title-bar">
-  <strong>Rute:</strong> <span id="route-title-label" class="truncate">—</span>
+  <div class="route-title-line">
+    <strong>Rute:</strong> <span id="route-title-label" class="truncate">—</span>
+    <span id="route-stats"></span>
+  </div>
+  <div id="status" role="status"></div>
 </div>
 
 <dialog id="edit-meta-dialog" class="modal-dialog">
@@ -198,8 +203,6 @@ if ($initialRouteId === '' && !$isNewRoute) {
 
 <input type="file" id="image-file-input" accept="image/*" multiple style="display:none">
 
-<div id="status"></div>
-
 <dialog id="insert-waypoint-dialog" class="modal-dialog">
   <button type="button" id="insert-waypoint-dialog-close" class="modal-close" aria-label="Luk">&times;</button>
   <h2 id="insert-waypoint-dialog-title">Indsæt waypoint</h2>
@@ -312,7 +315,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <script src="../vendor/sortablejs/Sortable.min.js"></script>
 <script src="../assets/route-meta-dialog.js?v=2"></script>
 <script src="../assets/gpx-tools.js?v=2"></script>
-<script src="app.js?v=44"></script>
+<script src="app.js?v=45"></script>
 <script src="../assets/videoer.js?v=1"></script>
 </body>
 </html>

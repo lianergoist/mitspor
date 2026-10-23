@@ -58,8 +58,10 @@
     return "p" + (idCounter++);
   }
 
+  // Beskeden vises i linjen under værktøjslinjen, sammen med rutens
+  // antal punkter og længde.
   function setStatus(msg) {
-    let distanceText = "";
+    let statsText = "";
     if (state && map) {
       let totalMeters = 0;
       state.segments.forEach((seg) => {
@@ -69,10 +71,11 @@
           totalMeters += map.distance(p1, p2);
         }
       });
-      const km = (totalMeters / 1000).toFixed(2);
-      distanceText = ` | Rutens længde: ${km} km`;
+      const km = (totalMeters / 1000).toFixed(2).replace(".", ",");
+      statsText = `· ${countPoints()} punkter · ${km} km`;
     }
-    el("status").textContent = (msg || "") + distanceText;
+    el("route-stats").textContent = statsText;
+    el("status").textContent = msg || "";
   }
 
   // ---------- Historik ----------
@@ -140,6 +143,11 @@
   // ---------- Init kort ----------
   function initMap() {
     map = L.map("map").setView([55.8559, 9.8773], 13);
+    // Linjen over kortet bliver højere, når en besked bryder om på flere
+    // linjer, og kortet dermed lavere — så Leaflet skal have besked.
+    if (window.ResizeObserver) {
+      new ResizeObserver(() => map.invalidateSize({ pan: false })).observe(el("map"));
+    }
     L.tileLayer("../tile.php?z={z}&x={x}&y={y}", {
       maxZoom: 19,
       attribution: "&copy; OpenStreetMap-bidragydere"
@@ -1458,7 +1466,7 @@
     render._hasFitBounds = false;
     markAllSaved();
     render();
-    setStatus(`Indlæst/Oprettet: ${filename} (${countPoints()} trackpoints, ${state.waypoints.length} waypoints)`);
+    setStatus("");
   }
 
   function countPoints() {
