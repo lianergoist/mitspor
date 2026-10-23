@@ -68,7 +68,7 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
     <title>Mit kontrolpanel</title>
     <link rel="stylesheet" href="assets/style.css?v=22">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/dashboard.css?v=19">
+    <link rel="stylesheet" href="assets/dashboard.css?v=23">
     <link rel="stylesheet" href="assets/videoer.css?v=1">
 </head>
 <body>
@@ -110,7 +110,7 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
         </div>
         <p><a href="/videoer.php">Alle videoer på én side</a></p>
 
-        <p><strong>Sådan er kontrolpanelet bygget op:</strong> Til venstre ser du alle dine ruter, spor og grupper i faneblade (Alle, Spor, Ruter og Grupper). Vælg et element, så vises et kort og dets værktøjer til højre. Ved siden af hver knap står et <strong>?</strong>, der forklarer, hvad knappen gør. På en mobil vises først listen, og værktøjerne kommer frem, når du vælger noget — med "Tilbage til listen" øverst.</p>
+        <p><strong>Sådan er kontrolpanelet bygget op:</strong> Til venstre ser du alle dine ruter, spor og grupper i faneblade (Spor, Ruter, Grupper og Live). Vælg et element, så vises et kort og dets værktøjer til højre. Ved siden af hver knap står et <strong>?</strong>, der forklarer, hvad knappen gør. På en mobil vises først listen, og værktøjerne kommer frem, når du vælger noget — med "Tilbage til listen" øverst.</p>
 
         <p><strong>Kom i gang:</strong> Tryk "Upload GPX" for at lægge en fil op fra din computer, eller "Tegn ny rute" for at tegne en helt ny rute i GPX-editoren. En ny rute oprettes først, når du trykker Gem i editoren.</p>
 
@@ -286,12 +286,15 @@ function dash_route_summary(array $route): string
     return implode(' · ', $parts);
 }
 
-function render_route_item(array $route): void
+// $order er rutens plads i den samlede liste (sorteret efter titel). Spor og
+// ruter står i hver sin fane, så "Gruppér valgte" bruger $order til at lægge
+// de valgte etaper i samme rækkefølge, uanset hvilken fane de er valgt i.
+function render_route_item(array $route, int $order): void
 {
     $key = 'route:' . $route['public_id'];
     ?>
     <li data-item="<?= dash_h($key) ?>">
-        <input type="checkbox" class="route-select" data-select-route="<?= dash_h($route['public_id']) ?>" aria-label="Vælg <?= dash_h($route['title']) ?> til gruppering">
+        <input type="checkbox" class="route-select" data-select-route="<?= dash_h($route['public_id']) ?>" data-order="<?= $order ?>" aria-label="Vælg <?= dash_h($route['title']) ?> til gruppering">
         <button type="button" class="hub-item-main" data-select-item="<?= dash_h($key) ?>">
             <span class="route-title"><?= dash_h($route['title']) ?></span>
             <span class="hub-item-sub">
@@ -490,6 +493,8 @@ function render_live_detail(array $ev): void
 
 $ruteRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'] !== 'spor');
 $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'] === 'spor');
+// Spor-fanen vises først, medmindre man kun har ruter.
+$firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
 
 ?>
 <div class="container dashboard-container">
@@ -497,11 +502,10 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
     <div class="hub" id="hub" data-tile-max-zoom="<?= (int) TILE_MAX_ZOOM ?>">
         <div class="hub-list card">
             <div class="tabs">
-                <button type="button" class="tab-btn active" data-tab-target="tab-alle">Alle (<?= count($routes) ?>)</button>
-                <button type="button" class="tab-btn" data-tab-target="tab-spor">Spor (<?= count($sporRoutes) ?>)</button>
-                <button type="button" class="tab-btn" data-tab-target="tab-rute">Ruter (<?= count($ruteRoutes) ?>)</button>
-                <button type="button" class="tab-btn" data-tab-target="tab-grupper">Grupper (<?= count($groups) ?>)</button>
-                <button type="button" class="tab-btn" data-tab-target="tab-live">Live (<?= count($liveEvents) ?>)</button>
+                <button type="button" class="tab-btn<?= $firstTab === 'tab-spor' ? ' active' : '' ?>" data-tab-target="tab-spor">Spor <span class="tab-count">(<?= count($sporRoutes) ?>)</span></button>
+                <button type="button" class="tab-btn<?= $firstTab === 'tab-rute' ? ' active' : '' ?>" data-tab-target="tab-rute">Ruter <span class="tab-count">(<?= count($ruteRoutes) ?>)</span></button>
+                <button type="button" class="tab-btn" data-tab-target="tab-grupper">Grupper <span class="tab-count">(<?= count($groups) ?>)</span></button>
+                <button type="button" class="tab-btn" data-tab-target="tab-live">Live <span class="tab-count">(<?= count($liveEvents) ?>)</span></button>
             </div>
             <p class="hub-stats">
                 Ruter: <?= count($routes) ?> / <?= (int) $user['route_quota'] ?> ruter
@@ -509,33 +513,25 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
                 · Lagerplads: <?= $storageText ?>
             </p>
 
-            <div id="tab-alle" class="tab-panel">
-                <?php if (empty($routes)): ?>
-                    <p class="empty-state">Du har endnu ikke oprettet nogen ruter eller spor.</p>
-                    <div class="video-btns"><?= video_button('03-upload') ?><?= video_button('05-editor') ?></div>
-                <?php else: ?>
-                    <ul class="hub-items">
-                        <?php foreach ($routes as $route): render_route_item($route); endforeach; ?>
-                    </ul>
-                <?php endif; ?>
-            </div>
-
-            <div id="tab-spor" class="tab-panel" hidden>
+            <?php /* array_filter bevarer nøglerne, så $i er pladsen i den samlede liste. */ ?>
+            <div id="tab-spor" class="tab-panel"<?= $firstTab === 'tab-spor' ? '' : ' hidden' ?>>
                 <?php if (empty($sporRoutes)): ?>
                     <p class="empty-state">Du har endnu ikke uploadet nogen spor.</p>
+                    <div class="video-btns"><?= video_button('03-upload') ?></div>
                 <?php else: ?>
                     <ul class="hub-items">
-                        <?php foreach ($sporRoutes as $route): render_route_item($route); endforeach; ?>
+                        <?php foreach ($sporRoutes as $i => $route): render_route_item($route, $i); endforeach; ?>
                     </ul>
                 <?php endif; ?>
             </div>
 
-            <div id="tab-rute" class="tab-panel" hidden>
+            <div id="tab-rute" class="tab-panel"<?= $firstTab === 'tab-rute' ? '' : ' hidden' ?>>
                 <?php if (empty($ruteRoutes)): ?>
                     <p class="empty-state">Du har endnu ikke oprettet nogen ruter.</p>
+                    <div class="video-btns"><?= video_button('05-editor') ?></div>
                 <?php else: ?>
                     <ul class="hub-items">
-                        <?php foreach ($ruteRoutes as $route): render_route_item($route); endforeach; ?>
+                        <?php foreach ($ruteRoutes as $i => $route): render_route_item($route, $i); endforeach; ?>
                     </ul>
                 <?php endif; ?>
             </div>
@@ -1122,7 +1118,7 @@ $sporRoutes = array_filter($routes, static fn(array $r): bool => $r['route_type'
 <script src="assets/gpx-field-labels.js?v=3"></script>
 <script src="assets/gpx-tools.js?v=2"></script>
 <script src="assets/genindlaes.js?v=1"></script>
-<script src="assets/dashboard.js?v=21"></script>
+<script src="assets/dashboard.js?v=22"></script>
 <script src="assets/dashboard-tools.js?v=5"></script>
 <script src="assets/activity-marker.js?v=1"></script>
 <script src="assets/dashboard-map.js?v=6"></script>
