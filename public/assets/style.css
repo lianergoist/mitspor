@@ -498,11 +498,13 @@ a { color: var(--primary); }
 }
 /* Kontrolpanelets topbar har samme mål som forsidens, så de to
    topbarer er lige høje (også når de bryder i to rækker på mobil). */
-#dashboard-topbar {
+#dashboard-topbar,
+#forside-topbar {
     padding: 9px 20px;
 }
 .map-page .topbar .btn,
-#dashboard-topbar .btn {
+#dashboard-topbar .btn,
+#forside-topbar .btn {
     padding: 9px 14px;
     min-height: 40px; /* behageligt at ramme, både med mus og finger */
 }
@@ -524,7 +526,8 @@ a { color: var(--primary); }
 /* Ikonerne i topbaren er SVG'er (ikke tegn/emojis), så de ser ens ud overalt,
    og de har sidens blå farve — teksten i knapperne forbliver mørk. */
 .map-page .topbar .btn > svg,
-#dashboard-topbar .btn > svg {
+#dashboard-topbar .btn > svg,
+#forside-topbar .btn > svg {
     width: 18px;
     height: 18px;
     flex: 0 0 auto;
@@ -532,7 +535,9 @@ a { color: var(--primary); }
 .map-page .topbar .btn > svg,
 .map-page .topbar .btn > .help-icon,
 #dashboard-topbar .btn > svg,
-#dashboard-topbar .btn > .help-icon {
+#dashboard-topbar .btn > .help-icon,
+#forside-topbar .btn > svg,
+#forside-topbar .btn > .help-icon {
     color: var(--primary);
 }
 .map-page #map {
@@ -1245,7 +1250,8 @@ a { color: var(--primary); }
        Log ud, Hjælp) viser kun ikonet på mobil, som på rutens side. */
     .tb-label { display: none; }
     .map-page .topbar .btn:has(.tb-label),
-    #dashboard-topbar .btn:has(.tb-label) {
+    #dashboard-topbar .btn:has(.tb-label),
+    #forside-topbar .btn:has(.tb-label) {
         padding: 6px 12px;
         justify-content: center;
     }
