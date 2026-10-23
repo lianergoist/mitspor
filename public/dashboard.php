@@ -68,7 +68,7 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
     <title>Mit kontrolpanel</title>
     <link rel="stylesheet" href="assets/style.css?v=22">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/dashboard.css?v=25">
+    <link rel="stylesheet" href="assets/dashboard.css?v=26">
     <link rel="stylesheet" href="assets/videoer.css?v=1">
 </head>
 <body>
@@ -123,7 +123,9 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
             <li><strong>Vis rute på kort</strong> åbner rutens egen side — den, andre ser, hvis ruten er offentlig eller delt med et link.</li>
             <li><strong>Rediger i GPX-editor</strong> åbner editoren, hvor du flytter punkter og indsætter waypoints med billeder og kommentarer.</li>
             <li><strong>Rediger metadata</strong> ændrer titel, beskrivelse, aktivitet, type (rute/spor), synlighed og download-tilladelse uden at åbne editoren.</li>
-            <li><strong>Visning og datafelter</strong> vælger, hvad rutens side viser (fx højdeprofil, hastighed og puls). Her kan du også slette et felts data fra filen, fx tidsstempler eller højdedata, og hente højdedata fra internettet.</li>
+            <li><strong>Visning af datafelter</strong> vælger, hvad rutens side viser (fx højdeprofil, hastighed og puls).</li>
+            <li><strong>Slet datafelter</strong> fjerner et felts data helt fra filen, fx tidsstempler, puls eller højdedata.</li>
+            <li><strong>Rediger højdedata</strong> viser rutens højder og kan hente nye fra internettet eller slette dem.</li>
             <li><strong>Udtynd punkter</strong> gør filen mindre ved at beholde færre punkter. Knappen findes kun for ruter med tidsstempler.</li>
             <li><strong>Grupper</strong> sætter ruten i en gruppe (se nedenfor).</li>
             <li><strong>Del-link</strong> (kun private ruter), <strong>Download GPX-fil</strong> og <strong>Slet</strong>.</li>
@@ -338,8 +340,12 @@ function render_route_detail(array $route): void
                 <?= dash_help_btn('meta', 'Rediger metadata') ?>
             </div>
             <div class="tool-row">
-                <button type="button" class="tool" data-tool-fields="<?= dash_h($id) ?>" data-route-title="<?= dash_h($title) ?>">Visning og datafelter</button>
-                <?= dash_help_btn('fields', 'Visning og datafelter') ?>
+                <button type="button" class="tool" data-tool-fields="<?= dash_h($id) ?>" data-route-title="<?= dash_h($title) ?>">Visning af datafelter</button>
+                <?= dash_help_btn('fields', 'Visning af datafelter') ?>
+            </div>
+            <div class="tool-row">
+                <button type="button" class="tool" data-tool-strip="<?= dash_h($id) ?>" data-route-title="<?= dash_h($title) ?>">Slet datafelter</button>
+                <?= dash_help_btn('strip', 'Slet datafelter') ?>
             </div>
             <div class="tool-row">
                 <button type="button" class="tool" data-tool-ele="<?= dash_h($id) ?>" data-route-title="<?= dash_h($title) ?>">Rediger højdedata</button>
@@ -602,28 +608,40 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
 
 <dialog id="tool-fields-dialog" class="modal-dialog tool-wide">
     <button type="button" id="tool-fields-close" class="modal-close" aria-label="Luk">&times;</button>
-    <h2>Visning og datafelter</h2>
+    <h2>Visning af datafelter</h2>
     <p><strong id="tool-fields-title"></strong></p>
 
     <div id="tool-fields-errors" class="modal-errors" hidden></div>
 
     <div id="tool-fields-body" hidden>
-        <div class="data-fields-tabs" role="tablist">
-            <button type="button" class="data-fields-tab active" data-fields-tab="functions">Visning</button>
-            <button type="button" class="data-fields-tab" data-fields-tab="fields">Felter</button>
-        </div>
-        <div data-fields-panel="functions">
-            <p class="hint">Indbyggede visninger på rutens side, ud fra hvad GPX-filen indeholder.</p>
-            <ul id="tool-functions-list" class="data-fields-list"></ul>
-        </div>
-        <div data-fields-panel="fields" hidden>
-            <p class="hint">Alle datafelter i filen. Felter uden en indbygget visning vises som rå tal på rutens side, hvis de er afkrydset. 🗑 sletter et felts data fra selve filen. Højdedata ændres under Rediger højdedata. Ændringer gemmes først, når du trykker Gem.</p>
+        <h3 class="data-fields-heading">Visninger</h3>
+        <p class="hint">Indbyggede visninger på rutens side, ud fra hvad GPX-filen indeholder.</p>
+        <ul id="tool-functions-list" class="data-fields-list"></ul>
+        <div id="tool-fields-raw" hidden>
+            <h3 class="data-fields-heading">Øvrige felter</h3>
+            <p class="hint">Felter uden en indbygget visning. De afkrydsede vises som tal på rutens side.</p>
             <ul id="tool-fields-list" class="data-fields-list"></ul>
         </div>
     </div>
 
     <p id="tool-fields-status" class="hint" hidden></p>
     <button type="button" id="tool-fields-save" class="btn btn-primary" disabled>💾 Gem</button>
+</dialog>
+
+<dialog id="tool-strip-dialog" class="modal-dialog">
+    <button type="button" id="tool-strip-close" class="modal-close" aria-label="Luk">&times;</button>
+    <h2>Slet datafelter</h2>
+    <p><strong id="tool-strip-title"></strong></p>
+
+    <div id="tool-strip-errors" class="modal-errors" hidden></div>
+
+    <div id="tool-strip-body" hidden>
+        <p class="hint">De datafelter, filen indeholder. Slet fjerner feltets data fra selve filen, også fra den fil, andre kan downloade. Ændringer gemmes først, når du trykker Gem.</p>
+        <ul id="tool-strip-list" class="data-fields-list"></ul>
+    </div>
+
+    <p id="tool-strip-status" class="hint" hidden></p>
+    <button type="button" id="tool-strip-save" class="btn btn-primary" disabled>💾 Gem</button>
 </dialog>
 
 <dialog id="tool-ele-dialog" class="modal-dialog">
@@ -727,7 +745,7 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
 
         <p class="notice-field" id="edit-meta-time-in-rute-notice" hidden>
             Bemærk: Du har tilladt download af denne rute. Hvis denne fil indeholder tidsstempler, ligger de stadig i
-            den fil, andre kan downloade. Vil du undgå det, kan du fjerne dem under "Visning og datafelter" (fanen Felter).
+            den fil, andre kan downloade. Vil du undgå det, kan du fjerne dem under "Slet datafelter".
         </p>
 
         <div id="edit-meta-anonymous" hidden>
@@ -836,7 +854,7 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
 
         <p class="notice-field" id="upload-time-in-rute-notice" hidden>
             Bemærk: Du har tilladt download af denne rute. Hvis denne fil indeholder tidsstempler, ligger de stadig i
-            den fil, andre kan downloade. Vil du undgå det, kan du efter upload fjerne dem under "Visning og datafelter" (fanen Felter).
+            den fil, andre kan downloade. Vil du undgå det, kan du efter upload fjerne dem under "Slet datafelter".
         </p>
 
         <div id="upload-anonymous" hidden>
@@ -1142,8 +1160,8 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
 <script src="assets/gpx-field-labels.js?v=3"></script>
 <script src="assets/gpx-tools.js?v=2"></script>
 <script src="assets/genindlaes.js?v=1"></script>
-<script src="assets/dashboard.js?v=23"></script>
-<script src="assets/dashboard-tools.js?v=6"></script>
+<script src="assets/dashboard.js?v=24"></script>
+<script src="assets/dashboard-tools.js?v=7"></script>
 <script src="assets/activity-marker.js?v=1"></script>
 <script src="assets/dashboard-map.js?v=6"></script>
 <script src="assets/dashboard-live.js?v=2"></script>

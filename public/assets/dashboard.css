@@ -191,30 +191,9 @@
 .tool-thin-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
 .tool-wide { max-width: 480px; }
 
-.data-fields-tabs {
-    display: flex;
-    gap: 4px;
-    background: var(--bg-deep);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 4px;
-    margin-bottom: 12px;
-}
-.data-fields-tab {
-    flex: 1;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 4px;
-    background: none;
-    cursor: pointer;
-    font: inherit;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-muted);
-}
-.data-fields-tab:hover { color: var(--text); }
-.data-fields-tab.active { color: #fff; background: var(--primary); }
-[data-fields-panel][hidden] { display: none; }
+/* Visning af datafelter og Slet datafelter */
+.data-fields-heading { margin: 14px 0 2px; font-size: 15px; }
+.data-fields-heading:first-child { margin-top: 0; }
 
 .data-fields-list {
     list-style: none;
@@ -226,13 +205,12 @@
     max-height: 50vh;
     overflow-y: auto;
 }
-#tool-fields-list { gap: 0; margin-top: 12px; }
-.data-field-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
-.data-field-row:first-child { border-top: 1px solid var(--border); padding-top: 12px; }
-.data-field-row .checkbox-field { flex: 1; min-width: 0; }
-.data-field-row .link-btn { flex-shrink: 0; font-size: 15px; padding: 2px 4px; }
-.data-field-note { flex: 1; color: var(--text-muted); }
-.data-field-note small { font-size: 12px; }
+#tool-strip-list { gap: 0; }
+.data-field-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.data-field-row:last-child { border-bottom: none; }
+.data-field-note { flex: 1; min-width: 0; }
+.data-field-row .btn-small { flex-shrink: 0; padding: 5px 12px; font-size: 13px; }
+#tool-strip-save { margin-top: 14px; }
 #tool-fields-save { margin-top: 14px; }
 
 /* Rediger højdedata: tal om rutens højde i to kolonner. */

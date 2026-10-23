@@ -1,7 +1,7 @@
 /**
  * Danske navne for kendte GPX-/extension-datafelter (fx <hr>, <cad>,
  * <power> fra Garmin/Suunto/Wahoo m.fl.). Bruges både af editorens
- * kontrolpanelets "Visning og datafelter"-dialog og af rutevisningens rå felt-statistik.
+ * kontrolpanelets "Visning af datafelter"- og "Slet datafelter"-dialoger og af rutevisningens rå felt-statistik.
  *
  * Et felt, der ikke findes her, er ikke en fejl — det vises bare med
  * sit eget, rå navn fra filen i stedet (se gpxFieldLabel()).

@@ -94,7 +94,7 @@ require_once __DIR__ . '/../app/config.php';
     <p>
         <strong>Bemærk om pulsdata:</strong> Puls kan regnes som en helbredsoplysning. Hvis du vælger at uploade eller vise pulsdata,
         sker det efter dit udtrykkelige samtykke (art. 9, stk. 2, litra a). Du kan til enhver tid fjerne pulsdata (og andre felter) fra filen i kontrolpanelet
-        under <em>Visning og datafelter</em> (fanen <em>Felter</em>).
+        under <em>Slet datafelter</em>.
     </p>
 
     <h3>Dine billeder</h3>

@@ -1,6 +1,6 @@
 /* ------------------------------------------------------------------
-   Kontrolpanelets rute-værktøjer: "Udtynd punkter", "Visning og datafelter"
-   og "Rediger højdedata".
+   Kontrolpanelets rute-værktøjer: "Udtynd punkter", "Visning af datafelter",
+   "Slet datafelter" og "Rediger højdedata".
 
    Begge henter ruten (editor-load.php), ændrer den i browseren med
    GpxTools (assets/gpx-tools.js) og gemmer via editor-save.php. Titel,
@@ -48,6 +48,28 @@
     function setText(el, text) {
         el.textContent = text || "";
         el.hidden = !text;
+    }
+
+    function make(tag, className, text) {
+        var el = document.createElement(tag);
+        if (className) el.className = className;
+        if (text !== undefined) el.textContent = text;
+        return el;
+    }
+
+    function labelFor(field) {
+        return window.gpxFieldLabel ? window.gpxFieldLabel(field) : field;
+    }
+
+    function checkboxRow(attrName, attrValue, text, checked) {
+        var label = make("label", "checkbox-field");
+        var input = document.createElement("input");
+        input.type = "checkbox";
+        input.setAttribute(attrName, attrValue);
+        input.checked = checked;
+        label.appendChild(input);
+        label.appendChild(document.createTextNode(" " + text));
+        return label;
     }
 
     // ================================================================
@@ -137,7 +159,7 @@
     })();
 
     // ================================================================
-    // Visning og datafelter (visninger + felter)
+    // Visning af datafelter (indbyggede visninger + øvrige felter som tal)
     // ================================================================
     (function () {
         var dialog = document.getElementById("tool-fields-dialog");
@@ -148,66 +170,14 @@
         var statusEl = document.getElementById("tool-fields-status");
         var bodyEl = document.getElementById("tool-fields-body");
         var functionsList = document.getElementById("tool-functions-list");
+        var rawBox = document.getElementById("tool-fields-raw");
         var fieldsList = document.getElementById("tool-fields-list");
         var saveBtn = document.getElementById("tool-fields-save");
-        var tabs = dialog.querySelectorAll("[data-fields-tab]");
-        var panels = dialog.querySelectorAll("[data-fields-panel]");
 
         bindDialogClose(dialog, document.getElementById("tool-fields-close"));
 
-        // Arbejdstilstand for den rute, dialogen er åben på. Ændringer i
-        // selve filen (slet felt) og valgene i listerne
-        // gemmes først, når brugeren trykker Gem.
-        var st = null; // { id, gpx, enabledFields, enabledFunctions, changed }
-
-        function showTab(name) {
-            tabs.forEach(function (t) { t.classList.toggle("active", t.getAttribute("data-fields-tab") === name); });
-            panels.forEach(function (p) { p.hidden = p.getAttribute("data-fields-panel") !== name; });
-        }
-        tabs.forEach(function (t) {
-            t.addEventListener("click", function () { showTab(t.getAttribute("data-fields-tab")); });
-        });
-
-        function setBusy(busy) {
-            saveBtn.disabled = busy;
-            dialog.querySelectorAll("[data-delete-field]").forEach(function (b) { b.disabled = busy; });
-        }
-
-        function make(tag, className, text) {
-            var el = document.createElement(tag);
-            if (className) el.className = className;
-            if (text !== undefined) el.textContent = text;
-            return el;
-        }
-
-        function labelFor(field) {
-            return window.gpxFieldLabel ? window.gpxFieldLabel(field) : field;
-        }
-
-        function checkboxRow(attrName, attrValue, text, checked) {
-            var label = make("label", "checkbox-field");
-            var input = document.createElement("input");
-            input.type = "checkbox";
-            input.setAttribute(attrName, attrValue);
-            input.checked = checked;
-            label.appendChild(input);
-            label.appendChild(document.createTextNode(" " + text));
-            return label;
-        }
-
-        // Læser afkrydsningerne tilbage i arbejdstilstanden (så valg overlever en gentegning).
-        function syncFromDom() {
-            var fn = functionsList.querySelectorAll("input[data-tool-function]");
-            if (fn.length) {
-                st.enabledFunctions = Array.prototype.filter.call(fn, function (c) { return c.checked; })
-                    .map(function (c) { return c.getAttribute("data-tool-function"); });
-            }
-            var fd = fieldsList.querySelectorAll("input[data-tool-field]");
-            if (fd.length) {
-                st.enabledFields = Array.prototype.filter.call(fd, function (c) { return c.checked; })
-                    .map(function (c) { return c.getAttribute("data-tool-field"); });
-            }
-        }
+        // Den rute, dialogen er åben på. Kun valgene gemmes; filen ændres ikke.
+        var st = null; // { id, enabledFields, enabledFunctions }
 
         function renderFunctions(detected) {
             functionsList.innerHTML = "";
@@ -224,7 +194,7 @@
             });
 
             if (available.length === 0) {
-                functionsList.appendChild(make("li", "hint", "Ruten indeholder ikke data til andre indbyggede visninger endnu."));
+                functionsList.appendChild(make("li", "hint", "Ruten indeholder ikke data til andre indbyggede visninger."));
                 return;
             }
 
@@ -243,99 +213,52 @@
             });
         }
 
+        // Felter, som ingen indbygget visning bruger (puls har fx sin graf,
+        // men en temperatur har ingen), kan vises som tal på rutens side.
         function renderFields(detected) {
             fieldsList.innerHTML = "";
 
             var functionFields = new Set();
             G.FUNCTIONS.forEach(function (fn) { fn.requires.forEach(function (f) { functionFields.add(f); }); });
-
-            // Højde står øverst. Den hentes og slettes under "Rediger højdedata".
-            var rows = detected.slice();
-            var eleIndex = rows.indexOf("ele");
-            if (eleIndex > 0) rows.unshift(rows.splice(eleIndex, 1)[0]);
-
-            if (rows.length === 0) {
-                fieldsList.appendChild(make("li", "hint", "Ruten indeholder ingen øvrige datafelter."));
-                return;
-            }
+            var rows = detected.filter(function (f) { return !functionFields.has(f); });
+            rawBox.hidden = rows.length === 0;
 
             var enabled = st.enabledFields !== null
                 ? new Set(st.enabledFields)
-                : new Set(detected.filter(function (f) {
-                    return !functionFields.has(f) && (window.gpxFieldDefaultEnabled ? window.gpxFieldDefaultEnabled(f) : true);
+                : new Set(rows.filter(function (f) {
+                    return window.gpxFieldDefaultEnabled ? window.gpxFieldDefaultEnabled(f) : true;
                 }));
 
             rows.forEach(function (field) {
-                var hasData = detected.indexOf(field) !== -1;
-                var text = labelFor(field);
-                var li = make("li", "data-field-row");
-
-                if (!hasData) {
-                    var none = make("span", "data-field-note", text + " ");
-                    none.appendChild(make("small", null, "(ingen data endnu)"));
-                    li.appendChild(none);
-                } else if (functionFields.has(field)) {
-                    var note = make("span", "data-field-note", text + " ");
-                    note.appendChild(make("small", null, "(styres under Visning)"));
-                    li.appendChild(note);
-                } else {
-                    li.appendChild(checkboxRow("data-tool-field", field, text, enabled.has(field)));
-                }
-
-                if (hasData && field !== "ele") {
-                    var delBtn = make("button", "link-btn danger", "🗑");
-                    delBtn.type = "button";
-                    delBtn.title = "Slet al \"" + text + "\"-data fra ruten";
-                    delBtn.setAttribute("data-delete-field", field);
-                    delBtn.addEventListener("click", function () { deleteField(field); });
-                    li.appendChild(delBtn);
-                }
-
+                var li = make("li");
+                li.appendChild(checkboxRow("data-tool-field", field, labelFor(field), enabled.has(field)));
                 fieldsList.appendChild(li);
             });
         }
 
-        function render() {
-            var detected = G.detectFields(st.gpx);
-            renderFunctions(detected);
-            renderFields(detected);
-        }
-
-        function deleteField(field) {
-            syncFromDom();
-            var label = labelFor(field);
-            var count = G.detectFields(st.gpx).indexOf(field) === -1 ? 0 : 1;
-            if (!count) return;
-            if (!window.confirm("Fjern alle \"" + label + "\"-værdier fra ruten? Ændringen gemmes først, når du trykker Gem.")) return;
-
-            var removed = G.stripField(st.gpx, field);
-            st.changed = true;
-            render();
-            setText(statusEl, "Fjernede " + removed + " \"" + label + "\"-værdi(er). Husk at trykke Gem.");
-        }
-
         saveBtn.addEventListener("click", function () {
             if (!st) return;
-            syncFromDom();
             setText(errorsEl, "");
 
-            var params = { route_id: st.id };
-            if (st.changed) {
-                params.gpx_data = G.serialize(st.gpx);
-            } else {
-                params.settings_only = "1";
+            var params = { route_id: st.id, settings_only: "1" };
+            params.enabled_functions = JSON.stringify(Array.prototype.filter.call(
+                functionsList.querySelectorAll("input[data-tool-function]"), function (c) { return c.checked; }
+            ).map(function (c) { return c.getAttribute("data-tool-function"); }));
+            // Øvrige felter sendes kun, når der er nogen (ellers bevares de gemte valg).
+            var fieldInputs = fieldsList.querySelectorAll("input[data-tool-field]");
+            if (fieldInputs.length) {
+                params.enabled_data_fields = JSON.stringify(Array.prototype.filter.call(fieldInputs, function (c) { return c.checked; })
+                    .map(function (c) { return c.getAttribute("data-tool-field"); }));
             }
-            if (st.enabledFields !== null) params.enabled_data_fields = JSON.stringify(st.enabledFields);
-            if (st.enabledFunctions !== null) params.enabled_functions = JSON.stringify(st.enabledFunctions);
 
-            setBusy(true);
+            saveBtn.disabled = true;
             setText(statusEl, "Gemmer…");
             saveRoute(params)
                 .then(function () { window.MitSporGenindlaes(); })
                 .catch(function (e) {
                     setText(statusEl, "");
                     setText(errorsEl, e.message || "Der skete en fejl. Prøv igen.");
-                    setBusy(false);
+                    saveBtn.disabled = false;
                 });
         });
 
@@ -348,23 +271,120 @@
                 setText(statusEl, "Henter ruten…");
                 bodyEl.hidden = true;
                 saveBtn.disabled = true;
-                showTab("functions");
                 dialog.showModal();
 
                 loadRoute(id)
                     .then(function (data) {
                         st = {
                             id: id,
-                            gpx: G.parse(data.gpx_content),
                             enabledFields: Array.isArray(data.enabled_data_fields) ? data.enabled_data_fields : null,
                             enabledFunctions: Array.isArray(data.enabled_functions)
                                 ? (window.gpxExpandFunctions ? window.gpxExpandFunctions(data.enabled_functions) : data.enabled_functions)
-                                : null,
-                            changed: false
+                                : null
                         };
-                        render();
+                        var detected = G.detectFields(G.parse(data.gpx_content));
+                        renderFunctions(detected);
+                        renderFields(detected);
                         bodyEl.hidden = false;
                         saveBtn.disabled = false;
+                        setText(statusEl, "");
+                    })
+                    .catch(function (e) {
+                        setText(statusEl, "");
+                        setText(errorsEl, e.message || "Kunne ikke hente ruten.");
+                    });
+            });
+        });
+    })();
+
+    // ================================================================
+    // Slet datafelter (fjerner et felts data fra selve filen)
+    // ================================================================
+    (function () {
+        var dialog = document.getElementById("tool-strip-dialog");
+        if (!dialog) return;
+
+        var titleEl = document.getElementById("tool-strip-title");
+        var errorsEl = document.getElementById("tool-strip-errors");
+        var statusEl = document.getElementById("tool-strip-status");
+        var bodyEl = document.getElementById("tool-strip-body");
+        var list = document.getElementById("tool-strip-list");
+        var saveBtn = document.getElementById("tool-strip-save");
+
+        bindDialogClose(dialog, document.getElementById("tool-strip-close"));
+
+        // { id, gpx, changed }. Sletningerne gemmes først ved Gem.
+        var st = null;
+
+        function render() {
+            list.innerHTML = "";
+            var detected = G.detectFields(st.gpx);
+            if (detected.length === 0) {
+                list.appendChild(make("li", "hint", "Filen indeholder ingen datafelter ud over positionerne."));
+            }
+            detected.forEach(function (field) {
+                var li = make("li", "data-field-row");
+                li.appendChild(make("span", "data-field-note", labelFor(field)));
+                var del = make("button", "btn btn-danger btn-small", "Slet");
+                del.type = "button";
+                del.setAttribute("aria-label", "Slet " + labelFor(field));
+                del.addEventListener("click", function () { deleteField(field); });
+                li.appendChild(del);
+                list.appendChild(li);
+            });
+            saveBtn.disabled = !st.changed;
+        }
+
+        function deleteField(field) {
+            var label = labelFor(field);
+            // Visninger, der forsvinder fra rutens side, når feltet er væk.
+            var before = G.availableFunctions(G.detectFields(st.gpx));
+            var after = G.availableFunctions(G.detectFields(st.gpx).filter(function (f) { return f !== field; }))
+                .map(function (fn) { return fn.key; });
+            var lost = before.filter(function (fn) { return after.indexOf(fn.key) === -1; })
+                .map(function (fn) { return fn.label; });
+
+            var msg = "Fjern alle \"" + label + "\"-værdier fra filen?";
+            if (lost.length) msg += "\n\nDisse visninger forsvinder fra rutens side: " + lost.join(", ") + ".";
+            msg += "\n\nÆndringen gemmes først, når du trykker Gem.";
+            if (!window.confirm(msg)) return;
+
+            var removed = G.stripField(st.gpx, field);
+            st.changed = true;
+            render();
+            setText(statusEl, "Fjernede " + removed + " \"" + label + "\"-værdi(er). Husk at trykke Gem.");
+        }
+
+        saveBtn.addEventListener("click", function () {
+            if (!st || !st.changed) return;
+            setText(errorsEl, "");
+            saveBtn.disabled = true;
+            setText(statusEl, "Gemmer…");
+            saveRoute({ route_id: st.id, gpx_data: G.serialize(st.gpx) })
+                .then(function () { window.MitSporGenindlaes(); })
+                .catch(function (e) {
+                    setText(statusEl, "");
+                    setText(errorsEl, e.message || "Der skete en fejl. Prøv igen.");
+                    saveBtn.disabled = false;
+                });
+        });
+
+        document.querySelectorAll("[data-tool-strip]").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                var id = btn.getAttribute("data-tool-strip");
+                st = null;
+                titleEl.textContent = btn.getAttribute("data-route-title");
+                setText(errorsEl, "");
+                setText(statusEl, "Henter ruten…");
+                bodyEl.hidden = true;
+                saveBtn.disabled = true;
+                dialog.showModal();
+
+                loadRoute(id)
+                    .then(function (data) {
+                        st = { id: id, gpx: G.parse(data.gpx_content), changed: false };
+                        render();
+                        bodyEl.hidden = false;
                         setText(statusEl, "");
                     })
                     .catch(function (e) {
