@@ -1089,7 +1089,7 @@ function markerDefaultPreview(select, box) {
         cb.addEventListener('change', function () {
             var id = cb.getAttribute('data-select-route');
             if (cb.checked) { selected[id] = true; } else { delete selected[id]; }
-            // Samme rute står i flere faneblade (Alle/Ruter/Spor) — hold dem ens.
+            // Hold eventuelle kopier af samme afkrydsning ens.
             document.querySelectorAll('.route-select[data-select-route="' + id + '"]').forEach(function (other) {
                 other.checked = cb.checked;
             });
@@ -1104,8 +1104,11 @@ function markerDefaultPreview(select, box) {
 
     function selectedIdsInListOrder() {
         if (forcedRouteIds) return forcedRouteIds.slice();
-        return Array.prototype.filter.call(document.querySelectorAll('#tab-alle .route-select'), function (cb) {
+        // Spor og ruter står i hver sin fane; data-order er pladsen i den samlede liste.
+        return Array.prototype.filter.call(document.querySelectorAll('.route-select'), function (cb) {
             return cb.checked;
+        }).sort(function (a, b) {
+            return Number(a.getAttribute('data-order')) - Number(b.getAttribute('data-order'));
         }).map(function (cb) { return cb.getAttribute('data-select-route'); });
     }
 
@@ -1334,8 +1337,10 @@ function markerDefaultPreview(select, box) {
     function activateTabFor(key) {
         var active = hub.querySelector('.tab-panel:not([hidden]) [data-item="' + key + '"]');
         if (active) return;
-        var target = key.indexOf('group:') === 0 ? 'tab-grupper' : key.indexOf('live:') === 0 ? 'tab-live' : 'tab-alle';
-        var tabBtn = hub.querySelector('.tab-btn[data-tab-target="' + target + '"]');
+        var li = hub.querySelector('.tab-panel [data-item="' + key + '"]');
+        var panel = li && li.closest('.tab-panel');
+        if (!panel) return;
+        var tabBtn = hub.querySelector('.tab-btn[data-tab-target="' + panel.id + '"]');
         if (tabBtn) tabBtn.click();
     }
 

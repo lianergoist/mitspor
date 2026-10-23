@@ -35,7 +35,8 @@
 
 .hub-list .tabs { margin-bottom: 6px; padding: 3px; }
 .hub-stats { margin: 0 0 10px; color: var(--text-muted); font-size: 12px; text-align: center; }
-.hub-list .tab-btn { flex: 1 1 auto; padding: 8px 6px; font-size: 13px; white-space: nowrap; }
+.hub-list .tab-btn { flex: 1 1 0; min-width: 0; padding: 10px 6px; font-size: 15px; line-height: 1.25; }
+.hub-list .tab-count { font-weight: 400; }
 
 .hub-items {
     list-style: none;
@@ -70,8 +71,9 @@
     cursor: pointer;
 }
 .hub-item-main:hover .route-title { color: var(--primary); }
-.hub-item-main .route-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hub-item-sub { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Titel og beskrivelse i samme størrelser som valgene på den personlige forside (forside.css). */
+.hub-item-main .route-title { font-size: 1.05rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hub-item-sub { font-size: 0.93rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .hub-detail { min-height: 220px; position: sticky; top: 16px; }
 .detail-panel[hidden] { display: none; }
@@ -172,10 +174,9 @@
     .hub .card { padding: 10px; }
     .hub-list .tabs { gap: 2px; margin-bottom: 4px; }
     .hub-stats { margin-bottom: 6px; font-size: 11px; }
-    .hub-list .tab-btn { padding: 6px 2px; font-size: 12px; }
-    .hub-item-main { padding: 7px 2px; }
-    .hub-item-main .route-title { font-size: 15px; }
-    .hub-item-sub { font-size: 11px; }
+    /* Fire faner deler bredden; ved stor systemtekst rykker tallet ned på en ny linje. */
+    .hub-list .tab-btn { padding: 9px 2px; font-size: 14px; }
+    .hub-item-main { padding: 9px 2px; }
     .detail-map { height: 200px; }
     #hub-placeholder { display: none; }
 }
