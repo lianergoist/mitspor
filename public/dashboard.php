@@ -412,7 +412,7 @@ function render_group_detail(array $g): void
             <?php if (group_download_available()): ?>
             <a class="tool" href="<?= dash_h(group_download_url($id)) ?>">Download gruppen som én GPX</a>
             <?php endif; ?>
-            <button type="button" class="tool" data-edit-group="<?= dash_h($id) ?>">Rediger gruppe (titel, rækkefølge, synlighed)</button>
+            <button type="button" class="tool" data-edit-group="<?= dash_h($id) ?>">Rediger gruppe</button>
             <button type="button" class="tool danger" data-delete-group="<?= dash_h($id) ?>" data-group-title="<?= dash_h($g['title']) ?>" data-stage-count="<?= (int) $g['stage_count'] ?>">Slet gruppen og alle etaper</button>
         </div>
     </section>
