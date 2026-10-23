@@ -134,9 +134,6 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
                 <li><strong>Privat</strong> betyder, at det kun er dig, der kan se sporet/ruten — med mindre du laver et del-link, der giver adgang til netop den rute.</li>
             </ul>
             <p>MitSpor er gratis at bruge. Alt det kræver er en emailadresse, og så er du i gang. Du kan downloade dine data og slette din profil som det passer dig. Ingen tracking, ingen sporings- eller reklamecookies, ingen deling af dine data med andre. Ægte gratis.</p>
-            <p class="video-btns-title">Videoer</p>
-            <div class="video-btns"><?= video_button('01-find-ruter') ?><?= video_button('02-konto') ?></div>
-            <p><a href="/videoer.php">Se alle videoer</a>, også om upload, editoren, grupper, live-tracking og appen.</p>
             <p>Har du spørgsmål eller kommentarer, er du velkommen til at skrive til <a href="mailto:info@mitspor.dk">info@mitspor.dk</a>.</p>
             <p>Læs <a href="/privatlivspolitik.php">privatlivspolitikken</a>.</p>
         </div>

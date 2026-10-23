@@ -100,16 +100,6 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
         <button type="button" id="dashboard-help-close" class="close-btn" aria-label="Luk">&times;</button>
     </div>
     <div class="dialog-content">
-        <p class="video-btns-title">Videoer</p>
-        <div class="video-btns">
-            <?= video_button('04-kontrolpanel') ?><?= video_button('03-upload') ?><?= video_button('05-editor') ?><?= video_button('06-waypoints') ?><?= video_button('07-grupper') ?><?= video_button('08-del-link') ?><?= video_button('12-live-web') ?>
-        </div>
-        <p class="video-btns-title">Appen</p>
-        <div class="video-btns">
-            <?= video_button('09-kom-i-gang-app') ?><?= video_button('10-optag-tur') ?><?= video_button('11-upload-app') ?><?= video_button('12-live-app') ?>
-        </div>
-        <p><a href="/videoer.php">Alle videoer på én side</a></p>
-
         <p><strong>Sådan er kontrolpanelet bygget op:</strong> Til venstre ser du alle dine ruter, spor og grupper i faneblade (Spor, Ruter, Grupper og Live). Vælg et element, så vises et kort og dets værktøjer til højre. Ved siden af hver knap står et <strong>?</strong>, der forklarer, hvad knappen gør. På en mobil vises først listen, og værktøjerne kommer frem, når du vælger noget — med "Tilbage til listen" øverst.</p>
 
         <p><strong>Kom i gang:</strong> Tryk "Upload GPX" for at lægge en fil op fra din computer, eller "Tegn ny rute" for at tegne en helt ny rute i GPX-editoren. En ny rute oprettes først, når du trykker Gem i editoren.</p>
@@ -227,9 +217,6 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
         <a href="/privatlivspolitik.php">Privatlivspolitik</a>
         <a href="delete-account.php" class="danger">Slet min konto</a>
     </nav>
-    <div class="video-btns">
-        <?= video_button('02-konto', 23, 'Video: profilen') ?><?= video_button('13-dine-data', 0, 'Video: dine data') ?>
-    </div>
 </dialog>
 
 <?php
@@ -522,7 +509,6 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
             <div id="tab-spor" class="tab-panel"<?= $firstTab === 'tab-spor' ? '' : ' hidden' ?>>
                 <?php if (empty($sporRoutes)): ?>
                     <p class="empty-state">Du har endnu ikke uploadet nogen spor.</p>
-                    <div class="video-btns"><?= video_button('03-upload') ?></div>
                 <?php else: ?>
                     <ul class="hub-items">
                         <?php foreach ($sporRoutes as $i => $route): render_route_item($route, $i); endforeach; ?>
@@ -533,7 +519,6 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
             <div id="tab-rute" class="tab-panel"<?= $firstTab === 'tab-rute' ? '' : ' hidden' ?>>
                 <?php if (empty($ruteRoutes)): ?>
                     <p class="empty-state">Du har endnu ikke oprettet nogen ruter.</p>
-                    <div class="video-btns"><?= video_button('05-editor') ?></div>
                 <?php else: ?>
                     <ul class="hub-items">
                         <?php foreach ($ruteRoutes as $i => $route): render_route_item($route, $i); endforeach; ?>
@@ -544,7 +529,6 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
             <div id="tab-grupper" class="tab-panel" hidden>
                 <?php if (empty($groups)): ?>
                     <p class="empty-state">Du har ingen grupper endnu. Sæt kryds ved de ruter, der hører sammen (fx etaperne på en flerdagestur), og tryk "Gruppér valgte".</p>
-                    <div class="video-btns"><?= video_button('07-grupper') ?></div>
                 <?php else: ?>
                     <ul class="hub-items">
                         <?php foreach ($groups as $g): render_group_item($g); endforeach; ?>
@@ -556,7 +540,6 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
                 <button type="button" class="btn btn-primary live-new-btn" data-live-edit="">Ny livesending</button>
                 <?php if (empty($liveEvents)): ?>
                     <p class="empty-state">Med en livesending kan andre følge din tur på kortet, mens du er undervejs. Opret den på forhånd, og del linket. Selve afsendelsen startes i MitSpor-appen, når du optager.</p>
-                    <div class="video-btns"><?= video_button('12-live-web') ?><?= video_button('12-live-app') ?></div>
                 <?php else: ?>
                     <ul class="hub-items">
                         <?php foreach ($liveEvents as $ev): render_live_item($ev); endforeach; ?>
@@ -1169,7 +1152,7 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
 <script src="assets/gpx-field-labels.js?v=3"></script>
 <script src="assets/gpx-tools.js?v=2"></script>
 <script src="assets/genindlaes.js?v=1"></script>
-<script src="assets/dashboard.js?v=25"></script>
+<script src="assets/dashboard.js?v=26"></script>
 <script src="assets/dashboard-tools.js?v=8"></script>
 <script src="assets/activity-marker.js?v=1"></script>
 <script src="assets/dashboard-map.js?v=6"></script>
