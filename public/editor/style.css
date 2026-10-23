@@ -228,18 +228,15 @@ html {
   width: 100%;
 }
 
+/* Seneste besked, under rutens titel (i #route-title-bar). Lange beskeder
+   må bryde om, så de kan læses på en telefon. */
 #status {
-  flex-shrink: 0; /* Sørger for, at statuslinjen ikke presses sammen */
-  height: 26px;
-  line-height: 26px;
-  padding: 0 12px;
+  margin-top: 2px;
   font-size: 12px;
   color: #475569;
-  background: #f1f5f9;
-  border-top: 1px solid #cbd5e1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+#status:empty {
+  display: none;
 }
 
 .gpx-popup input[type="text"] {
@@ -357,14 +354,24 @@ html {
 /* ------------------------------ */
 #route-title-bar {
   flex-shrink: 0;
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
   padding: 6px 14px;
   background: #f8fafc;
   border-bottom: 1px solid #cbd5e1;
   font-size: 13px;
   color: #334155;
+}
+
+.route-title-line {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+#route-stats {
+  flex: none;
+  color: #64748b;
+  white-space: nowrap;
 }
 
 #route-title-bar strong {
