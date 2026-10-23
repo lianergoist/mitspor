@@ -418,7 +418,9 @@
 
         function setBusy(busy) {
             fetchBtn.disabled = busy;
-            deleteBtn.disabled = busy || !hasEle();
+            // "Slet højdedata" vises kun, når filen har højdedata.
+            deleteBtn.hidden = !hasEle();
+            deleteBtn.disabled = busy;
             saveBtn.disabled = busy || !st || !st.changed;
         }
 
