@@ -467,7 +467,6 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             <button type="button" id="route-help-dialog-close" class="close-btn" aria-label="Luk">&times;</button>
         </div>
         <div class="dialog-content">
-            <div class="video-btns"><?= video_button('01-find-ruter', 20.5, 'Video: rutens side') ?><?php if ($isOwner): ?><?= video_button('06-waypoints', 74, 'Video: waypoints og billeder') ?><?php endif; ?></div>
             <p>På MitSpor kan man finde to slags "ruter":</p>
             <ul>
                 <li><strong>Spor</strong>, der er optaget med en GPS-enhed, og som viser tid og hastighed (hvis filen indeholder tidsdata).</li>

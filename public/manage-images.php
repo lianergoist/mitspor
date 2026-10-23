@@ -220,7 +220,6 @@ $imageUrl = static fn (array $img, bool $thumb): string =>
 
 <?php else: ?>
         <h1>Mine billeder</h1>
-        <div class="video-btns"><?= video_button('06-waypoints', 90, 'Video: Mine billeder') ?><?= video_button('06-waypoints', 28.5, 'Video: billeder på waypoints') ?></div>
 
         <?php if (isset($_GET['slettet'])): ?>
             <p class="image-notice">Billedet er slettet.</p>

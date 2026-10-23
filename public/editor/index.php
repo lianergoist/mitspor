@@ -272,7 +272,6 @@ if ($initialRouteId === '' && !$isNewRoute) {
     <button id="btn-close-help" class="close-btn" title="Luk">✖</button>
   </div>
   <div class="dialog-content">
-    <div class="video-btns"><?= video_button('05-editor') ?><?= video_button('06-waypoints') ?></div>
     <h3>Grundlæggende brug</h3>
     <ul>
       <li><strong>Ny rute:</strong> Klik på kortet for at placere trackpoints ét efter ét. Ruten oprettes først på platformen, når du klikker <strong>Gem</strong> — her får du lov at sætte titel, type og synlighed. Lukker du siden uden at gemme, er tegningen væk.</li>
