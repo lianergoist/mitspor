@@ -1098,12 +1098,7 @@ function markerDefaultPreview(select, box) {
     });
 
     // Valgte ruter i den rækkefølge, de står i listen (ikke JS' nøgle-rækkefølge).
-    // Når "Grupper" bruges på én rute i detaljepanelet, gælder dialogen
-    // kun den rute (uanset hvad der er afkrydset i listen).
-    var forcedRouteIds = null;
-
     function selectedIdsInListOrder() {
-        if (forcedRouteIds) return forcedRouteIds.slice();
         // Spor og ruter står i hver sin fane; data-order er pladsen i den samlede liste.
         return Array.prototype.filter.call(document.querySelectorAll('.route-select'), function (cb) {
             return cb.checked;
@@ -1119,23 +1114,11 @@ function markerDefaultPreview(select, box) {
     var newBox = document.getElementById('group-create-new');
     var existingBox = document.getElementById('group-create-existing');
     bindDialogClose(createDialog, document.getElementById('group-create-close'));
-    createDialog.addEventListener('close', function () { forcedRouteIds = null; });
 
     btnGroup.addEventListener('click', function () {
-        forcedRouteIds = null;
         createErrors.hidden = true;
         document.getElementById('group-create-summary').textContent = selectedIdsInListOrder().length + ' rute(r) valgt.';
         createDialog.showModal();
-    });
-
-    document.querySelectorAll('[data-add-to-group]').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            forcedRouteIds = [btn.getAttribute('data-add-to-group')];
-            createErrors.hidden = true;
-            document.getElementById('group-create-summary').textContent =
-                '\u00ab' + btn.getAttribute('data-route-title') + '\u00bb';
-            createDialog.showModal();
-        });
     });
 
     document.querySelectorAll('input[name="group_mode"]').forEach(function (r) {
@@ -1181,6 +1164,15 @@ function markerDefaultPreview(select, box) {
     var currentGroupId = null;
     var loadedVisibility = null; // 'public', 'private' eller null (blandet)
     var loadedOrder = '';        // etapernes id'er, som de var ved åbning
+    var loadedIds = [];
+
+    // Alle brugerens ruter (fra dashboard.php) til "Tilføj etaper".
+    var catalog = [];
+    try { catalog = JSON.parse(document.getElementById('group-route-catalog').textContent); } catch (e) { /* tom liste */ }
+    var addToggle = document.getElementById('group-add-toggle');
+    var addBox = document.getElementById('group-add-box');
+    var addFilter = document.getElementById('group-add-filter');
+    var addList = document.getElementById('group-add-list');
 
     // Samme opførsel som synligheden i "Rediger metadata": GDPR-boksen vises
     // ved Offentlig og er forudfyldt, hvis alle etaper allerede er offentlige.
@@ -1195,48 +1187,141 @@ function markerDefaultPreview(select, box) {
 
     function renderOrder(routes) {
         orderList.innerHTML = '';
-        routes.forEach(function (r) {
-            var li = document.createElement('li');
-            li.setAttribute('data-id', r.id);
-
-            var grip = document.createElement('span');
-            grip.className = 'grip';
-            grip.textContent = '\u2630';
-            grip.setAttribute('aria-hidden', 'true');
-
-            var title = document.createElement('span');
-            title.className = 'go-title';
-            title.textContent = r.title;
-
-            li.appendChild(grip);
-            li.appendChild(title);
-
-            if (r.visibility === 'private') {
-                var priv = document.createElement('span');
-                priv.className = 'go-private';
-                priv.textContent = 'privat';
-                li.appendChild(priv);
-            }
-
-            [['up', '\u25B2', 'Flyt op'], ['down', '\u25BC', 'Flyt ned']].forEach(function (def) {
-                var b = document.createElement('button');
-                b.type = 'button';
-                b.className = 'link-btn go-move';
-                b.setAttribute('data-move', def[0]);
-                b.setAttribute('aria-label', def[2]);
-                b.textContent = def[1];
-                li.appendChild(b);
-            });
-
-            orderList.appendChild(li);
-        });
+        routes.forEach(function (r) { orderList.appendChild(stageItem(r, false)); });
 
         if (!sortable && window.Sortable) {
             sortable = window.Sortable.create(orderList, { animation: 150, handle: '.grip' });
         }
     }
 
+    // Én etape i listen. isNew: tilføjet i denne omgang (gemmes først ved Gem).
+    function stageItem(r, isNew) {
+        var li = document.createElement('li');
+        li.setAttribute('data-id', r.id);
+
+        var grip = document.createElement('span');
+        grip.className = 'grip';
+        grip.textContent = '\u2630';
+        grip.setAttribute('aria-hidden', 'true');
+
+        var title = document.createElement('span');
+        title.className = 'go-title';
+        title.textContent = r.title;
+
+        li.appendChild(grip);
+        li.appendChild(title);
+
+        if (isNew) {
+            var nyt = document.createElement('span');
+            nyt.className = 'go-new';
+            nyt.textContent = 'ny';
+            li.appendChild(nyt);
+        }
+        if (r.visibility === 'private') {
+            var priv = document.createElement('span');
+            priv.className = 'go-private';
+            priv.textContent = 'privat';
+            li.appendChild(priv);
+        }
+
+        [['up', '\u25B2', 'Flyt op'], ['down', '\u25BC', 'Flyt ned']].forEach(function (def) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'link-btn go-move';
+            b.setAttribute('data-move', def[0]);
+            b.setAttribute('aria-label', def[2]);
+            b.textContent = def[1];
+            li.appendChild(b);
+        });
+
+        var rm = document.createElement('button');
+        rm.type = 'button';
+        rm.className = 'link-btn go-remove';
+        rm.setAttribute('data-remove', '1');
+        rm.setAttribute('aria-label', 'Fjern ' + r.title + ' fra gruppen');
+        rm.title = 'Fjern fra gruppen';
+        rm.textContent = '\u00d7';
+        li.appendChild(rm);
+
+        return li;
+    }
+
+    // ---------- Tilføj etaper ----------
+    function stageIds() {
+        return Array.prototype.map.call(orderList.children, function (li) { return li.getAttribute('data-id'); });
+    }
+
+    function renderCandidates() {
+        var inGroup = stageIds();
+        var q = addFilter.value.trim().toLowerCase();
+        var rows = catalog.filter(function (r) {
+            return inGroup.indexOf(r.id) === -1 && (!q || r.title.toLowerCase().indexOf(q) !== -1);
+        });
+        addList.innerHTML = '';
+        if (rows.length === 0) {
+            var none = document.createElement('li');
+            none.className = 'hint';
+            none.textContent = q ? 'Ingen ruter matcher.' : 'Alle dine ruter er allerede med i gruppen.';
+            addList.appendChild(none);
+            return;
+        }
+        rows.forEach(function (r) {
+            var li = document.createElement('li');
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.setAttribute('data-add-id', r.id);
+            var plus = document.createElement('span');
+            plus.className = 'ga-plus';
+            plus.textContent = '+';
+            plus.setAttribute('aria-hidden', 'true');
+            var title = document.createElement('span');
+            title.className = 'ga-title';
+            title.textContent = r.title;
+            b.appendChild(plus);
+            b.appendChild(title);
+            // Står den i en anden gruppe, flyttes den — det skal man kunne se.
+            if (r.group && r.group !== currentGroupId) {
+                var g = document.createElement('span');
+                g.className = 'ga-group';
+                g.textContent = 'i ' + r.groupTitle;
+                b.appendChild(g);
+            }
+            li.appendChild(b);
+            addList.appendChild(li);
+        });
+    }
+
+    addToggle.addEventListener('click', function () {
+        addBox.hidden = !addBox.hidden;
+        addToggle.setAttribute('aria-expanded', addBox.hidden ? 'false' : 'true');
+        if (!addBox.hidden) {
+            renderCandidates();
+            addFilter.focus();
+        }
+    });
+    addFilter.addEventListener('input', renderCandidates);
+    // Enter i søgefeltet må ikke gemme hele formularen.
+    addFilter.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') ev.preventDefault(); });
+
+    addList.addEventListener('click', function (ev) {
+        var btn = ev.target.closest('[data-add-id]');
+        if (!btn) return;
+        var id = btn.getAttribute('data-add-id');
+        var r = catalog.filter(function (c) { return c.id === id; })[0];
+        if (!r) return;
+        var li = stageItem(r, loadedIds.indexOf(id) === -1);
+        orderList.appendChild(li);
+        li.scrollIntoView({ block: 'nearest' });
+        renderCandidates();
+    });
+
     orderList.addEventListener('click', function (ev) {
+        var rm = ev.target.closest('[data-remove]');
+        if (rm) {
+            rm.closest('li').remove();
+            if (!addBox.hidden) renderCandidates();
+            return;
+        }
         var btn = ev.target.closest('[data-move]');
         if (!btn) return;
         var li = btn.closest('li');
@@ -1269,6 +1354,10 @@ function markerDefaultPreview(select, box) {
                     visBehavior.setLoadedVisibility(loadedVisibility === 'public' ? 'public' : 'private');
                     renderOrder(data.routes);
                     loadedOrder = currentOrder();
+                    loadedIds = stageIds();
+                    addFilter.value = '';
+                    addBox.hidden = true;
+                    addToggle.setAttribute('aria-expanded', 'false');
                     editDialog.showModal();
                 });
         });
@@ -1284,21 +1373,47 @@ function markerDefaultPreview(select, box) {
         return Array.prototype.map.call(orderList.children, function (li) { return li.getAttribute('data-id'); }).join(',');
     }
 
-    // "Gem": titel og beskrivelse, rækkefølgen, hvis den er ændret, og
-    // synligheden, hvis der er valgt en anden end den, etaperne har nu.
+    // "Gem": titel og beskrivelse, nye og fjernede etaper, rækkefølgen, hvis
+    // den er ændret, og synligheden, hvis der er valgt en anden end den,
+    // etaperne har nu (gælder også nye etaper).
     editForm.addEventListener('submit', function (ev) {
         ev.preventDefault();
         editErrors.hidden = true;
+        var ids = stageIds();
+        var added = ids.filter(function (id) { return loadedIds.indexOf(id) === -1; });
+        var removed = loadedIds.filter(function (id) { return ids.indexOf(id) === -1; });
+
+        // Uden etaper findes gruppen ikke længere — det svarer til at opløse den.
+        if (ids.length === 0) {
+            if (!confirm('Du har fjernet alle etaper. Gruppen slettes, men ruterne bliver stående som almindelige ruter. Fortsæt?')) return;
+            post({ action: 'dissolve', group_id: currentGroupId }).then(done).catch(failed);
+            return;
+        }
+
         var visibility = visPublic.checked ? 'public' : (visPrivate.checked ? 'private' : null);
         var changeVisibility = visibility !== null && visibility !== loadedVisibility;
         if (changeVisibility && !visBehavior.requireGdprAckIfPublic()) return;
 
-        post({
+        // Hvert trin kører kun, hvis det forrige lykkedes.
+        function then(chain, step) {
+            return chain.then(function (data) { return data.success ? step() : data; });
+        }
+
+        var chain = post({
             action: 'update',
             group_id: currentGroupId,
             title: document.getElementById('group-edit-title').value,
             description: document.getElementById('group-edit-description').value
-        }).then(function (data) {
+        });
+        if (added.length) {
+            chain = then(chain, function () {
+                return post({ action: 'add_routes', group_id: currentGroupId, route_ids: added.join(',') });
+            });
+        }
+        removed.forEach(function (id) {
+            chain = then(chain, function () { return post({ action: 'assign_route', route_id: id, group_id: '' }); });
+        });
+        chain.then(function (data) {
             var order = currentOrder();
             if (!data.success || order === loadedOrder) return data;
             return post({ action: 'reorder', group_id: currentGroupId, route_ids: order });
@@ -1456,14 +1571,6 @@ function markerDefaultPreview(select, box) {
                 'Gør filen mindre ved at fjerne punkter, der ikke ændrer sporets form. Lige strækninger mister mange punkter, mens sving, slingrende stier og bakker bevares. Let, Middel og Kraftig tillader 2, 5 og 10 meters afvigelse fra det oprindelige spor.',
                 'Der bliver højst 50 m og 60 sekunder mellem de punkter, der er tilbage, så højdeprofil og fart stadig kan vises. Før noget gemmes, ser du, hvor mange punkter der fjernes.',
                 'Første gang gemmes den oprindelige fil, så du kan fortryde med Gendan original fil.'
-            ]
-        },
-        group: {
-            title: 'Grupper',
-            video: ['07-grupper', 0, 'Grupper og flerdagesture'],
-            text: [
-                'Sætter ruten i en gruppe, fx en flerdagstur med én rute pr. etape, eller flytter den til en anden gruppe.',
-                'Du kan også oprette en ny gruppe i dialogen. Grupperne findes under fanen Grupper, hvor du kan åbne og ændre dem.'
             ]
         },
         share: {

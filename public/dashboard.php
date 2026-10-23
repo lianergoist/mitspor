@@ -68,7 +68,7 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
     <title>Mit kontrolpanel</title>
     <link rel="stylesheet" href="assets/style.css?v=22">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/dashboard.css?v=27">
+    <link rel="stylesheet" href="assets/dashboard.css?v=28">
     <link rel="stylesheet" href="assets/videoer.css?v=1">
 </head>
 <body>
@@ -126,13 +126,12 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
             <li><strong>Visning af datafelter</strong> vælger, hvad rutens side viser (fx højdeprofil, hastighed og puls).</li>
             <li><strong>Slet datafelter</strong> fjerner et felts data helt fra filen, fx tidsstempler, puls eller højdedata.</li>
             <li><strong>Rediger højdedata</strong> viser rutens højder og kan hente nye fra internettet eller slette dem.</li>
-            <li><strong>Udtynd punkter</strong> gør filen mindre ved at beholde færre punkter. Knappen findes kun for ruter med tidsstempler.</li>
-            <li><strong>Grupper</strong> sætter ruten i en gruppe (se nedenfor).</li>
+            <li><strong>Udtynd punkter</strong> gør filen mindre ved at beholde færre punkter.</li>
             <li><strong>Del-link</strong> (kun private ruter), <strong>Download GPX-fil</strong> og <strong>Slet</strong>.</li>
             <li><strong>Gendan original fil</strong> vises kun, hvis ruten er blevet udtyndet — den henter den oprindelige, fulde fil tilbage og kasserer ændringer, du har lavet siden.</li>
         </ul>
 
-        <p><strong>Grupper:</strong> En gruppe samler flere ruter (etaper) til én tur, fx en flerdagestur. Sæt kryds ved ruterne i listen og tryk "Gruppér valgte", brug "Grupper" på en enkelt rute, eller vælg flere GPX-filer på én gang, når du uploader. Under fanen Grupper vælger du en gruppe for at åbne den med "Vis gruppe på kort" eller ændre den med "Rediger gruppe". Etaperne vises som én tur på forsiden, med "Forrige" og "Næste" på hver etape. Synligheden bestemmer du stadig pr. rute, men under "Rediger gruppe" kan du gøre hele gruppen offentlig eller privat med ét klik.</p>
+        <p><strong>Grupper:</strong> En gruppe samler flere ruter (etaper) til én tur, fx en flerdagestur. Sæt kryds ved ruterne i listen og tryk "Gruppér valgte", eller vælg flere GPX-filer på én gang, når du uploader. Under fanen Grupper vælger du en gruppe for at åbne den med "Vis gruppe på kort" eller ændre den med "Rediger gruppe". Der kan du også tilføje og fjerne etaper. Etaperne vises som én tur på forsiden, med "Forrige" og "Næste" på hver etape. Synligheden bestemmer du stadig pr. rute, men under "Rediger gruppe" kan du gøre hele gruppen offentlig eller privat med ét klik.</p>
 
         <p>Har du spørgsmål, forslag eller kommentarer, er du velkommen til at skrive til <a href="mailto:info@mitspor.dk">info@mitspor.dk</a>.</p>
     </div>
@@ -355,10 +354,6 @@ function render_route_detail(array $route): void
                 <button type="button" class="tool" data-tool-thin="<?= dash_h($id) ?>" data-route-title="<?= dash_h($title) ?>">Udtynd punkter</button>
                 <?= dash_help_btn('thin', 'Udtynd punkter') ?>
             </div>
-            <div class="tool-row">
-                <button type="button" class="tool" data-add-to-group="<?= dash_h($id) ?>" data-route-title="<?= dash_h($title) ?>">Grupper</button>
-                <?= dash_help_btn('group', 'Grupper') ?>
-            </div>
             <?php if ($route['visibility'] === 'private'): ?>
                 <div class="tool-row">
                     <button type="button" class="tool" data-share-link="<?= dash_h($id) ?>" data-route-title="<?= dash_h($title) ?>" data-has-token="<?= $route['share_token'] !== null ? '1' : '0' ?>">Del-link</button>
@@ -412,7 +407,7 @@ function render_group_detail(array $g): void
             <?php if (group_download_available()): ?>
             <a class="tool" href="<?= dash_h(group_download_url($id)) ?>">Download gruppen som én GPX</a>
             <?php endif; ?>
-            <button type="button" class="tool" data-edit-group="<?= dash_h($id) ?>">Rediger gruppe (titel, rækkefølge, synlighed)</button>
+            <button type="button" class="tool" data-edit-group="<?= dash_h($id) ?>">Rediger gruppe</button>
             <button type="button" class="tool danger" data-delete-group="<?= dash_h($id) ?>" data-group-title="<?= dash_h($g['title']) ?>" data-stage-count="<?= (int) $g['stage_count'] ?>">Slet gruppen og alle etaper</button>
         </div>
     </section>
@@ -548,7 +543,7 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
 
             <div id="tab-grupper" class="tab-panel" hidden>
                 <?php if (empty($groups)): ?>
-                    <p class="empty-state">Du har ingen grupper endnu. Sæt kryds ved to eller flere ruter og tryk "Gruppér valgte", eller vælg "Grupper" på en rute — fx en flerdagestur.</p>
+                    <p class="empty-state">Du har ingen grupper endnu. Sæt kryds ved de ruter, der hører sammen (fx etaperne på en flerdagestur), og tryk "Gruppér valgte".</p>
                     <div class="video-btns"><?= video_button('07-grupper') ?></div>
                 <?php else: ?>
                     <ul class="hub-items">
@@ -1125,8 +1120,14 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
 
         <div class="dialog-section">
             <h3>Etaper</h3>
-            <p class="hint">Træk i etaperne (eller brug pilene) for at ændre rækkefølgen. Fjern en etape fra gruppen via "Rediger metadata" på ruten.</p>
+            <p class="hint">Træk i etaperne (eller brug pilene) for at ændre rækkefølgen. × fjerner en etape fra gruppen; ruten bliver stående som almindelig rute.</p>
             <ol id="group-order-list" class="group-order-list"></ol>
+            <button type="button" class="btn" id="group-add-toggle" aria-expanded="false">+ Tilføj etaper</button>
+            <div id="group-add-box" class="group-add-box" hidden>
+                <input type="search" id="group-add-filter" placeholder="Søg i dine ruter" aria-label="Søg i dine ruter">
+                <ul id="group-add-list" class="group-add-list"></ul>
+                <p class="hint">Nye etaper kommer sidst; træk dem på plads. En rute, der står i en anden gruppe, flyttes hertil.</p>
+            </div>
         </div>
 
         <fieldset>
@@ -1154,13 +1155,21 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
     </form>
 </dialog>
 
+<?php // Alle brugerens ruter, som "Tilføj etaper" i "Rediger gruppe" vælger imellem. ?>
+<script type="application/json" id="group-route-catalog"><?= json_encode(array_map(static fn(array $r): array => [
+    'id'         => $r['public_id'],
+    'title'      => $r['title'],
+    'visibility' => $r['visibility'],
+    'group'      => $r['group_public_id'],
+    'groupTitle' => $r['group_title'],
+], $routes), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?></script>
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="vendor/sortablejs/Sortable.min.js"></script>
 <script src="assets/route-meta-dialog.js?v=2"></script>
 <script src="assets/gpx-field-labels.js?v=3"></script>
 <script src="assets/gpx-tools.js?v=2"></script>
 <script src="assets/genindlaes.js?v=1"></script>
-<script src="assets/dashboard.js?v=24"></script>
+<script src="assets/dashboard.js?v=25"></script>
 <script src="assets/dashboard-tools.js?v=8"></script>
 <script src="assets/activity-marker.js?v=1"></script>
 <script src="assets/dashboard-map.js?v=6"></script>
