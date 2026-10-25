@@ -9,7 +9,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         // Codemagics løbenummer, så hver bygning til Google Play får et højere nummer (lokalt: 1)
         versionCode((System.getenv("BUILD_NUMBER") ?: "1").toInteger())
-        versionName "1.0"
+        versionName "1.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -33,8 +33,10 @@ android {
             if (System.getenv("CM_KEYSTORE_PATH")) {
                 signingConfig signingConfigs.release
             }
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // R8 optimerer og formindsker koden (Google Play kræver det fra feb. 2027).
+            // shrinkResources er ikke slået til: GPS-pluginnet finder ressourcer via navn.
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }
