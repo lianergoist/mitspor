@@ -812,8 +812,8 @@ a { color: var(--primary); }
     cursor: pointer;
 }
 .route-marker-icon {
-    width: 16px;
-    height: 16px;
+    width: 10px;
+    height: 10px;
     background: #2563eb;
     border: 2px solid #ffffff;
     border-radius: 50%;

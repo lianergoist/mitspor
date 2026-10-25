@@ -17,6 +17,7 @@
          L.marker(latlng, { icon: icon }).addTo(map);
      });
      ActivityMarker.icon(url, { scale: 0.4 })   // mindre udgave (mini-kortet)
+     ActivityMarker.icon(url, { mirror: true }) // spejlvendt (enkelt billede mod vest)
 ------------------------------------------------------------------- */
 window.ActivityMarker = (function () {
     "use strict";
@@ -72,7 +73,23 @@ window.ActivityMarker = (function () {
                     /* behold hele billedet som ramme */
                 }
 
-                resolve({ w: w, h: h, left: box.left, right: box.right, bottom: box.bottom });
+                // Spejlvendt udgave som data-adresse, til markører med ét billede,
+                // der vender mod øst (se marker_image_urls() i app/markers.php).
+                var mirrored = null;
+                try {
+                    var flip = document.createElement("canvas");
+                    flip.width = w;
+                    flip.height = h;
+                    var fctx = flip.getContext("2d");
+                    fctx.translate(w, 0);
+                    fctx.scale(-1, 1);
+                    fctx.drawImage(img, 0, 0);
+                    mirrored = flip.toDataURL("image/png");
+                } catch (e) {
+                    /* ingen spejlvendt udgave */
+                }
+
+                resolve({ w: w, h: h, left: box.left, right: box.right, bottom: box.bottom, mirrored: mirrored });
             };
 
             img.onerror = function () {
@@ -88,12 +105,20 @@ window.ActivityMarker = (function () {
     function icon(url, options) {
         var scale = (options && options.scale) || SCALE;
 
+        var mirror = !!(options && options.mirror);
+
         return measure(url).then(function (m) {
+            // Spejlvendt flyttes motivets midte tilsvarende: x -> w - x.
+            var centerX = (m.left + m.right) / 2;
+            if (mirror) {
+                if (!m.mirrored) throw new Error("Markørbilledet kunne ikke spejlvendes: " + url);
+                centerX = m.w - centerX;
+            }
             return window.L.icon({
-                iconUrl: url,
+                iconUrl: mirror ? m.mirrored : url,
                 iconSize: [Math.round(m.w * scale), Math.round(m.h * scale)],
                 iconAnchor: [
-                    Math.round(((m.left + m.right) / 2) * scale),
+                    Math.round(centerX * scale),
                     Math.max(0, Math.round(m.bottom * scale) - FOOT_LIFT)
                 ]
             });
