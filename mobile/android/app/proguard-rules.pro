@@ -19,3 +19,12 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# MitSpor: behold linjenumre, så nedbrud i Google Play kan læses (mapping-filen ligger i AAB'en)
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
+
+# InAppBrowser læser sine indstillinger med Gson via refleksion
+-keepattributes Signature,*Annotation*
+-keep class com.capacitorjs.osinappbrowser.** { *; }
+-keep class com.outsystems.plugins.inappbrowser.** { *; }
