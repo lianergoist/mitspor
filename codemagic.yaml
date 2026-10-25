@@ -73,10 +73,10 @@ workflows:
     environment:
       node: 22
       xcode: latest
-      ios_signing:
-        # Certifikat og profil hentes fra Personal Account → codemagic.yaml settings → Code signing identities
-        distribution_type: app_store
-        bundle_identifier: dk.mitspor.app
+      groups:
+        # CERTIFICATE_PRIVATE_KEY: den private nøgle til Apple Distribution-certifikatet
+        # (appens indstillinger i Codemagic → Environment variables, gruppe mitspor_ios)
+        - mitspor_ios
     scripts:
       - name: Installér npm-pakker
         script: |
@@ -87,6 +87,12 @@ workflows:
           cd mobile
           npm run vendor
           npx cap sync ios
+      - name: Hent certifikat og profil fra Apple
+        # Laver certifikat og profil, hvis de mangler. Certifikatet findes ud fra CERTIFICATE_PRIVATE_KEY.
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files dk.mitspor.app --type IOS_APP_STORE --strict-match-identifier --create
+          keychain add-certificates
       - name: Brug signeringsprofilen i Xcode-projektet
         script: xcode-project use-profiles
       - name: Sæt build-nummer
@@ -119,11 +125,10 @@ workflows:
     environment:
       node: 22
       xcode: latest
-      ios_signing:
-        # Ad hoc-profilen skal indeholde telefonens UDID og hentes igen,
-        # når der registreres nye enheder.
-        distribution_type: ad_hoc
-        bundle_identifier: dk.mitspor.app
+      groups:
+        # CERTIFICATE_PRIVATE_KEY: den private nøgle til Apple Distribution-certifikatet
+        # (appens indstillinger i Codemagic → Environment variables, gruppe mitspor_ios)
+        - mitspor_ios
     scripts:
       - name: Installér npm-pakker
         script: |
@@ -134,6 +139,12 @@ workflows:
           cd mobile
           npm run vendor
           npx cap sync ios
+      - name: Hent certifikat og profil fra Apple
+        # Profilen får alle registrerede enheder, når den laves. Ved en ny enhed: slet ad hoc-profilen hos Apple, så laves den igen.
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files dk.mitspor.app --type IOS_APP_ADHOC --strict-match-identifier --create
+          keychain add-certificates
       - name: Brug signeringsprofilen i Xcode-projektet
         script: xcode-project use-profiles
       - name: Sæt build-nummer
