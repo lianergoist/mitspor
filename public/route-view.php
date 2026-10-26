@@ -720,9 +720,9 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
         iconAnchor: [30, 29]
     });
 
-    // Retningsbestemte activity-ikoner (bevæger sig mod øst → "1",
-    // bevæger sig mod vest → "2"). Findes kun hvis aktiviteten har et
-    // matchende markørsæt i public/markers/ (activity_icon fra PHP) —
+    // Retningsbestemte activity-ikoner (east og west, se marker_image_urls()
+    // i app/markers.php). Findes kun hvis ruten eller aktiviteten har en
+    // markør i public/markers/ (activity_icon fra PHP) —
     // ellers falder vi tilbage til de simple farvede prikker ovenfor.
     // Ruter og spor viser begge markøren (den valgte eller aktivitetens
     // standard), ligesom "Standard" i metadata-dialogen viser.

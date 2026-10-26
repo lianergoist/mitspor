@@ -230,6 +230,7 @@ function dash_h(?string $value): string
  * $defaultBoxId: feltet, der viser den valgte aktivitets standardmarkør
  * (fyldes af markerDefaultPreview() i assets/dashboard.js). Markører med en
  * aktivitet vises kun, når den aktivitet er valgt; de neutrale vises altid.
+ * Markørerne læses fra mapperne i public/markers/ (se app/markers.php).
  */
 function render_marker_picker(string $defaultBoxId): void
 {
@@ -242,11 +243,11 @@ function render_marker_picker(string $defaultBoxId): void
                     <span class="marker-option-img" id="<?= dash_h($defaultBoxId) ?>"></span>
                     <span class="marker-option-name">Standard</span>
                 </label>
-                <?php foreach (MARKER_SETS as $markerKey => [$markerName, $markerActivity]): ?>
-                <label class="marker-option" data-marker-activity="<?= dash_h($markerActivity) ?>">
+                <?php foreach (marker_library() as $markerKey => $marker): ?>
+                <label class="marker-option" data-marker-activity="<?= dash_h($marker['activity']) ?>">
                     <input type="radio" name="marker_icon" value="<?= dash_h($markerKey) ?>">
                     <span class="marker-option-img"><img src="<?= dash_h(marker_image_urls($markerKey)['east'] ?? '') ?>" alt="" loading="lazy"></span>
-                    <span class="marker-option-name"><?= dash_h($markerName) ?></span>
+                    <span class="marker-option-name"><?= dash_h($marker['name']) ?></span>
                 </label>
                 <?php endforeach; ?>
             </div>
