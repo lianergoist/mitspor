@@ -14,7 +14,7 @@
    = 60 px), uanset billedets egen størrelse. Et 120 px-billede er dermed
    skarpt på retina-skærme, og et større billede skaleres ned.
 
-     ActivityMarker.icon('markers/sup/standard_east.png').then(function (icon) {
+     ActivityMarker.icon('markers/sup/standard.png').then(function (icon) {
          L.marker(latlng, { icon: icon }).addTo(map);
      });
      ActivityMarker.icon(url, { scale: 0.4 })   // mindre udgave (mini-kortet)
