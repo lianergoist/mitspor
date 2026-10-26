@@ -45,7 +45,7 @@
     // Aktivitetens markør i startpunktet (samme markørsæt som rutesiden, i 80 % af
     // dens størrelse). Ankeret — ikonets fod — beregnes af ActivityMarker ud fra
     // billedets gennemsigtighed, så markøren står på linjen uanset hvordan billedet
-    // er beskåret. "1" er retning mod øst, "2" mod vest. Kan billedet ikke indlæses
+    // er beskåret. "1" er retning mod øst, "2" mod vest (eller det ene billede spejlvendt). Kan billedet ikke indlæses
     // (eller har aktiviteten intet markørsæt), bruges den grønne startprik i stedet.
     function addRouteMarkers(entry, points) {
         var map = entry.map;
@@ -65,7 +65,9 @@
         var west = ahead[1] < points[0][1];
         var url = west ? westUrl : eastUrl;
 
-        window.ActivityMarker.icon(url, { scale: window.ActivityMarker.SCALE * 0.8 })
+        var mirror = west && entry.holder.getAttribute("data-marker-mirror") === "1";
+
+        window.ActivityMarker.icon(url, { scale: window.ActivityMarker.SCALE * 0.8, mirror: mirror })
             .then(function (icon) {
                 if (!entry.map || entry.removed) return;
                 window.L.marker(points[0], { icon: icon, interactive: false, keyboard: false }).addTo(map);

@@ -264,6 +264,7 @@
         scrollbar-color: #94a3b8 #f1f5f9;
     }
 }
+.modal-dialog label.marker-option[hidden] { display: none; }
 .modal-dialog label.marker-option {
     position: relative;
     display: flex;

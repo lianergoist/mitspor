@@ -208,7 +208,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
     <meta name="twitter:image" content="<?= htmlspecialchars($ogImageUrl, ENT_QUOTES, 'UTF-8') ?>">
 
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/style.css?v=28">
+    <link rel="stylesheet" href="assets/style.css?v=33">
     <link rel="stylesheet" href="assets/videoer.css?v=1">
     <style>
         html, body { height: 100%; margin: 0; }
@@ -530,7 +530,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="vendor/leaflet-gpx/gpx.js"></script>
 <script src="assets/gpx-field-labels.js?v=3"></script>
-<script src="assets/activity-marker.js?v=1"></script>
+<script src="assets/activity-marker.js?v=2"></script>
 <script>
 (function () {
     "use strict";
@@ -685,8 +685,8 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
     var routeMarkerIcon = L.divIcon({
         className: 'route-marker-icon-wrap',
         html: '<div class="route-marker-icon"></div>',
-        iconSize: [16, 16],
-        iconAnchor: [8, 8]
+        iconSize: [10, 10],
+        iconAnchor: [5, 5]
     });
 
     var startMarkerIcon = L.divIcon({
@@ -737,7 +737,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
         // blå prik; når de er klar, tegnes den bevægelige markør om med ikonet.
         Promise.all([
             window.ActivityMarker.icon(activityIconUrls.east),
-            window.ActivityMarker.icon(activityIconUrls.west)
+            window.ActivityMarker.icon(activityIconUrls.west, { mirror: activityIconUrls.mirror })
         ]).then(function (icons) {
             activityIconEast = icons[0];
             activityIconWest = icons[1];

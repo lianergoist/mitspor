@@ -1,10 +1,26 @@
 /* Kontrolpanelets JavaScript (flyttet ud af dashboard.php). */
 // Markørvalget: "Standard" viser markøren for den valgte aktivitet (fra
 // <option data-marker-url>), eller "Ingen", hvis aktiviteten ikke har en.
+// Kun den valgte aktivitets markører og de neutrale vises; er den valgte
+// markør skjult, vælges "Standard".
 function markerDefaultPreview(select, box) {
     if (!select || !box) return;
     var option = select.options[select.selectedIndex];
     var markerUrl = option ? option.getAttribute('data-marker-url') : '';
+    var activity = option ? (option.getAttribute('data-marker-activity') || '') : '';
+    var picker = box.closest('.marker-picker');
+    if (picker) {
+        picker.querySelectorAll('.marker-option[data-marker-activity]').forEach(function (label) {
+            var markerActivity = label.getAttribute('data-marker-activity');
+            var show = markerActivity === '' || markerActivity === activity;
+            label.hidden = !show;
+            var radio = label.querySelector('input');
+            if (!show && radio.checked) {
+                radio.checked = false;
+                picker.querySelector('input[name="marker_icon"][value=""]').checked = true;
+            }
+        });
+    }
     box.textContent = '';
     if (markerUrl) {
         var img = document.createElement('img');
