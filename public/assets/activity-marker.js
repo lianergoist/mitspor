@@ -1,6 +1,6 @@
 /* ------------------------------------------------------------------
    ActivityMarker — Leaflet-ikoner til aktivitets-markørerne
-   (public/markers/<aktivitet>1_120x120.png, ...2_..., SUP, kajak, kano osv.).
+   (public/markers/<aktivitet>/..., se app/markers.php).
 
    Ankeret (det punkt i billedet, der står PRÆCIS på ruten) beregnes ud fra
    billedets egen gennemsigtighed: når billedet er indlæst, finder scriptet
@@ -13,7 +13,7 @@
    Størrelsen er billedets naturlige størrelse × SCALE (standard 0,5: et
    120 px-billede vises i 60 px og er dermed skarpt på retina-skærme).
 
-     ActivityMarker.icon('markers/sup1_120x120.png').then(function (icon) {
+     ActivityMarker.icon('markers/sup/standard_east.png').then(function (icon) {
          L.marker(latlng, { icon: icon }).addTo(map);
      });
      ActivityMarker.icon(url, { scale: 0.4 })   // mindre udgave (mini-kortet)
