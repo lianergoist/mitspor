@@ -10,8 +10,9 @@
    motivet, så et nyt eller beskåret billede kan lægges i mappen uden at
    koden skal ændres.
 
-   Størrelsen er billedets naturlige størrelse × SCALE (standard 0,5: et
-   120 px-billede vises i 60 px og er dermed skarpt på retina-skærme).
+   Billedets længste side vises altid i BASE × SCALE px (standard 120 × 0,5
+   = 60 px), uanset billedets egen størrelse. Et 120 px-billede er dermed
+   skarpt på retina-skærme, og et større billede skaleres ned.
 
      ActivityMarker.icon('markers/sup/standard_east.png').then(function (icon) {
          L.marker(latlng, { icon: icon }).addTo(map);
@@ -22,7 +23,8 @@
 window.ActivityMarker = (function () {
     "use strict";
 
-    var SCALE = 0.5;     // vist størrelse = naturlig størrelse × SCALE
+    var BASE = 120;      // billedets længste side regnes som BASE px
+    var SCALE = 0.5;     // vist størrelse = BASE × SCALE (60 px)
     var ALPHA_MIN = 24;  // en pixel med alfa under dette (0–255) regnes for gennemsigtig
     var FOOT_LIFT = 1;   // px over motivets underkant, hvor ankeret sidder
     var cache = {};
@@ -108,6 +110,8 @@ window.ActivityMarker = (function () {
         var mirror = !!(options && options.mirror);
 
         return measure(url).then(function (m) {
+            // Omregnes fra billedets egne pixels til BASE, så store billeder skaleres ned.
+            var factor = scale * BASE / Math.max(m.w, m.h);
             // Spejlvendt flyttes motivets midte tilsvarende: x -> w - x.
             var centerX = (m.left + m.right) / 2;
             if (mirror) {
@@ -116,10 +120,10 @@ window.ActivityMarker = (function () {
             }
             return window.L.icon({
                 iconUrl: mirror ? m.mirrored : url,
-                iconSize: [Math.round(m.w * scale), Math.round(m.h * scale)],
+                iconSize: [Math.round(m.w * factor), Math.round(m.h * factor)],
                 iconAnchor: [
-                    Math.round(centerX * scale),
-                    Math.max(0, Math.round(m.bottom * scale) - FOOT_LIFT)
+                    Math.round(centerX * factor),
+                    Math.max(0, Math.round(m.bottom * factor) - FOOT_LIFT)
                 ]
             });
         });

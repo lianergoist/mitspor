@@ -530,7 +530,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="vendor/leaflet-gpx/gpx.js"></script>
 <script src="assets/gpx-field-labels.js?v=3"></script>
-<script src="assets/activity-marker.js?v=2"></script>
+<script src="assets/activity-marker.js?v=3"></script>
 <script>
 (function () {
     "use strict";
