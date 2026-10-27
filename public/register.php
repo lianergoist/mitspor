@@ -7,6 +7,7 @@ require_once __DIR__ . '/../app/db.php';
 require_once __DIR__ . '/../app/csrf.php';
 require_once __DIR__ . '/../app/rate_limit.php';
 require_once __DIR__ . '/../app/mailer.php';
+require_once __DIR__ . '/../app/simple_page.php';
 
 $errors = [];
 $success = false;
@@ -115,16 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="da">
-<head>
-    <meta charset="UTF-8">
-    <link rel="icon" type="image/svg+xml" href="/grafik/favicon.svg">
-    <link rel="icon" type="image/png" sizes="32x32" href="/grafik/favicon-32.png">
-    <meta name="robots" content="noindex, nofollow">
-    <title>Opret konto</title>
-</head>
-<body>
+<?php simple_page_start('Opret konto'); ?>
 
 <?php if ($success): ?>
 
@@ -139,14 +131,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <h1>Opret konto</h1>
 
     <?php if (!empty($errors)): ?>
-        <ul>
-            <?php foreach ($errors as $error): ?>
-                <li><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></li>
-            <?php endforeach; ?>
-        </ul>
+        <div class="modal-errors">
+            <ul>
+                <?php foreach ($errors as $error): ?>
+                    <li><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
     <?php endif; ?>
 
-    <form method="post" action="register.php">
+    <form method="post" action="/register.php">
         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
 
         <label>
@@ -166,15 +160,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                    value="<?= htmlspecialchars($_POST['display_name'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
         </label>
 
-        <label>
+        <label class="checkbox-field">
             <input type="checkbox" name="accept_policy" required>
             Jeg accepterer <a href="/privatlivspolitik.php">privatlivspolitikken</a>
         </label>
 
-        <button type="submit">Opret konto</button>
+        <button type="submit" class="btn btn-primary">Opret konto</button>
     </form>
 
 <?php endif; ?>
 
-</body>
-</html>
+<?php simple_page_end(); ?>

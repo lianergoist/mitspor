@@ -1319,6 +1319,7 @@ a { color: var(--primary); }
     color: var(--text-muted);
 }
 .simple-page input[type="text"],
+.simple-page input[type="email"],
 .simple-page input[type="password"] {
     padding: 8px 10px;
     border: 1px solid var(--border);
