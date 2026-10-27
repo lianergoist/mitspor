@@ -17,7 +17,7 @@ function simple_page_start(string $title): void
     <link rel="icon" type="image/png" sizes="32x32" href="/grafik/favicon-32.png">
     <meta name="robots" content="noindex, nofollow">
     <title><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?> – MitSpor</title>
-    <link rel="stylesheet" href="/assets/style.css?v=31">
+    <link rel="stylesheet" href="/assets/style.css?v=34">
 </head>
 <body>
 

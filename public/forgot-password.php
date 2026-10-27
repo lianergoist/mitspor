@@ -7,6 +7,7 @@ require_once __DIR__ . '/../app/db.php';
 require_once __DIR__ . '/../app/csrf.php';
 require_once __DIR__ . '/../app/rate_limit.php';
 require_once __DIR__ . '/../app/mailer.php';
+require_once __DIR__ . '/../app/simple_page.php';
 
 $errors = [];
 $submitted = false;
@@ -64,16 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="da">
-<head>
-    <meta charset="UTF-8">
-    <link rel="icon" type="image/svg+xml" href="/grafik/favicon.svg">
-    <link rel="icon" type="image/png" sizes="32x32" href="/grafik/favicon-32.png">
-    <meta name="robots" content="noindex, nofollow">
-    <title>Glemt adgangskode</title>
-</head>
-<body>
+<?php simple_page_start('Glemt adgangskode'); ?>
 
 <?php if ($submitted): ?>
 
@@ -88,14 +80,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <h1>Glemt adgangskode</h1>
 
     <?php if (!empty($errors)): ?>
-        <ul>
-            <?php foreach ($errors as $error): ?>
-                <li><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></li>
-            <?php endforeach; ?>
-        </ul>
+        <div class="modal-errors">
+            <ul>
+                <?php foreach ($errors as $error): ?>
+                    <li><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
     <?php endif; ?>
 
-    <form method="post" action="forgot-password.php">
+    <form method="post" action="/forgot-password.php">
         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
 
         <label>
@@ -104,10 +98,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                    value="<?= htmlspecialchars($_POST['email'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
         </label>
 
-        <button type="submit">Send nulstillingslink</button>
+        <button type="submit" class="btn btn-primary">Send nulstillingslink</button>
     </form>
 
 <?php endif; ?>
 
-</body>
-</html>
+<?php simple_page_end(); ?>
