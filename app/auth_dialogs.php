@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/csrf.php';
+require_once __DIR__ . '/afvent_bekraeftelse.php';
 
 /**
  * Dialogerne til log ind, opret konto, glemt adgangskode og ny adgangskode.
@@ -102,6 +103,7 @@ function render_auth_dialogs(): void
             Vi har sendt en bekræftelsesmail til den angivne e-mailadresse.
             Klik på linket i mailen for at aktivere din konto.
         </p>
+        <?php render_afvent_bekraeftelse(false); ?>
     </div>
 
     <form id="register-form">

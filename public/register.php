@@ -133,19 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         Klik på linket i mailen for at aktivere din konto.
     </p>
 
-    <?php if (is_app_webview()): ?>
-        <div id="afvent-bekraeftelse" data-csrf="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
-            <p>
-                Linket åbnes i telefonens browser. Kom bagefter tilbage hertil,
-                så logges du automatisk ind i appen.
-            </p>
-            <p id="afvent-status" aria-live="polite">Venter på, at du bekræfter din e-mail …</p>
-            <div class="simple-page-actions">
-                <a href="/app-luk.php" class="btn">Tilbage til appen og log ind</a>
-            </div>
-        </div>
-        <script src="/assets/afvent-bekraeftelse.js?v=1"></script>
-    <?php endif; ?>
+    <?php render_afvent_bekraeftelse(true); ?>
 
 <?php else: ?>
 

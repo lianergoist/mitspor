@@ -143,6 +143,10 @@ window.MitSporAuth = (function () {
                     if (data.success) {
                         registerForm.hidden = true;
                         registerSuccess.hidden = false;
+                        // I appen: vent på bekræftelsen, og log så ind.
+                        if (data.afventer && window.MitSporAfventBekraeftelse) {
+                            window.MitSporAfventBekraeftelse.start();
+                        }
                         return;
                     }
                     registerErrors.textContent = (data.errors && data.errors.join(' ')) || 'Der skete en fejl. Prøv igen.';
