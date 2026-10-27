@@ -41,7 +41,7 @@ function send_verification_email(string $toEmail, string $rawToken): bool
  */
 function send_password_reset_email(string $toEmail, string $rawToken): bool
 {
-    $resetUrl = APP_BASE_URL . '/reset-password.php?token=' . urlencode($rawToken);
+    $resetUrl = APP_BASE_URL . '/index.php?resetToken=' . urlencode($rawToken);
 
     $subject = 'Nulstil din adgangskode';
 
