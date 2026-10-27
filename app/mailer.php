@@ -20,6 +20,7 @@ function send_verification_email(string $toEmail, string $rawToken): bool
     $message .= "Tak for din oprettelse. Bekræft venligst din e-mailadresse ved at klikke på linket herunder:\r\n\r\n";
     $message .= $verifyUrl . "\r\n\r\n";
     $message .= 'Linket udløber om ' . EMAIL_VERIFICATION_TTL_HOURS . " timer.\r\n\r\n";
+    $message .= "Har du oprettet kontoen i MitSpor-appen, så gå tilbage til appen, når du har klikket på linket. Så logges du ind der.\r\n\r\n";
     $message .= "Har du ikke oprettet en konto, kan du roligt ignorere denne mail.\r\n";
 
     $headers = [

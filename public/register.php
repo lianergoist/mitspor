@@ -8,6 +8,7 @@ require_once __DIR__ . '/../app/csrf.php';
 require_once __DIR__ . '/../app/rate_limit.php';
 require_once __DIR__ . '/../app/mailer.php';
 require_once __DIR__ . '/../app/simple_page.php';
+require_once __DIR__ . '/../app/afvent_bekraeftelse.php';
 
 $errors = [];
 $success = false;
@@ -106,6 +107,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // bruger, hvis mailafsendelse fejler.
                 send_verification_email($email, $rawToken);
 
+                // I appen logges WebView'et (og dermed appen) ind, når
+                // mailen er bekræftet i browseren.
+                if (is_app_webview()) {
+                    afvent_bekraeftelse_start($userId, $passwordHash);
+                }
+
                 $success = true;
             } catch (Throwable $e) {
                 $pdo->rollBack();
@@ -125,6 +132,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         Vi har sendt en bekræftelsesmail til den angivne e-mailadresse.
         Klik på linket i mailen for at aktivere din konto.
     </p>
+
+    <?php if (is_app_webview()): ?>
+        <div id="afvent-bekraeftelse" data-csrf="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
+            <p>
+                Linket åbnes i telefonens browser. Kom bagefter tilbage hertil,
+                så logges du automatisk ind i appen.
+            </p>
+            <p id="afvent-status" aria-live="polite">Venter på, at du bekræfter din e-mail …</p>
+            <div class="simple-page-actions">
+                <a href="/app-luk.php" class="btn">Tilbage til appen og log ind</a>
+            </div>
+        </div>
+        <script src="/assets/afvent-bekraeftelse.js?v=1"></script>
+    <?php endif; ?>
 
 <?php else: ?>
 
