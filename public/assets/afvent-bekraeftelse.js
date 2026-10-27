@@ -1,8 +1,11 @@
 /**
- * Siden "Tjek din indbakke" i appen (register.php): spørger hvert 4. sekund,
+ * "Tjek din indbakke" i appen (register.php og dialogen på forsiden): spørger hvert 4. sekund,
  * og når brugeren vender tilbage til appen, om e-mailen er bekræftet. Er den
  * det, er sessionen logget ind, og siden går til kontrolpanelet. Appen ser
  * sideskiftet og logger selv ind (se app/afvent_bekraeftelse.php).
+ *
+ * register.php starter med det samme (data-start="auto"); dialogen kalder
+ * MitSporAfventBekraeftelse.start(), når kontoen er oprettet.
  */
 (function () {
     "use strict";
@@ -17,6 +20,7 @@
     var timer = null;
     var spoerger = false;
     var faerdig = false;
+    var startet = false;
 
     function spoerg() {
         if (spoerger || faerdig) {
@@ -44,21 +48,34 @@
             .finally(function () { spoerger = false; });
     }
 
-    timer = window.setInterval(function () {
-        if (faerdig) {
-            window.clearInterval(timer);
+    function start() {
+        if (startet) {
             return;
         }
-        if (!document.hidden) {
-            spoerg();
-        }
-    }, 4000);
+        startet = true;
 
-    // Når brugeren skifter tilbage fra mailen/browseren.
-    document.addEventListener('visibilitychange', function () {
-        if (!document.hidden) {
-            spoerg();
-        }
-    });
-    window.addEventListener('focus', spoerg);
+        timer = window.setInterval(function () {
+            if (faerdig) {
+                window.clearInterval(timer);
+                return;
+            }
+            if (!document.hidden) {
+                spoerg();
+            }
+        }, 4000);
+
+        // Når brugeren skifter tilbage fra mailen/browseren.
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden) {
+                spoerg();
+            }
+        });
+        window.addEventListener('focus', spoerg);
+    }
+
+    window.MitSporAfventBekraeftelse = { start: start };
+
+    if (boks.getAttribute('data-start') === 'auto') {
+        start();
+    }
 })();

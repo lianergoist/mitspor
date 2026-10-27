@@ -7,6 +7,7 @@ require_once __DIR__ . '/../app/db.php';
 require_once __DIR__ . '/../app/csrf.php';
 require_once __DIR__ . '/../app/rate_limit.php';
 require_once __DIR__ . '/../app/mailer.php';
+require_once __DIR__ . '/../app/afvent_bekraeftelse.php';
 
 header('Content-Type: application/json; charset=UTF-8');
 
@@ -105,6 +106,12 @@ try {
     // Mail sendes EFTER commit, så vi ikke mister en oprettet bruger,
     // hvis mailafsendelse fejler.
     send_verification_email($email, $rawToken);
+
+    // I appen logges WebView'et (og dermed appen) ind, når mailen er
+    // bekræftet i browseren (se app/afvent_bekraeftelse.php).
+    if (is_app_webview()) {
+        afvent_bekraeftelse_start($userId, $passwordHash);
+    }
 } catch (Throwable $e) {
     $pdo->rollBack();
     error_log('Registrering fejlede: ' . $e->getMessage());
@@ -112,4 +119,4 @@ try {
     exit;
 }
 
-echo json_encode(['success' => true]);
+echo json_encode(['success' => true, 'afventer' => is_app_webview()]);

@@ -260,7 +260,7 @@ $h = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
 </script>
 <?php if (!$loggedIn): ?>
 <script src="/assets/genindlaes.js?v=1"></script>
-<script src="/assets/auth-dialogs.js?v=3"></script>
+<script src="/assets/auth-dialogs.js?v=4"></script>
 <script>MitSporAuth.init({ handleUrl: true });</script>
 <?php endif; ?>
 <script src="/assets/videoer.js?v=1"></script>

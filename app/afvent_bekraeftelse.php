@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/app_login.php';
+require_once __DIR__ . '/csrf.php';
 
 /*
  * Login efter bekræftelse, når kontoen er oprettet i appens WebView.
@@ -12,6 +13,9 @@ require_once __DIR__ . '/app_login.php';
  * med jævne mellemrum (register-status.php). Er e-mailen bekræftet, logges
  * sessionen ind, og appens hash (par) kobles til kontoen, så appen også
  * logges ind (se app/app_login.php).
+ *
+ * Bruges af register.php (appens "Opret konto") og af dialogen på
+ * forsiden (register-ajax.php, app/auth_dialogs.php).
  *
  * Kun den session, der oprettede kontoen med adgangskoden, kan logges ind
  * sådan, og kun så længe linket gælder, og adgangskoden er uændret.
@@ -74,4 +78,29 @@ function afvent_bekraeftelse_tjek(): string
     }
 
     return 'logget_ind';
+}
+
+/**
+ * Teksten, status og knappen "Tilbage til appen" under "Tjek din indbakke".
+ * Vises kun i appens WebView. Med $auto=true begynder siden at spørge med
+ * det samme; ellers starter dialogen det efter oprettelsen.
+ */
+function render_afvent_bekraeftelse(bool $auto): void
+{
+    if (!is_app_webview()) {
+        return;
+    }
+    ?>
+<div id="afvent-bekraeftelse" data-csrf="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>"<?= $auto ? ' data-start="auto"' : '' ?>>
+    <p>
+        Linket åbnes i telefonens browser. Kom bagefter tilbage hertil,
+        så logges du automatisk ind i appen.
+    </p>
+    <p id="afvent-status" aria-live="polite">Venter på, at du bekræfter din e-mail …</p>
+    <div class="simple-page-actions">
+        <a href="/app-luk.php" class="btn">Tilbage til appen og log ind</a>
+    </div>
+</div>
+<script src="/assets/afvent-bekraeftelse.js?v=2"></script>
+    <?php
 }
