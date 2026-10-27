@@ -81,7 +81,7 @@ function afvent_bekraeftelse_tjek(): string
 }
 
 /**
- * Teksten, status og knappen "Tilbage til appen" under "Tjek din indbakke".
+ * Teksten og status under "Tjek din indbakke".
  * Vises kun i appens WebView. Med $auto=true begynder siden at spørge med
  * det samme; ellers starter dialogen det efter oprettelsen.
  */
@@ -93,13 +93,10 @@ function render_afvent_bekraeftelse(bool $auto): void
     ?>
 <div id="afvent-bekraeftelse" data-csrf="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>"<?= $auto ? ' data-start="auto"' : '' ?>>
     <p>
-        Linket åbnes i telefonens browser. Kom bagefter tilbage hertil,
-        så logges du automatisk ind i appen.
+        <strong>Luk ikke denne side.</strong> Åbn mailen, og klik på linket.
+        Kom så tilbage hertil, så logges du automatisk ind.
     </p>
     <p id="afvent-status" aria-live="polite">Venter på, at du bekræfter din e-mail …</p>
-    <div class="simple-page-actions">
-        <a href="/app-luk.php" class="btn">Tilbage til appen og log ind</a>
-    </div>
 </div>
 <script src="/assets/afvent-bekraeftelse.js?v=2"></script>
     <?php
