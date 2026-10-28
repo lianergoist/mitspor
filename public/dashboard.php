@@ -1151,8 +1151,8 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="vendor/sortablejs/Sortable.min.js"></script>
 <script src="assets/route-meta-dialog.js?v=2"></script>
-<script src="assets/gpx-field-labels.js?v=3"></script>
-<script src="assets/gpx-tools.js?v=2"></script>
+<script src="assets/gpx-field-labels.js?v=4"></script>
+<script src="assets/gpx-tools.js?v=3"></script>
 <script src="assets/genindlaes.js?v=1"></script>
 <script src="assets/dashboard.js?v=27"></script>
 <script src="assets/dashboard-tools.js?v=8"></script>

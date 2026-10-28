@@ -526,6 +526,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             <span id="stat-avg-moving-speed" hidden></span>
             <span id="stat-min-speed" hidden></span>
             <span id="stat-max-speed" hidden></span>
+            <span id="stat-elevation-gain" hidden></span>
         </div>
         </div>
         </div><!-- /.info-body -->
@@ -601,7 +602,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
 
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="vendor/leaflet-gpx/gpx.js"></script>
-<script src="assets/gpx-field-labels.js?v=3"></script>
+<script src="assets/gpx-field-labels.js?v=4"></script>
 <script src="assets/activity-marker.js?v=3"></script>
 <script>
 (function () {
@@ -737,6 +738,8 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
     // GPS-hop ikke giver urealistiske toppe.
     var SPEED_WINDOW_SECONDS = 5;
     var movingStats = null; // kumulative tabeller pr. punkt — se buildMovingStats()
+    // Højdemeter: kumuleret stigning og fald pr. punkt — se buildElevationGainStats().
+    var elevationGainStats = null;
 
     // ---------- Grafer (højde, puls, kadence, watt) ----------
     // Alle grafer deler samme x-akse (kumuleret afstand) og samme
@@ -1047,6 +1050,10 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
                         });
                     }
 
+                    buildElevationGainStats();
+                    document.getElementById('stat-elevation-gain').hidden =
+                        !(elevationGainStats && isFunctionEnabled('elevation_gain'));
+
                     renderExtraFieldStats();
                     applyStatsFolding();
 
@@ -1150,9 +1157,11 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
     // deres egen visning ovenfor.
     var extraFieldSeries = {}; // { feltnavn: [værdi_eller_undefined, ...] } — samme indeksering som allPoints
     var extraFieldCurrentEls = {}; // { feltnavn: <span> } — til hurtig opdatering ved scrub
+    var elevationRaw = []; // højde pr. punkt (samme indeksering som allPoints), uanset hvad der vises
 
     function buildExtraFieldSeries(xmlDoc) {
         extraFieldSeries = {};
+        elevationRaw = [];
         var trkpts = xmlDoc.getElementsByTagNameNS('*', 'trkpt');
         // Felter med en dedikeret graf-funktion styres af isFunctionEnabled()
         // i stedet for isFieldEnabled() — se GRAPH_METRICS ovenfor.
@@ -1167,6 +1176,12 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
                 if (!name || name === 'time' || name === 'extensions') continue;
                 if (el.children && el.children.length > 0) continue; // container-element, ikke selve feltet
 
+                // Højden gemmes altid til højdemetrene, også når højdeprofilen er slået fra.
+                if (name === 'ele') {
+                    var ele = parseFloat(el.textContent);
+                    if (!isNaN(ele)) elevationRaw[i] = ele;
+                }
+
                 var functionKey = functionFieldMap[name];
                 var enabled = functionKey ? isFunctionEnabled(functionKey) : isFieldEnabled(name);
                 if (!enabled) continue;
@@ -1178,6 +1193,30 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
                 extraFieldSeries[name][i] = value;
             }
         }
+    }
+
+    // Højdemeter: summen af alle stigninger og fald fra start til hvert punkt.
+    // Regnes som højdegrafens "Op/Ned", så tallene passer sammen ved slutningen,
+    // og springet mellem to spor tæller ikke med.
+    function buildElevationGainStats() {
+        elevationGainStats = null;
+        var gainCum = [], lossCum = [];
+        var gain = 0, loss = 0, prev = null, count = 0;
+        for (var i = 0; i < allPoints.length; i++) {
+            if (allPoints[i].segStart) prev = null;
+            var ele = elevationRaw[i];
+            if (typeof ele === 'number') {
+                if (prev !== null) {
+                    var diff = ele - prev;
+                    if (diff > 0) gain += diff; else loss += -diff;
+                }
+                prev = ele;
+                count++;
+            }
+            gainCum.push(gain);
+            lossCum.push(loss);
+        }
+        if (count >= 2) elevationGainStats = { gainCum: gainCum, lossCum: lossCum };
     }
 
     function renderExtraFieldStats() {
@@ -1668,6 +1707,11 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
                 document.getElementById('stat-max-speed').textContent = 'Maks. hastighed: ' +
                     (maxSpeed !== null ? (maxSpeed * 3.6).toFixed(1) + '\u00A0km/t' : '–');
             }
+        }
+
+        if (elevationGainStats) {
+            document.getElementById('stat-elevation-gain').textContent = 'Højdemeter: +' +
+                Math.round(elevationGainStats.gainCum[idx]) + ' / -' + Math.round(elevationGainStats.lossCum[idx]) + '\u00A0m';
         }
 
         updateExtraFieldCurrentValues(idx);
