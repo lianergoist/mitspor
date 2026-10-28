@@ -338,8 +338,8 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             .info-title-row { margin: 0; }
             .info-title-row h1 { flex: 1 1 auto; line-height: 1.3; }
 
-            /* Sammenfoldet: titlen, type · synlighed · uploader på én linje og
-               de to afstande. Resten (inkl. etape-knapperne) hører til "mere"-delen. */
+            /* Sammenfoldet: titlen, uploaderen og de to afstande; udfoldet
+               type · synlighed · uploader på én linje. Resten (inkl. etape-knapperne) hører til "mere"-delen. */
             .info-panel .meta-line {
                 display: flex;
                 align-items: baseline;
@@ -349,6 +349,10 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             }
             .meta-type, .meta-vis, .meta-sep, .meta-sep-uploader { flex: 0 0 auto; }
             .meta-sep-uploader { display: inline; }
+            /* Type og offentlig/privat vises kun udfoldet; sammenfoldet står
+               "Uploadet af" alene (og linjen forsvinder, hvis den ikke vises). */
+            .info-panel:not(.info-expanded) :is(.meta-type, .meta-vis, .meta-sep, .meta-sep-uploader) { display: none; }
+            .info-panel:not(.info-expanded) .meta-line:not(:has(.meta-uploader)) { display: none; }
             /* Er der ikke plads til hele uploader-navnet, afkortes det med "…". */
             .meta-uploader { flex: 0 1 auto; min-width: 0; }
             .info-panel .route-description { margin: 2px 0 4px; }
@@ -1195,7 +1199,8 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
     // høj som sammenfoldet (og aldrig højere end kortet giver plads til) —
     // er der mere indhold, kan boksen scrolles.
     // Mobil: panelet under topbaren viser det samme sammenfoldet, men
-    // etape-knapperne hører til "mere"-delen (se CSS).
+    // aktivitet, offentlig/privat og etape-knapperne hører altid til
+    // "mere"-delen (se CSS), så knappen vises altid dér.
     function applyStatsFolding() {
         var STATS_VISIBLE_BY_DEFAULT = 2; // afstand ialt + afstand fra start
         var statsEl = document.getElementById('route-stats');
@@ -1205,9 +1210,8 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
         var panelEl = document.querySelector('.info-panel');
         var bodyEl = panelEl.querySelector('.info-body');
         var mobileMq = window.matchMedia('(max-width: 600px)');
-        // Beskrivelsen er altid skjult som standard; etape-knapperne kun på mobil.
+        // Beskrivelsen er altid skjult som standard.
         var hasDescription = !!panelEl.querySelector('.route-description');
-        var hasGroupNav = !!panelEl.querySelector('.group-nav');
         var visibleItems = Array.prototype.filter.call(statsEl.children, function (el) { return !el.hidden; });
         var hasExtraStats = visibleItems.length > STATS_VISIBLE_BY_DEFAULT;
 
@@ -1217,7 +1221,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
 
         // Toggle-knappen skal kun vises, når der reelt er noget mere at vise.
         function refreshToggleVisibility() {
-            toggleBtn.hidden = !(hasExtraStats || hasDescription || (hasGroupNav && mobileMq.matches));
+            toggleBtn.hidden = !(hasExtraStats || hasDescription || mobileMq.matches);
         }
 
         function setExpanded(expanded) {
