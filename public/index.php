@@ -63,6 +63,11 @@ $h = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
     <meta property="og:description" content="Gratis dansk website til at dele og redigere ruter og spor. Upload dine spor, tegn ruter direkte på kortet, og del dem med andre.">
     <meta property="og:url" content="<?= APP_BASE_URL ?>/">
     <meta property="og:image" content="<?= APP_BASE_URL ?>/grafik/mitspor_full.png?v=4">
+    <?php // Med størrelsen viser Facebook billedet allerede første gang, et nyt billede deles. ?>
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="2400">
+    <meta property="og:image:height" content="1260">
+    <meta property="og:image:alt" content="MitSpor – del dine spor og ruter. Hent appen i App Store og Google Play.">
     <meta name="twitter:card" content="summary_large_image">
 
     <link rel="stylesheet" href="/assets/style.css?v=35">
