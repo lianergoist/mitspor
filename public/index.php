@@ -62,7 +62,7 @@ $h = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
     <meta property="og:title" content="MitSpor — Del og redigér ruter og spor">
     <meta property="og:description" content="Gratis dansk website til at dele og redigere ruter og spor. Upload dine spor, tegn ruter direkte på kortet, og del dem med andre.">
     <meta property="og:url" content="<?= APP_BASE_URL ?>/">
-    <meta property="og:image" content="<?= APP_BASE_URL ?>/grafik/mitspor_full.png">
+    <meta property="og:image" content="<?= APP_BASE_URL ?>/grafik/mitspor_full.png?v=4">
     <meta name="twitter:card" content="summary_large_image">
 
     <link rel="stylesheet" href="/assets/style.css?v=35">

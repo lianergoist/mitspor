@@ -20,7 +20,7 @@ require_once __DIR__ . '/../app/og_image.php';
 
 function og_serve_fallback(): never
 {
-    $file = __DIR__ . '/grafik/mitspor_full.png?v=3';
+    $file = __DIR__ . '/grafik/mitspor_full.png';
     header('Content-Type: image/png');
     header('X-Content-Type-Options: nosniff');
     // Kort cache: næste forsøg må gerne lykkes med et rigtigt billede.
