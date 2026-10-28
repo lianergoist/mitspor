@@ -1355,15 +1355,17 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             });
         }
 
-        // Skift mellem mobil og bred skærm (fx når telefonen vendes): fold
-        // sammen, så højden ikke er beregnet til det forrige layout.
+        // Computer/tablet starter udfoldet, så alle felter ses (boksen kan
+        // scrolles, hvis der ikke er plads); mobil starter sammenfoldet.
+        // Ved skift mellem mobil og bred skærm (fx når telefonen vendes)
+        // sættes standarden for det nye layout, så højden passer.
         function onLayoutChange() {
-            setExpanded(false);
+            setExpanded(!mobileMq.matches);
             refreshToggleVisibility();
             refreshDescToggle();
         }
 
-        setExpanded(false);
+        setExpanded(!mobileMq.matches);
         refreshToggleVisibility();
         refreshDescToggle();
         window.addEventListener('resize', function () {
