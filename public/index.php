@@ -65,7 +65,7 @@ $h = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
     <meta property="og:image" content="<?= APP_BASE_URL ?>/grafik/mitspor_full.png">
     <meta name="twitter:card" content="summary_large_image">
 
-    <link rel="stylesheet" href="/assets/style.css?v=32">
+    <link rel="stylesheet" href="/assets/style.css?v=35">
     <link rel="stylesheet" href="/assets/videoer.css?v=1">
     <link rel="stylesheet" href="/assets/forside.css?v=2">
 </head>

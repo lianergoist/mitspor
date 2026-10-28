@@ -39,7 +39,7 @@ function video_duration_label(string $file): string
     <title>Videoer – MitSpor</title>
     <meta name="description" content="Korte videoer, der viser, hvordan du bruger MitSpor: find ruter, upload, editoren, grupper, del-link, live-tracking og appen.">
     <link rel="canonical" href="<?= APP_BASE_URL ?>/videoer.php">
-    <link rel="stylesheet" href="/assets/style.css?v=31">
+    <link rel="stylesheet" href="/assets/style.css?v=35">
     <link rel="stylesheet" href="/assets/videoer.css?v=1">
 </head>
 <body>

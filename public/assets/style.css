@@ -18,6 +18,10 @@
     --success: #16a34a;
     --success-dark: #15803d;
     --radius: 8px;
+    /* Topbarer/værktøjslinjer: lidt mørkere end hvid, så de skiller sig ud
+       fra telefonens lyse statuslinje. Over sidens baggrund (--bg-deep)
+       giver de 90 % ca. #f1f5f9 (samme farve som editorens værktøjslinje). */
+    --toolbar-bg: rgba(241, 245, 249, 0.9);
 }
 
 * { box-sizing: border-box; }
@@ -47,7 +51,7 @@ a { color: var(--primary); }
     align-items: center;
     justify-content: space-between;
     padding: 12px 20px;
-    background: rgba(255, 255, 255, 0.85);
+    background: var(--toolbar-bg);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     border-bottom: 1px solid var(--border);
@@ -491,7 +495,7 @@ a { color: var(--primary); }
     position: relative;
     flex: 0 0 auto;
     z-index: 1000;
-    background: rgba(255, 255, 255, 0.85);
+    background: var(--toolbar-bg);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     padding: 9px 20px; /* ~20% lavere end den almindelige topbar (12px) */
