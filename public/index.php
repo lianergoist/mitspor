@@ -72,7 +72,7 @@ $h = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
 
     <link rel="stylesheet" href="/assets/style.css?v=35">
     <link rel="stylesheet" href="/assets/videoer.css?v=1">
-    <link rel="stylesheet" href="/assets/forside.css?v=2">
+    <link rel="stylesheet" href="/assets/forside.css?v=3">
 </head>
 <body class="forside">
 
