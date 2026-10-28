@@ -244,7 +244,9 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             text-overflow: ellipsis;
         }
         .info-panel .route-description { font-size: 13px; margin: 0 0 8px; }
-        .info-panel .route-description-text { margin: 0; }
+        .info-panel .route-description-text,
+        .info-panel .route-description-short { margin: 0; }
+        .info-panel .route-description-short { display: none; }
         /* Beskrivelsen hører til "mere"-delen og vises først ved udfoldning. */
         .info-panel .route-description { display: none; }
         .info-panel.info-expanded .route-description { display: block; }
@@ -360,20 +362,25 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             .meta-uploader { flex: 0 1 auto; min-width: 0; }
             /* Beskrivelsen vises altid på mobil: sammenfoldet på én linje med "…",
                udfoldet på to linjer med en lille knap til højre på linje 2, der
-               viser hele teksten (knappen står så ud for den sidste linje). Knappen
-               vises kun, når teksten er længere end to linjer. */
+               viser hele teksten med linjeskift (knappen står så ud for den
+               sidste linje). Den afkortede tekst er uden linjeskift, så en tom
+               linje ikke optager en af de to linjer. */
             .info-panel .route-description,
             .info-panel.info-expanded .route-description { display: flex; align-items: flex-end; gap: 8px; margin: 2px 0 4px; }
-            .info-panel .route-description-text { flex: 1 1 auto; min-width: 0; }
+            .info-panel .route-description-text,
+            .info-panel .route-description-short { flex: 1 1 auto; min-width: 0; }
             .info-panel:not(.info-expanded) .route-description-text,
-            .info-panel .route-description.desc-short .route-description-text {
+            .info-panel .route-description.desc-short .route-description-text { display: none; }
+            .info-panel:not(.info-expanded) .route-description-short,
+            .info-panel .route-description.desc-short .route-description-short {
                 display: -webkit-box;
                 -webkit-box-orient: vertical;
                 -webkit-line-clamp: 2;
                 line-clamp: 2;
                 overflow: hidden;
             }
-            .info-panel:not(.info-expanded) .route-description-text {
+            /* Sammenfoldet altid én linje (skal vinde over .desc-short ovenfor). */
+            .info-panel:not(.info-expanded) .route-description .route-description-short {
                 -webkit-line-clamp: 1;
                 line-clamp: 1;
             }
@@ -493,6 +500,8 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
         <?php if ($route['description']): ?>
             <div class="route-description">
                 <p class="route-description-text"><?= nl2br(htmlspecialchars($route['description'], ENT_QUOTES, 'UTF-8')) ?></p>
+                <?php // Kun mobil: den afkortede visning (1–2 linjer), hvor linjeskift og tomme linjer er lagt sammen til mellemrum. ?>
+                <p class="route-description-short"><?= htmlspecialchars(trim((string) preg_replace('/\s+/u', ' ', $route['description'])), ENT_QUOTES, 'UTF-8') ?></p>
                 <button type="button" class="desc-toggle" hidden><span aria-hidden="true">&#9652;</span></button>
             </div>
         <?php endif; ?>
@@ -1280,9 +1289,11 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
         }
 
         // Mobil: udfoldet vises beskrivelsen på to linjer; knappen til at vise
-        // hele teksten vises kun, når den er længere end to linjer.
+        // hele teksten vises kun, når der er mere: teksten fylder over to
+        // linjer, eller den har linjeskift (som den afkortede tekst ikke viser).
         var descEl = panelEl.querySelector('.route-description');
-        var descTextEl = descEl ? descEl.querySelector('.route-description-text') : null;
+        var descTextEl = descEl ? descEl.querySelector('.route-description-short') : null;
+        var descHasBreaks = descEl ? !!descEl.querySelector('.route-description-text br') : false;
         var descToggle = descEl ? descEl.querySelector('.desc-toggle') : null;
         function setDescShort(isShort) {
             descEl.classList.toggle('desc-short', isShort);
@@ -1303,7 +1314,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             descTextEl.style.cssText = 'display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden';
             var overflows = descTextEl.scrollHeight > descTextEl.clientHeight + 1;
             descTextEl.style.cssText = saved;
-            descToggle.hidden = !overflows;
+            descToggle.hidden = !(overflows || descHasBreaks);
         }
         if (descEl) {
             setDescShort(true);
