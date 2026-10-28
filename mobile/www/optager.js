@@ -936,6 +936,9 @@
     // stedet for at blive lukket, så optagelsen ikke stopper.
     App.addListener('backButton', function () {
         var side = window.MitSporApp.aktivSide();
+        if (window.MitSporMenu && window.MitSporMenu.tilbage()) {
+            return;
+        }
         if (wptDialog.open) {
             wptDialog.close();
         } else if (side === 'view-login' || side === 'view-upload') {

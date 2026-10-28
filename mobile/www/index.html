@@ -10,6 +10,19 @@
 </head>
 <body>
     <main class="start" id="view-start">
+        <!-- Menuen øverst til højre (www/menu.js). -->
+        <div class="start-topbar">
+            <button type="button" class="menu-knap" id="menu-knap" aria-label="Menu" aria-haspopup="menu" aria-expanded="false" aria-controls="menu">
+                <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <div class="menu" id="menu" role="menu" hidden>
+                <button type="button" role="menuitem" data-menu="hjaelp">Hjælp</button>
+                <button type="button" role="menuitem" data-menu="intro">Sådan virker appen</button>
+                <button type="button" role="menuitem" data-menu="privatliv">Privatlivspolitik</button>
+                <button type="button" role="menuitem" data-menu="om">Om MitSpor</button>
+            </div>
+        </div>
+
         <header class="start-header">
             <img src="img/ikon.png" alt="" class="start-logo" width="96" height="96">
             <h1>MitSpor</h1>
@@ -60,6 +73,73 @@
             <button type="button" class="btn btn-primary" id="intro-videre">Kom i gang</button>
         </nav>
     </main>
+
+    <!-- Hjælp: kom i gang med appen (åbnes fra menuen). -->
+    <main class="start optag hjaelp" id="view-hjaelp" hidden>
+        <header class="optag-header">
+            <button type="button" class="link-btn" id="hjaelp-tilbage">‹ Tilbage</button>
+            <h1>Hjælp</h1>
+        </header>
+
+        <section>
+            <h2>Se ture på kortet</h2>
+            <p>"Åbn mitspor.dk" viser kortet med offentlige ture. Du kan kigge uden at logge ind. Tryk på "‹ Appen" øverst på siden for at komme tilbage hertil.</p>
+        </section>
+
+        <section>
+            <h2>Konto og login</h2>
+            <p>Opret en konto på mitspor.dk. Når du logger ind, enten i appen eller på mitspor.dk, er du logget ind begge steder.</p>
+        </section>
+
+        <section>
+            <h2>Optag en tur</h2>
+            <p>Tryk på "Optag tur" og derefter "Start optagelse". Første gang spørger telefonen, om MitSpor må bruge din placering. Det skal du tillade.</p>
+            <p>Gå udendørs, og vent, til GPS'en har fundet dig. Optagelsen fortsætter, når skærmen er slukket, og så længe den kører, vises en notifikation. "Pause" slukker GPS'en og sparer på batteriet.</p>
+        </section>
+
+        <section>
+            <h2>Waypoints</h2>
+            <p>Under optagelsen kan du trykke på "Indsæt waypoint" og give stedet en titel, en tekst og billeder.</p>
+        </section>
+
+        <section>
+            <h2>Gem og upload</h2>
+            <p>"Stop og gem" gemmer turen på telefonen under "Gemte ture". Tryk på "Upload", og giv turen en titel og en aktivitet. Turen bliver privat på din profil. Er du ikke på nettet, sendes den, når du er det igen.</p>
+            <p>"Del GPX" sender GPX-filen til en anden app, fx en mail.</p>
+        </section>
+
+        <section>
+            <h2>Send live</h2>
+            <p>Vælg en livesending under "Send live", før du starter optagelsen, så andre kan følge dig på livesiden. Du kan også oprette en ny livesending. Mens turen sendes live, bliver du i optageren.</p>
+        </section>
+
+        <section>
+            <h2>Del og redigér</h2>
+            <p>På mitspor.dk kan du gøre turen offentlig, dele et link til den, redigere den i editoren og samle flere ture i en gruppe.</p>
+        </section>
+
+        <section>
+            <h2>Slet din konto</h2>
+            <p>Åbn mitspor.dk, gå til Kontrolpanel, tryk på profilknappen øverst, og vælg "Slet min konto".</p>
+        </section>
+
+        <section>
+            <h2>Spørgsmål?</h2>
+            <p>Skriv til <a href="mailto:info@mitspor.dk">info@mitspor.dk</a>.</p>
+        </section>
+    </main>
+
+    <!-- Om MitSpor: versionsnummer m.m. (åbnes fra menuen). -->
+    <dialog class="om-dialog" id="om-dialog" aria-labelledby="om-titel">
+        <form method="dialog">
+            <img src="img/ikon.png" alt="" class="start-logo" width="64" height="64">
+            <h2 id="om-titel">MitSpor</h2>
+            <p class="om-version" id="om-version">Version –</p>
+            <p>Del dine ture på et kort, alle kan åbne.</p>
+            <p class="start-note"><a href="mailto:info@mitspor.dk">info@mitspor.dk</a></p>
+            <button type="submit" class="btn btn-primary">Luk</button>
+        </form>
+    </dialog>
 
     <!-- Optageren: lokal GPS-optagelse, virker uden net. -->
     <main class="start optag" id="view-optag" hidden>
@@ -203,6 +283,7 @@
     <script src="config.js"></script>
     <script src="app.js"></script>
     <script src="intro.js"></script>
+    <script src="menu.js"></script>
     <script src="gpx.js"></script>
     <script src="spor.js"></script>
     <script src="lager.js"></script>
