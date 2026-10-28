@@ -156,7 +156,7 @@ $imageUrl = static fn (array $img, bool $thumb): string =>
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mine billeder</title>
-    <link rel="stylesheet" href="/assets/style.css?v=22">
+    <link rel="stylesheet" href="/assets/style.css?v=35">
     <link rel="stylesheet" href="/assets/manage-images.css?v=2">
     <link rel="stylesheet" href="/assets/videoer.css?v=1">
 </head>

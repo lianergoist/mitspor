@@ -75,7 +75,7 @@ if ($rawToken !== '') {
     <link rel="icon" type="image/png" sizes="32x32" href="/grafik/favicon-32.png">
     <meta name="robots" content="noindex, nofollow">
     <title>Bekræft e-mailskift</title>
-    <link rel="stylesheet" href="assets/style.css?v=8">
+    <link rel="stylesheet" href="assets/style.css?v=35">
 </head>
 <body>
 
