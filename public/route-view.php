@@ -334,24 +334,30 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             }
             /* Udfoldet højst godt halvdelen af skærmen; resten kan scrolles. */
             .map-page .info-panel.info-expanded { max-height: 55vh; max-height: 55dvh; }
-            .info-title-row { margin: 0 0 2px; }
-            .info-title-row h1 { flex: 1 1 auto; }
+            /* Tæt under titlen. */
+            .info-title-row { margin: 0; }
+            .info-title-row h1 { flex: 1 1 auto; line-height: 1.3; }
 
-            /* Sammenfoldet: kun titlen og én linje med afstandene og gennemsnittet.
-               Type/synlighed/uploader og etape-knapperne hører til "mere"-delen. */
-            .info-panel .meta-line { display: none; margin: 4px 0 0; }
-            .info-panel.info-expanded .meta-line { display: block; }
-            .info-panel.info-expanded .route-description { margin: 4px 0 0; }
+            /* Sammenfoldet: titlen, type · synlighed · uploader på én linje og
+               de to afstande. Resten (inkl. etape-knapperne) hører til "mere"-delen. */
+            .info-panel .meta-line {
+                display: flex;
+                align-items: baseline;
+                gap: 5px;
+                white-space: nowrap;
+                margin: 0 0 3px;
+            }
+            .meta-type, .meta-vis, .meta-sep, .meta-sep-uploader { flex: 0 0 auto; }
+            .meta-sep-uploader { display: inline; }
+            /* Er der ikke plads til hele uploader-navnet, afkortes det med "…". */
+            .meta-uploader { flex: 0 1 auto; min-width: 0; }
+            .info-panel .route-description { margin: 2px 0 4px; }
 
-            /* Felterne står ved siden af hinanden og brydes til en ny linje,
-               når der ikke er plads (almindeligt flow). */
-            .info-panel .stats { flex-direction: row; flex-wrap: wrap; gap: 2px 14px; }
-            .info-panel .stats > * { order: 1; white-space: nowrap; }
-            .info-panel .stats > #stat-distance,
-            .info-panel .stats > #stat-distance-from-start,
-            .info-panel .stats > #stat-avg-speed { order: 0; }
-            .info-panel .stats > #stat-avg-speed.stat-extra:not([hidden]) { display: block; }
-            .info-panel .stat-extra-field { flex-direction: row; align-items: baseline; gap: 4px; }
+            /* Datafelterne i to kolonner (ca. halvdelen af bredden hver):
+               afstandene på første linje, de øvrige to og to, når boksen er
+               foldet ud. Et felt, der er bredere end kolonnen, ombrydes. */
+            .info-panel .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; }
+            .info-panel .stats > * { min-width: 0; }
             .info-panel .stats.stats-expanded .stat-extra-field.stat-extra { display: flex; }
 
             /* Gruppe: "Del af …" og etape-knapperne nederst i det udfoldede panel. */
@@ -469,8 +475,8 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
 
         <div class="stats-row">
         <div class="stats" id="route-stats">
-            <span id="stat-distance">Afstand ialt: <?= number_format($route['distance_meters'] / 1000, 1) ?> km</span>
-            <span id="stat-distance-from-start">Afstand fra start: 0.00 km</span>
+            <span id="stat-distance">Afstand ialt: <?= number_format($route['distance_meters'] / 1000, 1) ?>&nbsp;km</span>
+            <span id="stat-distance-from-start">Afstand fra start: 0.00&nbsp;km</span>
             <span id="stat-total-time" hidden></span>
             <span id="stat-current-speed" hidden></span>
             <span id="stat-avg-speed" hidden></span>
@@ -1030,7 +1036,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
                         var liveDist = 0;
                         for (var di = 1; di < allPoints.length; di++) liveDist += stepDistance(di);
                         document.getElementById('stat-distance').textContent =
-                            'Afstand ialt: ' + (liveDist / 1000).toFixed(1) + ' km';
+                            'Afstand ialt: ' + (liveDist / 1000).toFixed(1) + '\u00A0km';
                     }
                 } else {
                     map.setView([56.0, 10.0], 6);
@@ -1182,9 +1188,8 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
     // ▾-ikon til højre for titlen. Udfoldet bliver boksen ca. dobbelt så
     // høj som sammenfoldet (og aldrig højere end kortet giver plads til) —
     // er der mere indhold, kan boksen scrolles.
-    // Mobil: panelet under topbaren viser sammenfoldet kun titlen og én linje
-    // med afstandene og gennemsnittet; type/synlighed/uploader og etaperne
-    // hører altid til "mere"-delen (se CSS), så knappen vises altid dér.
+    // Mobil: panelet under topbaren viser det samme sammenfoldet, men
+    // etape-knapperne hører til "mere"-delen (se CSS).
     function applyStatsFolding() {
         var STATS_VISIBLE_BY_DEFAULT = 2; // afstand ialt + afstand fra start
         var statsEl = document.getElementById('route-stats');
@@ -1194,8 +1199,9 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
         var panelEl = document.querySelector('.info-panel');
         var bodyEl = panelEl.querySelector('.info-body');
         var mobileMq = window.matchMedia('(max-width: 600px)');
-        // Beskrivelsen er altid skjult som standard.
+        // Beskrivelsen er altid skjult som standard; etape-knapperne kun på mobil.
         var hasDescription = !!panelEl.querySelector('.route-description');
+        var hasGroupNav = !!panelEl.querySelector('.group-nav');
         var visibleItems = Array.prototype.filter.call(statsEl.children, function (el) { return !el.hidden; });
         var hasExtraStats = visibleItems.length > STATS_VISIBLE_BY_DEFAULT;
 
@@ -1205,7 +1211,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
 
         // Toggle-knappen skal kun vises, når der reelt er noget mere at vise.
         function refreshToggleVisibility() {
-            toggleBtn.hidden = !(hasExtraStats || hasDescription || mobileMq.matches);
+            toggleBtn.hidden = !(hasExtraStats || hasDescription || (hasGroupNav && mobileMq.matches));
         }
 
         function setExpanded(expanded) {
@@ -1526,7 +1532,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
         var h = Math.floor(seconds / 3600);
         var m = Math.floor((seconds % 3600) / 60);
         var s = seconds % 60;
-        return (h > 0 ? h + 't ' : '') + m + 'm ' + s + 's';
+        return (h > 0 ? h + 't\u00A0' : '') + m + 'm\u00A0' + s + 's'; // hårde mellemrum: værdien brydes ikke over to linjer
     }
 
     function updateButtons() {
@@ -1567,8 +1573,8 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             var stats = calculateStats(currentIndex);
             if (stats) {
                 document.getElementById('stat-total-time').textContent = 'Tid: ' + formatDuration(stats.time);
-                document.getElementById('stat-current-speed').textContent = 'Hastighed: ' + (stats.cur_speed * 3.6).toFixed(1) + ' km/t';
-                document.getElementById('stat-avg-speed').textContent = 'Gennemsnit: ' + (stats.avspeed * 3.6).toFixed(1) + ' km/t';
+                document.getElementById('stat-current-speed').textContent = 'Hastighed: ' + (stats.cur_speed * 3.6).toFixed(1) + '\u00A0km/t';
+                document.getElementById('stat-avg-speed').textContent = 'Gennemsnit: ' + (stats.avspeed * 3.6).toFixed(1) + '\u00A0km/t';
             }
             if (movingStats) {
                 var movingTime = movingStats.timeCum[idx];
@@ -1577,11 +1583,11 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
                 var maxSpeed = movingStats.maxCum[idx];
                 document.getElementById('stat-moving-time').textContent = 'Tid i bevægelse: ' + formatDuration(movingTime);
                 document.getElementById('stat-avg-moving-speed').textContent = 'Gns. i bevægelse: ' +
-                    (movingTime > 0 ? (movingDist / movingTime * 3.6).toFixed(1) + ' km/t' : '–');
+                    (movingTime > 0 ? (movingDist / movingTime * 3.6).toFixed(1) + '\u00A0km/t' : '–');
                 document.getElementById('stat-min-speed').textContent = 'Min. hastighed: ' +
-                    (minSpeed !== null ? (minSpeed * 3.6).toFixed(1) + ' km/t' : '–');
+                    (minSpeed !== null ? (minSpeed * 3.6).toFixed(1) + '\u00A0km/t' : '–');
                 document.getElementById('stat-max-speed').textContent = 'Maks. hastighed: ' +
-                    (maxSpeed !== null ? (maxSpeed * 3.6).toFixed(1) + ' km/t' : '–');
+                    (maxSpeed !== null ? (maxSpeed * 3.6).toFixed(1) + '\u00A0km/t' : '–');
             }
         }
 
@@ -1592,7 +1598,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
         // markørens position). Vises altid, uafhængigt af datafelt-valg.
         if (cumulativeDistances.length > idx) {
             document.getElementById('stat-distance-from-start').textContent =
-                'Afstand fra start: ' + (cumulativeDistances[idx] / 1000).toFixed(2) + ' km';
+                'Afstand fra start: ' + (cumulativeDistances[idx] / 1000).toFixed(2) + '\u00A0km';
         }
 
         updateButtons();
