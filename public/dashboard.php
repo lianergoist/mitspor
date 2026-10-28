@@ -66,7 +66,7 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mit kontrolpanel</title>
-    <link rel="stylesheet" href="assets/style.css?v=35">
+    <link rel="stylesheet" href="assets/style.css?v=36">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
     <link rel="stylesheet" href="assets/dashboard.css?v=29">
     <link rel="stylesheet" href="assets/videoer.css?v=1">
@@ -75,7 +75,7 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
 
 <div class="topbar" id="dashboard-topbar">
     <a href="index.php" class="brand" title="Til forsiden" aria-label="Til forsiden">
-        <span class="back-arrow" aria-hidden="true">&larr;</span>
+        <span class="back-arrow" aria-hidden="true">&larr;</span><span class="brand-name">MitSpor</span>
     </a>
     <div class="topbar-filters">
         <div class="action-group" role="group" aria-label="Ruter">

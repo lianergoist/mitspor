@@ -67,6 +67,13 @@ a { color: var(--primary); }
     font-size: 18px;
 }
 
+/* Logoet i topbaren (forsiden og kortet) med runde hjørner. */
+.topbar .brand-logo {
+    display: block;
+    flex: none;
+    border-radius: 7px;
+}
+
 /* I appen står "‹ Appen" i stedet for logoet på forsiden
    (app/app_tilbage.php). Samme højde som logoet, så topbaren ikke ændres. */
 .app-tilbage {

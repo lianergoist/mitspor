@@ -70,7 +70,7 @@ $h = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
     <meta property="og:image:alt" content="MitSpor – del dine spor og ruter. Hent appen i App Store og Google Play.">
     <meta name="twitter:card" content="summary_large_image">
 
-    <link rel="stylesheet" href="/assets/style.css?v=35">
+    <link rel="stylesheet" href="/assets/style.css?v=36">
     <link rel="stylesheet" href="/assets/videoer.css?v=1">
     <link rel="stylesheet" href="/assets/forside.css?v=3">
 </head>
@@ -80,7 +80,7 @@ $h = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
     <?php if (show_app_back_link()): ?>
     <a href="/app-luk.php" class="app-tilbage"><span aria-hidden="true">‹</span>Appen</a>
     <?php else: ?>
-    <a href="/" class="brand brand-navn"><img src="/grafik/favicon.svg" alt="" width="28" height="28"><span class="brand-text">MitSpor</span></a>
+    <a href="/" class="brand brand-navn"><img class="brand-logo" src="/grafik/favicon.svg" alt="" width="28" height="28"><span class="brand-text">MitSpor</span></a>
     <?php endif; ?>
 
     <div class="topbar-actions">
