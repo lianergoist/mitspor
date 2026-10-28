@@ -174,7 +174,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
     $ogImageType = 'image/jpeg';
     $ogImageAlt  = 'Kort over ruten "' . $route['title'] . '"';
 } else {
-    $ogImageUrl  = APP_BASE_URL . '/grafik/mitspor_full.jpg';
+    $ogImageUrl  = APP_BASE_URL . '/grafik/mitspor_full.jpg?v=5';
     $ogImageType = 'image/jpeg';
     $ogImageAlt  = 'MitSpor – del dine ture på et kort';
 }
