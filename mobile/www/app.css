@@ -601,3 +601,135 @@ body {
     margin: -8px 0 16px;
     text-align: left;
 }
+
+/* ---------- Menuen på startsiden (www/menu.js) ---------- */
+
+.start {
+    position: relative;
+}
+
+.start-topbar {
+    position: absolute;
+    top: calc(env(safe-area-inset-top) + 6px);
+    right: calc(env(safe-area-inset-right) + 10px);
+    z-index: 10;
+}
+
+.menu-knap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--brand);
+    cursor: pointer;
+}
+
+.menu-knap svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.menu {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    min-width: 220px;
+    padding: 6px 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+}
+
+.menu button {
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 18px;
+    border: 0;
+    background: none;
+    color: var(--text);
+    font: inherit;
+    font-size: 16px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.menu button:active {
+    background: var(--bg);
+}
+
+/* ---------- Hjælp ---------- */
+
+.hjaelp section {
+    margin-bottom: 20px;
+}
+
+.hjaelp h2 {
+    margin: 0 0 6px;
+    font-size: 18px;
+    color: var(--brand);
+}
+
+.hjaelp p {
+    margin: 0 0 8px;
+    color: var(--text-muted);
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.hjaelp a {
+    color: var(--primary);
+}
+
+/* ---------- Om MitSpor ---------- */
+
+.om-dialog {
+    width: calc(100% - 48px);
+    max-width: 360px;
+    padding: 24px 20px 20px;
+    border: none;
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--text);
+    text-align: center;
+}
+
+.om-dialog::backdrop {
+    background: rgba(15, 23, 42, 0.5);
+}
+
+.om-dialog .start-logo {
+    width: 64px;
+    height: 64px;
+    border-radius: 15px;
+}
+
+.om-dialog h2 {
+    margin: 10px 0 2px;
+    color: var(--brand);
+}
+
+.om-dialog p {
+    margin: 0 0 12px;
+}
+
+.om-dialog .om-version {
+    color: var(--text-muted);
+    font-size: 15px;
+}
+
+.om-dialog .start-note a {
+    color: var(--primary);
+}
+
+.om-dialog .btn {
+    margin-top: 8px;
+}
