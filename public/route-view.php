@@ -364,7 +364,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             .info-title-row h1 { flex: 1 1 auto; line-height: 1.3; }
 
             /* Sammenfoldet: titlen, uploaderen og de to afstande; udfoldet
-               type · synlighed · uploader på én linje. Resten (inkl. etape-knapperne) hører til "mere"-delen. */
+               type · synlighed · uploader på én linje. Resten hører til "mere"-delen. */
             .info-panel .meta-line {
                 display: flex;
                 align-items: baseline;
@@ -390,9 +390,9 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             .info-panel .stats > * { min-width: 0; }
             .info-panel .stats.stats-expanded .stat-extra-field.stat-extra { display: flex; }
 
-            /* Gruppe: "Del af …" og etape-knapperne nederst i det udfoldede panel. */
-            .group-nav { order: 2; display: none; margin: 6px 0 0; padding: 6px 0 0; border-top: 1px solid var(--border); border-bottom: 0; }
-            .info-panel.info-expanded .group-nav { display: block; }
+            /* Gruppe: "Del af …" og etape-knapperne øverst i panelet, lige under
+               topbaren, og altid synlige (også når datafelterne er foldet sammen). */
+            .group-nav { margin: 0 0 6px; padding: 0 0 6px; }
             .group-nav-controls { gap: 8px; }
             .group-nav-controls .btn { flex: 1 1 0; justify-content: center; text-align: center; }
             .group-nav-pos { flex: 0 0 auto; }
@@ -1268,8 +1268,8 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
     // ▾-ikon til højre for titlen. Udfoldet vokser boksen med indholdet, men
     // aldrig ud af skærmen — er der mere, kan den scrolles.
     // Mobil: panelet under topbaren viser det samme sammenfoldet, men
-    // aktivitet, offentlig/privat og etape-knapperne hører altid til
-    // "mere"-delen (se CSS), så knappen vises altid dér.
+    // aktivitet og offentlig/privat hører altid til "mere"-delen (se CSS),
+    // så knappen vises altid dér. Etape-knapperne vises altid.
     function applyStatsFolding() {
         var STATS_VISIBLE_BY_DEFAULT = 2; // afstand ialt + afstand fra start
         var statsEl = document.getElementById('route-stats');
