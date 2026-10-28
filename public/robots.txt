@@ -4,6 +4,7 @@ Disallow: /assets/
 Disallow: /billeder/
 Disallow: /editor/
 Disallow: /grafik/
+Allow: /grafik/mitspor_full.jpg
 Disallow: /arkers/
 Disallow: /route-icons/
 Disallow: /vendor/
