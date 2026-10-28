@@ -84,13 +84,13 @@ body.forside {
     color: var(--text-muted);
 }
 .forside-video-ramme {
-    background: #0f3a55;
+    background: #0e3a5b;
 }
 .forside-video-ramme video {
     display: block;
     width: 100%;
     max-height: 80vh;
-    background: #0f3a55;
+    background: #0e3a5b;
 }
 
 .forside-sektion {
@@ -289,10 +289,16 @@ body.forside {
     .forside-video h2 {
         padding: 0;
     }
+    /* Videoen er i højformat: rammen følger videoens bredde. */
     .forside-video-ramme {
+        width: fit-content;
         border-radius: 12px;
         overflow: hidden;
         box-shadow: 0 6px 24px rgba(15, 23, 42, 0.15);
+    }
+    .forside-video-ramme video {
+        width: auto;
+        height: min(80vh, 760px);
     }
     .forside-sektion {
         margin-bottom: 36px;
