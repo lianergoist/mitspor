@@ -355,7 +355,8 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             .info-panel:not(.info-expanded) .meta-line:not(:has(.meta-uploader)) { display: none; }
             /* Er der ikke plads til hele uploader-navnet, afkortes det med "…". */
             .meta-uploader { flex: 0 1 auto; min-width: 0; }
-            .info-panel .route-description { margin: 2px 0 4px; }
+            /* Beskrivelsen vises altid på mobil, også sammenfoldet. */
+            .info-panel .route-description { display: block; margin: 2px 0 4px; }
 
             /* Datafelterne i to kolonner (ca. halvdelen af bredden hver):
                afstandene på første linje, de øvrige to og to, når boksen er
