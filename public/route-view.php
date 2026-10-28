@@ -208,7 +208,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
     <meta name="twitter:image" content="<?= htmlspecialchars($ogImageUrl, ENT_QUOTES, 'UTF-8') ?>">
 
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/style.css?v=35">
+    <link rel="stylesheet" href="assets/style.css?v=36">
     <link rel="stylesheet" href="assets/videoer.css?v=1">
     <style>
         html, body { height: 100%; margin: 0; }
@@ -310,8 +310,8 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
            grundlinje — og en knap med et ikon forrest (SVG har ingen tekstgrundlinje)
            hamler da ikke op med en ren tekstknap som Hjælp, der så ender for lavt. */
         .topbar-buttons { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
-        /* Smalle skærme: "← MitSpor" bliver bare "←" (som på forsiden og i kontrolpanelet på mobil). */
-        @media (max-width: 520px) {
+        /* Gæster har fem knapper; på de smalleste telefoner er der kun plads til pilen. */
+        @media (max-width: 380px) {
             .topbar-guest .brand-name { display: none; }
         }
         .group-nav { margin: 0 0 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
@@ -328,9 +328,8 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
            under topbaren, som på computer.
         ------------------------------------------------------------------ */
         @media (max-width: 600px) {
-            /* Topbar: kun pilen (ikke "Mit kontrolpanel"), og knapperne må
-               gerne ombrydes frem for at skubbe noget ud over kanten. */
-            .brand-name { display: none; }
+            /* Topbar: knapperne må gerne ombrydes frem for at skubbe noget
+               ud over kanten. */
             .map-page .topbar {
                 position: relative;
                 border-bottom: 1px solid var(--border);
@@ -443,7 +442,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
         <?php if ($liveUrl !== null): ?>
             <a href="<?= htmlspecialchars($liveUrl, ENT_QUOTES, 'UTF-8') ?>" id="btn-back" class="brand" title="Til livesiden" aria-label="Til livesiden"><span class="back-arrow" aria-hidden="true">&larr;</span><span class="brand-name"> Livesiden</span></a>
         <?php elseif ($isOwner): ?>
-            <a href="dashboard.php" id="btn-back" class="brand" title="Tilbage" aria-label="Tilbage"><span class="back-arrow" aria-hidden="true">&larr;</span></a>
+            <a href="dashboard.php" id="btn-back" class="brand" title="Tilbage" aria-label="Tilbage"><span class="back-arrow" aria-hidden="true">&larr;</span><span class="brand-name"> MitSpor</span></a>
         <?php else: ?>
             <a href="index.php" id="btn-back" class="brand" title="Tilbage" aria-label="Tilbage"><span class="back-arrow" aria-hidden="true">&larr;</span><span class="brand-name"> MitSpor</span></a>
         <?php endif; ?>

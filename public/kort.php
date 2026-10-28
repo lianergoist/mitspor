@@ -71,7 +71,7 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
 <?php endif; ?>
 
     <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="/assets/style.css?v=35">
+    <link rel="stylesheet" href="/assets/style.css?v=36">
     <link rel="stylesheet" href="/assets/videoer.css?v=1">
     <style>
         html, body { height: 100%; margin: 0; }
@@ -88,7 +88,7 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
         <?php if (show_app_back_link()): ?>
         <a href="/app-luk.php" class="app-tilbage"><span aria-hidden="true">‹</span>Appen</a>
         <?php else: ?>
-        <a href="/" class="brand brand-navn"><span class="brand-text">MitSpor</span></a>
+        <a href="/" class="brand brand-navn"><img class="brand-logo" src="/grafik/favicon.svg" alt="" width="28" height="28"><span class="brand-text">MitSpor</span></a>
         <?php endif; ?>
 
         <div class="topbar-filters">
