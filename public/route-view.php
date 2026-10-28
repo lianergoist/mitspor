@@ -389,6 +389,12 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             .wpt-modal-close { top: 14px; right: 14px; }
 
         }
+        /* Mobil: datafelternes to kolonner rykkes op til 16 px ind fra begge
+           sider, men kun så meget, at "Afstand fra start: 0.00 km" (ca. 172 px)
+           stadig kan stå på én linje: 0 px ved 384 px bredde, 16 px fra 416 px. */
+        @media (max-width: 600px) {
+            .info-panel .stats { padding: 0 clamp(0px, calc((100vw - 384px) / 2), 16px); }
+        }
         /* Igangværende etape i en livesending (route-view.php?live=…). */
         .live-note { display: flex; align-items: center; gap: 6px; margin: 2px 0 6px; font-size: 13px; font-weight: 600; color: #b91c1c; }
         .live-note .live-dot { flex: 0 0 auto; width: 10px; height: 10px; border-radius: 50%; background: #dc2626; animation: live-pulse 1.6s ease-in-out infinite; }
