@@ -22,6 +22,7 @@ window.GpxTools = (function () {
     // GRAPH_METRICS i route-view.php.
     var FUNCTIONS = [
         { key: "elevation_profile", label: "Højdeprofil (graf)", requires: ["ele"] },
+        { key: "elevation_gain", label: "Højdemeter (op/ned)", requires: ["ele"] },
         { key: "time_total", label: "Tid", requires: ["time"] },
         { key: "speed_current", label: "Hastighed (aktuel)", requires: ["time"] },
         { key: "speed_avg", label: "Gennemsnit", requires: ["time"] },

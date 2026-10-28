@@ -63,7 +63,7 @@ window.GPX_FUNCTION_LEGACY_ALIASES = {
 // Funktioner der er slået FRA som udgangspunkt, når ejeren endnu ikke
 // har taget stilling (enabled_functions = NULL) — så eksisterende ruter
 // ikke pludselig får fire ekstra statistik-linjer.
-window.GPX_FUNCTIONS_DEFAULT_OFF = ['time_moving', 'speed_avg_moving', 'speed_min', 'speed_max'];
+window.GPX_FUNCTIONS_DEFAULT_OFF = ['time_moving', 'speed_avg_moving', 'speed_min', 'speed_max', 'elevation_gain'];
 
 window.gpxFunctionDefaultEnabled = function (key) {
     return window.GPX_FUNCTIONS_DEFAULT_OFF.indexOf(key) === -1;

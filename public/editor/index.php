@@ -313,7 +313,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <script src="../vendor/leaflet-path-drag/index.js"></script>
 <script src="../vendor/sortablejs/Sortable.min.js"></script>
 <script src="../assets/route-meta-dialog.js?v=2"></script>
-<script src="../assets/gpx-tools.js?v=2"></script>
+<script src="../assets/gpx-tools.js?v=3"></script>
 <script src="app.js?v=45"></script>
 <script src="../assets/videoer.js?v=1"></script>
 </body>

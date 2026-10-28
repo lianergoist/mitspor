@@ -57,6 +57,7 @@ function gpx_validate_and_parse(string $xmlContent): array
  */
 const GPX_FUNCTION_REQUIRED_FIELDS = [
     'elevation_profile' => ['ele'],
+    'elevation_gain'    => ['ele'],
     'time_total'        => ['time'],
     'speed_current'     => ['time'],
     'speed_avg'         => ['time'],
