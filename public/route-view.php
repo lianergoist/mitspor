@@ -208,7 +208,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
     <meta name="twitter:image" content="<?= htmlspecialchars($ogImageUrl, ENT_QUOTES, 'UTF-8') ?>">
 
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/style.css?v=33">
+    <link rel="stylesheet" href="assets/style.css?v=35">
     <link rel="stylesheet" href="assets/videoer.css?v=1">
     <style>
         html, body { height: 100%; margin: 0; }
@@ -224,9 +224,25 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             padding: 8px 12px;
             background: rgba(255, 255, 255, 0.85);
             -webkit-backdrop-filter: blur(4px);
-            overflow-y: auto; /* udfoldet: max-height sættes i JS, se applyStatsFolding() */
+            /* Titelrækken står fast øverst; udfoldet scrolles kun resten
+               (.info-body). max-height sættes i JS, se applyStatsFolding(). */
+            display: flex;
+            flex-direction: column;
         }
-        .info-panel h1 { font-size: 16px; margin: 0 0 4px; }
+        .info-panel .info-body { min-height: 0; overflow-y: auto; }
+        /* Titel og "vis mere"-knap på én linje. Knappen fylder sin egen plads
+           (ligger ikke over teksten), og titlen afkortes med "…", hvis titel +
+           knap bliver bredere end boksens maksbredde. */
+        .info-title-row { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; }
+        .info-panel h1 {
+            flex: 0 1 auto;
+            min-width: 0;
+            font-size: 16px;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
         .info-panel .route-description { font-size: 13px; margin: 0 0 8px; }
         /* Beskrivelsen hører til "mere"-delen og vises først ved udfoldning. */
         .info-panel .route-description { display: none; }
@@ -238,21 +254,17 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
         .info-panel .stat-range-line { display: block; font-size: 0.85em; color: #64748b; }
         .info-panel .stat-extra { display: none; }
         .info-panel .stats.stats-expanded .stat-extra { display: block; }
-        /* Det lille "vis mere"-ikon fylder ikke noget i boksen (der derfor kun
-           er så bred som den bredeste tekst): det ligger i et lag over teksten
-           nederst til højre. Docken er 0 px høj og "klistrer" til bunden af
-           boksen, så ikonet bliver stående, mens den udfoldede boks scrolles. */
-        .stats-toggle-dock { position: sticky; bottom: 0; height: 0; }
         #btn-stats-toggle {
-            position: absolute;
-            right: -10px; /* trukket ud i boksens hjørne (padding 8px 12px), */
-            bottom: -6px; /* så det dækker så lidt tekst som muligt */
+            flex: 0 0 auto;
+            margin-left: auto; /* helt ud til højre, også når titlen er kort */
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 20px;
-            height: 20px;
-            margin: 0;
+            width: 22px;
+            height: 22px;
+            margin-top: 0;
+            margin-bottom: 0;
+            padding: 0;
             border: 1px solid var(--border);
             border-radius: 5px;
             background: #f1f5f9;
@@ -267,7 +279,6 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
         /* "Uploadet af" på sin egen linje, afkortet med "…" hvis navnet er langt. */
         .meta-uploader { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .meta-sep-uploader { display: none; }
-        .group-more { display: none; } /* kun mobil: "Del af ..." bag ▾-ikonet */
         /* Knapperne i topbaren ligger i en flex-række på ALLE skærmbredder. Uden den er
            beholderen en almindelig blok med inline-knapper, som linjes op efter tekstens
            grundlinje — og en knap med et ikon forrest (SVG har ingen tekstgrundlinje)
@@ -306,31 +317,46 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             .topbar-buttons { flex: 1 1 0; min-width: 0; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
             .map-page .topbar .btn { padding: 6px 12px; font-size: 14px; min-height: 40px; }
 
-            /* Titlen på én linje, afkortet med "…" hvis den er for lang. */
-            .info-panel h1 {
-                margin: 0 0 2px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
+            /* Info-boksen er et panel i fuld bredde lige under topbaren (lidt
+               lysere end den) og ligger ikke over kortet: kortet fylder resten
+               af skærmen og bliver mindre, når panelet foldes ud. */
+            .map-page .info-panel {
+                position: static;
+                max-width: none;
+                padding: 6px 12px 8px;
+                background: #fafbfc;
+                backdrop-filter: none;
+                -webkit-backdrop-filter: none;
+                border: 0;
+                border-bottom: 1px solid var(--border);
+                border-radius: 0;
+                box-shadow: none;
             }
+            /* Udfoldet højst godt halvdelen af skærmen; resten kan scrolles. */
+            .map-page .info-panel.info-expanded { max-height: 55vh; max-height: 55dvh; }
+            .info-title-row { margin: 0 0 2px; }
+            .info-title-row h1 { flex: 1 1 auto; }
 
-            /* Gruppe: knapperne ligger stadig øverst i boksen. */
-            .group-nav { margin: 0 0 6px; padding-bottom: 6px; }
-            /* "Del af <gruppe>" flyttes på mobil bag ▾-ikonet (nederst, efter det
-               sidste felt) for at spare plads øverst. */
-            .group-nav-title { display: none; }
-            .info-panel.info-expanded .group-more {
-                display: block;
-                margin-top: 6px;
-                padding-top: 6px;
-                border-top: 1px solid var(--border);
-                font-size: 12px;
-                color: var(--text-muted);
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-            .group-more a { font-weight: 600; }
+            /* Sammenfoldet: kun titlen og én linje med afstandene og gennemsnittet.
+               Type/synlighed/uploader og etape-knapperne hører til "mere"-delen. */
+            .info-panel .meta-line { display: none; margin: 4px 0 0; }
+            .info-panel.info-expanded .meta-line { display: block; }
+            .info-panel.info-expanded .route-description { margin: 4px 0 0; }
+
+            /* Felterne står ved siden af hinanden og brydes til en ny linje,
+               når der ikke er plads (almindeligt flow). */
+            .info-panel .stats { flex-direction: row; flex-wrap: wrap; gap: 2px 14px; }
+            .info-panel .stats > * { order: 1; white-space: nowrap; }
+            .info-panel .stats > #stat-distance,
+            .info-panel .stats > #stat-distance-from-start,
+            .info-panel .stats > #stat-avg-speed { order: 0; }
+            .info-panel .stats > #stat-avg-speed.stat-extra:not([hidden]) { display: block; }
+            .info-panel .stat-extra-field { flex-direction: row; align-items: baseline; gap: 4px; }
+            .info-panel .stats.stats-expanded .stat-extra-field.stat-extra { display: flex; }
+
+            /* Gruppe: "Del af …" og etape-knapperne nederst i det udfoldede panel. */
+            .group-nav { order: 2; display: none; margin: 6px 0 0; padding: 6px 0 0; border-top: 1px solid var(--border); border-bottom: 0; }
+            .info-panel.info-expanded .group-nav { display: block; }
             .group-nav-controls { gap: 8px; }
             .group-nav-controls .btn { flex: 1 1 0; justify-content: center; text-align: center; }
             .group-nav-pos { flex: 0 0 auto; }
@@ -415,7 +441,13 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
                 </div>
             </nav>
         <?php endif; ?>
-        <h1><?= htmlspecialchars($route['title'], ENT_QUOTES, 'UTF-8') ?></h1>
+        <!-- Titlen med "vis mere"-knappen til højre. Er der ikke plads til begge
+             inden for boksens maksbredde, afkortes titlen med "…". -->
+        <div class="info-title-row">
+            <h1><?= htmlspecialchars($route['title'], ENT_QUOTES, 'UTF-8') ?></h1>
+            <button type="button" id="btn-stats-toggle" class="link-btn" hidden><span class="stats-toggle-label"></span><span class="stats-toggle-icon" aria-hidden="true"></span></button>
+        </div>
+        <div class="info-body">
         <?php if ($liveEvent !== null): ?>
             <p class="live-note"><span class="live-dot" aria-hidden="true"></span> <?= $liveStage['finished'] ? 'Etapen er slut. Det færdige spor vises, når det er uploadet.' : 'Live: etapen er i gang. Siden opdateres hvert minut.' ?></p>
         <?php endif; ?>
@@ -448,15 +480,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             <span id="stat-max-speed" hidden></span>
         </div>
         </div>
-        <?php if ($groupContext !== null): ?>
-            <div class="group-more">
-                Del af <a href="group-view.php?id=<?= htmlspecialchars($groupContext['group']['public_id'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($groupContext['group']['title'], ENT_QUOTES, 'UTF-8') ?></a>
-            </div>
-        <?php endif; ?>
-        <!-- "Vis mere"-ikonet ligger i et lag over teksten nederst til højre (se CSS). -->
-        <div class="stats-toggle-dock">
-            <button type="button" id="btn-stats-toggle" class="link-btn" hidden><span class="stats-toggle-label"></span><span class="stats-toggle-icon" aria-hidden="true"></span></button>
-        </div>
+        </div><!-- /.info-body -->
     </div>
 
     </div><!-- /.top-area -->
@@ -1154,10 +1178,13 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
     }
 
     // Sammenfoldet viser boksen titel, type/synlighed, uploader og de to
-    // afstande. Resten (beskrivelse, øvrige felter, på mobil "Del af <gruppe>")
-    // foldes ud via det lille ▾-ikon. Udfoldet bliver boksen ca. dobbelt så
+    // afstande. Resten (beskrivelse, øvrige felter) foldes ud via det lille
+    // ▾-ikon til højre for titlen. Udfoldet bliver boksen ca. dobbelt så
     // høj som sammenfoldet (og aldrig højere end kortet giver plads til) —
     // er der mere indhold, kan boksen scrolles.
+    // Mobil: panelet under topbaren viser sammenfoldet kun titlen og én linje
+    // med afstandene og gennemsnittet; type/synlighed/uploader og etaperne
+    // hører altid til "mere"-delen (se CSS), så knappen vises altid dér.
     function applyStatsFolding() {
         var STATS_VISIBLE_BY_DEFAULT = 2; // afstand ialt + afstand fra start
         var statsEl = document.getElementById('route-stats');
@@ -1165,10 +1192,10 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
         var labelEl = toggleBtn.querySelector('.stats-toggle-label');
         var iconEl = toggleBtn.querySelector('.stats-toggle-icon');
         var panelEl = document.querySelector('.info-panel');
+        var bodyEl = panelEl.querySelector('.info-body');
         var mobileMq = window.matchMedia('(max-width: 600px)');
-        // Beskrivelsen er altid skjult som standard; "Del af <gruppe>" kun på mobil.
+        // Beskrivelsen er altid skjult som standard.
         var hasDescription = !!panelEl.querySelector('.route-description');
-        var hasGroupMore = !!panelEl.querySelector('.group-more');
         var visibleItems = Array.prototype.filter.call(statsEl.children, function (el) { return !el.hidden; });
         var hasExtraStats = visibleItems.length > STATS_VISIBLE_BY_DEFAULT;
 
@@ -1178,7 +1205,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
 
         // Toggle-knappen skal kun vises, når der reelt er noget mere at vise.
         function refreshToggleVisibility() {
-            toggleBtn.hidden = !(hasExtraStats || hasDescription || (hasGroupMore && mobileMq.matches));
+            toggleBtn.hidden = !(hasExtraStats || hasDescription || mobileMq.matches);
         }
 
         function setExpanded(expanded) {
@@ -1189,7 +1216,11 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             toggleBtn.setAttribute('title', text);
             toggleBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
 
-            if (expanded) {
+            if (expanded && mobileMq.matches) {
+                // Mobil: højden styres af CSS (højst godt halvdelen af skærmen).
+                panelEl.classList.add('info-expanded');
+                statsEl.classList.add('stats-expanded');
+            } else if (expanded) {
                 // Mål den sammenfoldede boks, FØR noget vises: udfoldet må den
                 // højst blive dobbelt så høj, og den skal holde sig over
                 // afspilningsknapperne nederst på kortet (ca. 80 px).
@@ -1203,14 +1234,21 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
                 panelEl.classList.remove('info-expanded');
                 statsEl.classList.remove('stats-expanded');
                 panelEl.style.maxHeight = '';
-                panelEl.scrollTop = 0;
+                bodyEl.scrollTop = 0;
             }
+        }
+
+        // Skift mellem mobil og bred skærm (fx når telefonen vendes): fold
+        // sammen, så højden ikke er beregnet til det forrige layout.
+        function onLayoutChange() {
+            setExpanded(false);
+            refreshToggleVisibility();
         }
 
         setExpanded(false);
         refreshToggleVisibility();
-        if (mobileMq.addEventListener) mobileMq.addEventListener('change', refreshToggleVisibility);
-        else if (mobileMq.addListener) mobileMq.addListener(refreshToggleVisibility);
+        if (mobileMq.addEventListener) mobileMq.addEventListener('change', onLayoutChange);
+        else if (mobileMq.addListener) mobileMq.addListener(onLayoutChange);
 
         toggleBtn.addEventListener('click', function () {
             setExpanded(!statsEl.classList.contains('stats-expanded'));
@@ -1538,11 +1576,11 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
                 var minSpeed = movingStats.minCum[idx];
                 var maxSpeed = movingStats.maxCum[idx];
                 document.getElementById('stat-moving-time').textContent = 'Tid i bevægelse: ' + formatDuration(movingTime);
-                document.getElementById('stat-avg-moving-speed').textContent = 'Gennemsnit i bevægelse: ' +
+                document.getElementById('stat-avg-moving-speed').textContent = 'Gns. i bevægelse: ' +
                     (movingTime > 0 ? (movingDist / movingTime * 3.6).toFixed(1) + ' km/t' : '–');
-                document.getElementById('stat-min-speed').textContent = 'Laveste hastighed: ' +
+                document.getElementById('stat-min-speed').textContent = 'Min. hastighed: ' +
                     (minSpeed !== null ? (minSpeed * 3.6).toFixed(1) + ' km/t' : '–');
-                document.getElementById('stat-max-speed').textContent = 'Højeste hastighed: ' +
+                document.getElementById('stat-max-speed').textContent = 'Maks. hastighed: ' +
                     (maxSpeed !== null ? (maxSpeed * 3.6).toFixed(1) + ' km/t' : '–');
             }
         }
