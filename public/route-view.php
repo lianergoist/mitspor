@@ -244,6 +244,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             text-overflow: ellipsis;
         }
         .info-panel .route-description { font-size: 13px; margin: 0 0 8px; }
+        .info-panel .route-description-text { margin: 0; }
         /* Beskrivelsen hører til "mere"-delen og vises først ved udfoldning. */
         .info-panel .route-description { display: none; }
         .info-panel.info-expanded .route-description { display: block; }
@@ -254,7 +255,8 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
         .info-panel .stat-range-line { display: block; font-size: 0.85em; color: #64748b; }
         .info-panel .stat-extra { display: none; }
         .info-panel .stats.stats-expanded .stat-extra { display: block; }
-        #btn-stats-toggle {
+        #btn-stats-toggle,
+        .desc-toggle {
             flex: 0 0 auto;
             margin-left: auto; /* helt ud til højre, også når titlen er kort */
             display: inline-flex;
@@ -273,7 +275,8 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             line-height: 1;
             text-decoration: none;
         }
-        #btn-stats-toggle[hidden] { display: none; }
+        #btn-stats-toggle[hidden],
+        .desc-toggle[hidden] { display: none; }
         .stats-toggle-label { display: none; }
         .meta-line { display: block; }
         /* "Uploadet af" på sin egen linje, afkortet med "…" hvis navnet er langt. */
@@ -355,8 +358,21 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             .info-panel:not(.info-expanded) .meta-line:not(:has(.meta-uploader)) { display: none; }
             /* Er der ikke plads til hele uploader-navnet, afkortes det med "…". */
             .meta-uploader { flex: 0 1 auto; min-width: 0; }
-            /* Beskrivelsen vises altid på mobil, også sammenfoldet. */
-            .info-panel .route-description { display: block; margin: 2px 0 4px; }
+            /* Beskrivelsen vises altid på mobil: sammenfoldet på én linje med "…",
+               udfoldet hele teksten, men den kan foldes ind til én linje igen med
+               den lille knap til højre (vises kun, når teksten er længere). */
+            .info-panel .route-description,
+            .info-panel.info-expanded .route-description { display: flex; align-items: flex-start; gap: 8px; margin: 2px 0 4px; }
+            .info-panel .route-description-text { flex: 1 1 auto; min-width: 0; }
+            .info-panel:not(.info-expanded) .route-description-text,
+            .info-panel .route-description.desc-short .route-description-text {
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 1;
+                line-clamp: 1;
+                overflow: hidden;
+            }
+            .info-panel:not(.info-expanded) .desc-toggle { display: none; }
 
             /* Datafelterne i to kolonner (ca. halvdelen af bredden hver):
                afstandene på første linje, de øvrige to og to, når boksen er
@@ -470,7 +486,10 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
         <?php endif; ?>
 
         <?php if ($route['description']): ?>
-            <p class="route-description"><?= nl2br(htmlspecialchars($route['description'], ENT_QUOTES, 'UTF-8')) ?></p>
+            <div class="route-description">
+                <p class="route-description-text"><?= nl2br(htmlspecialchars($route['description'], ENT_QUOTES, 'UTF-8')) ?></p>
+                <button type="button" class="desc-toggle" hidden><span aria-hidden="true">&#9652;</span></button>
+            </div>
         <?php endif; ?>
 
         <div class="meta meta-line">
@@ -1196,9 +1215,8 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
 
     // Sammenfoldet viser boksen titel, type/synlighed, uploader og de to
     // afstande. Resten (beskrivelse, øvrige felter) foldes ud via det lille
-    // ▾-ikon til højre for titlen. Udfoldet bliver boksen ca. dobbelt så
-    // høj som sammenfoldet (og aldrig højere end kortet giver plads til) —
-    // er der mere indhold, kan boksen scrolles.
+    // ▾-ikon til højre for titlen. Udfoldet vokser boksen med indholdet, men
+    // aldrig ud af skærmen — er der mere, kan den scrolles.
     // Mobil: panelet under topbaren viser det samme sammenfoldet, men
     // aktivitet, offentlig/privat og etape-knapperne hører altid til
     // "mere"-delen (se CSS), så knappen vises altid dér.
@@ -1233,26 +1251,59 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             toggleBtn.setAttribute('title', text);
             toggleBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
 
-            if (expanded && mobileMq.matches) {
-                // Mobil: højden styres af CSS (højst godt halvdelen af skærmen).
-                panelEl.classList.add('info-expanded');
-                statsEl.classList.add('stats-expanded');
-            } else if (expanded) {
-                // Mål den sammenfoldede boks, FØR noget vises: udfoldet må den
-                // højst blive dobbelt så høj, og den skal holde sig over
-                // afspilningsknapperne nederst på kortet (ca. 80 px).
-                var collapsedHeight = panelEl.offsetHeight;
-                var mapRect = document.getElementById('map').getBoundingClientRect();
-                var room = mapRect.bottom - panelEl.getBoundingClientRect().top - 80;
-                panelEl.style.maxHeight = Math.round(Math.max(collapsedHeight, Math.min(collapsedHeight * 2, room))) + 'px';
+            if (expanded) {
                 panelEl.classList.add('info-expanded');
                 statsEl.classList.add('stats-expanded');
             } else {
                 panelEl.classList.remove('info-expanded');
                 statsEl.classList.remove('stats-expanded');
-                panelEl.style.maxHeight = '';
                 bodyEl.scrollTop = 0;
             }
+            fitPanelHeight();
+        }
+
+        // Computer/tablet: boksen er så høj, som indholdet kræver, men vokser
+        // ikke ud af skærmen (8 px luft forneden); er der mere, kan den
+        // scrolles. Mobil: højden styres af CSS (højst godt halvdelen af skærmen).
+        function fitPanelHeight() {
+            if (mobileMq.matches) {
+                panelEl.style.maxHeight = '';
+                return;
+            }
+            var room = window.innerHeight - panelEl.getBoundingClientRect().top - 8;
+            panelEl.style.maxHeight = Math.max(80, Math.round(room)) + 'px';
+        }
+
+        // Mobil: beskrivelsens knap vises kun, når teksten er længere end én
+        // linje. Måles, mens teksten er afkortet (sammenfoldet eller kort).
+        var descEl = panelEl.querySelector('.route-description');
+        var descTextEl = descEl ? descEl.querySelector('.route-description-text') : null;
+        var descToggle = descEl ? descEl.querySelector('.desc-toggle') : null;
+        function setDescShort(isShort) {
+            descEl.classList.toggle('desc-short', isShort);
+            var text = isShort ? 'Vis hele beskrivelsen' : 'Vis kun første linje';
+            descToggle.firstChild.textContent = isShort ? '\u25BE' : '\u25B4'; // ▾ / ▴
+            descToggle.setAttribute('aria-label', text);
+            descToggle.setAttribute('title', text);
+            descToggle.setAttribute('aria-expanded', isShort ? 'false' : 'true');
+        }
+        function refreshDescToggle() {
+            if (!descEl) return;
+            if (!mobileMq.matches) {
+                descToggle.hidden = true;
+                return;
+            }
+            var wasShort = descEl.classList.contains('desc-short');
+            descEl.classList.add('desc-short');
+            var overflows = descTextEl.scrollHeight > descTextEl.clientHeight + 1;
+            descEl.classList.toggle('desc-short', wasShort);
+            descToggle.hidden = !overflows;
+        }
+        if (descEl) {
+            setDescShort(false);
+            descToggle.addEventListener('click', function () {
+                setDescShort(!descEl.classList.contains('desc-short'));
+            });
         }
 
         // Skift mellem mobil og bred skærm (fx når telefonen vendes): fold
@@ -1260,10 +1311,16 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
         function onLayoutChange() {
             setExpanded(false);
             refreshToggleVisibility();
+            refreshDescToggle();
         }
 
         setExpanded(false);
         refreshToggleVisibility();
+        refreshDescToggle();
+        window.addEventListener('resize', function () {
+            fitPanelHeight();
+            refreshDescToggle();
+        });
         if (mobileMq.addEventListener) mobileMq.addEventListener('change', onLayoutChange);
         else if (mobileMq.addListener) mobileMq.addListener(onLayoutChange);
 
