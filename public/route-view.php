@@ -359,18 +359,23 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             /* Er der ikke plads til hele uploader-navnet, afkortes det med "…". */
             .meta-uploader { flex: 0 1 auto; min-width: 0; }
             /* Beskrivelsen vises altid på mobil: sammenfoldet på én linje med "…",
-               udfoldet hele teksten, men den kan foldes ind til én linje igen med
-               den lille knap til højre (vises kun, når teksten er længere). */
+               udfoldet på to linjer med en lille knap til højre på linje 2, der
+               viser hele teksten (knappen står så ud for den sidste linje). Knappen
+               vises kun, når teksten er længere end to linjer. */
             .info-panel .route-description,
-            .info-panel.info-expanded .route-description { display: flex; align-items: flex-start; gap: 8px; margin: 2px 0 4px; }
+            .info-panel.info-expanded .route-description { display: flex; align-items: flex-end; gap: 8px; margin: 2px 0 4px; }
             .info-panel .route-description-text { flex: 1 1 auto; min-width: 0; }
             .info-panel:not(.info-expanded) .route-description-text,
             .info-panel .route-description.desc-short .route-description-text {
                 display: -webkit-box;
                 -webkit-box-orient: vertical;
+                -webkit-line-clamp: 2;
+                line-clamp: 2;
+                overflow: hidden;
+            }
+            .info-panel:not(.info-expanded) .route-description-text {
                 -webkit-line-clamp: 1;
                 line-clamp: 1;
-                overflow: hidden;
             }
             .info-panel:not(.info-expanded) .desc-toggle { display: none; }
 
@@ -1274,14 +1279,14 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             panelEl.style.maxHeight = Math.max(80, Math.round(room)) + 'px';
         }
 
-        // Mobil: beskrivelsens knap vises kun, når teksten er længere end én
-        // linje. Måles, mens teksten er afkortet (sammenfoldet eller kort).
+        // Mobil: udfoldet vises beskrivelsen på to linjer; knappen til at vise
+        // hele teksten vises kun, når den er længere end to linjer.
         var descEl = panelEl.querySelector('.route-description');
         var descTextEl = descEl ? descEl.querySelector('.route-description-text') : null;
         var descToggle = descEl ? descEl.querySelector('.desc-toggle') : null;
         function setDescShort(isShort) {
             descEl.classList.toggle('desc-short', isShort);
-            var text = isShort ? 'Vis hele beskrivelsen' : 'Vis kun første linje';
+            var text = isShort ? 'Vis hele beskrivelsen' : 'Vis kun to linjer';
             descToggle.firstChild.textContent = isShort ? '\u25BE' : '\u25B4'; // ▾ / ▴
             descToggle.setAttribute('aria-label', text);
             descToggle.setAttribute('title', text);
@@ -1293,14 +1298,15 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
                 descToggle.hidden = true;
                 return;
             }
-            var wasShort = descEl.classList.contains('desc-short');
-            descEl.classList.add('desc-short');
+            // Mål med to linjer, uanset om panelet er foldet ud eller ej.
+            var saved = descTextEl.style.cssText;
+            descTextEl.style.cssText = 'display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden';
             var overflows = descTextEl.scrollHeight > descTextEl.clientHeight + 1;
-            descEl.classList.toggle('desc-short', wasShort);
+            descTextEl.style.cssText = saved;
             descToggle.hidden = !overflows;
         }
         if (descEl) {
-            setDescShort(false);
+            setDescShort(true);
             descToggle.addEventListener('click', function () {
                 setDescShort(!descEl.classList.contains('desc-short'));
             });
