@@ -28,3 +28,10 @@
 -keepattributes Signature,*Annotation*
 -keep class com.capacitorjs.osinappbrowser.** { *; }
 -keep class com.outsystems.plugins.inappbrowser.** { *; }
+
+# Capacitor læser @CapacitorPlugin (pluginnets tilladelser) og @PluginMethod via refleksion.
+# Uden disse regler fjerner R8 annotationerne i release, og fx GPS-optageren hænger, fordi
+# pluginnet tror, at placering ikke er tilladt, og beder om en tom liste af tilladelser.
+-keep @interface com.getcapacitor.annotation.** { *; }
+-keep @interface com.getcapacitor.PluginMethod { *; }
+-keep @interface com.getcapacitor.NativePlugin { *; }
