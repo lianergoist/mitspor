@@ -72,7 +72,7 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
 <?php endif; ?>
 
     <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="/assets/style.css?v=37">
+    <link rel="stylesheet" href="/assets/style.css?v=38">
     <link rel="stylesheet" href="/assets/videoer.css?v=1">
     <style>
         html, body { height: 100%; margin: 0; }
