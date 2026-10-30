@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 /**
  * @param array<int, array{id?: string, href?: string, label: string, icon?: string}> $items
- *        Sidens egne punkter øverst (fx Hjælp). "Om MitSpor" og
- *        "Privatlivspolitik" kommer altid til sidst.
+ *        Sidens egne punkter øverst (fx Hjælp). "Privatlivspolitik" og
+ *        "Om MitSpor" kommer altid til sidst.
  * @param string $labelClass Klassen, der skjuler knapteksten på mobil
  *        (tb-label, eller btn-label på rutens side).
  */
@@ -22,8 +22,8 @@ function topbar_menu(array $items, string $labelClass = 'tb-label'): string
 {
     $h = static fn(string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8');
 
-    $items[] = ['id' => 'btn-open-about', 'label' => 'Om MitSpor'];
     $items[] = ['href' => '/privatlivspolitik.php', 'label' => 'Privatlivspolitik'];
+    $items[] = ['id' => 'btn-open-about', 'label' => 'Om MitSpor'];
 
     $html = '<div class="topbar-menu" data-topbar-menu>'
         . '<button type="button" class="btn" title="Menu" aria-label="Menu" aria-haspopup="true" aria-expanded="false" aria-controls="topbar-menu-list">'

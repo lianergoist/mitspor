@@ -89,8 +89,8 @@ if ($initialRouteId === '' && !$isNewRoute) {
         <button type="button" role="menuitem" data-menu="thin">Udtynd punkter</button>
         <div class="editor-menu-sep" role="separator"></div>
         <button type="button" role="menuitem" data-menu="help"><span class="help-icon" aria-hidden="true">?</span> Hjælp</button>
-        <button type="button" role="menuitem" data-menu="about">Om MitSpor</button>
         <a role="menuitem" href="/privatlivspolitik.php" id="menu-privacy">Privatlivspolitik</a>
+        <button type="button" role="menuitem" data-menu="about">Om MitSpor</button>
       </div>
     </div>
   </div>
