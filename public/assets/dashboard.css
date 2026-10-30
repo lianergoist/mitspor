@@ -205,7 +205,9 @@
 .tool-wide { max-width: 480px; }
 
 .data-fields-heading { margin: 14px 0 2px; font-size: 15px; }
-.data-fields-heading:first-child { margin-top: 0; }
+/* Kun den allerførste overskrift ("Visninger") står helt øverst; "Øvrige
+   felter" er første element i #tool-fields-raw og skal beholde luften. */
+#tool-fields-body > .data-fields-heading:first-child { margin-top: 0; }
 
 .data-fields-list {
     list-style: none;
