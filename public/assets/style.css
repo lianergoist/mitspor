@@ -513,6 +513,13 @@ a { color: var(--primary); }
 #forside-topbar {
     padding: 9px 20px;
 }
+/* Topbaren (backdrop-filter) er sin egen stablingskontekst. Uden z-index
+   tegnes kontrolpanelets detalje-kolonne (position: sticky) og dens kort
+   oven på den udfoldede menu. */
+#dashboard-topbar {
+    position: relative;
+    z-index: 1000;
+}
 .map-page .topbar .btn,
 #dashboard-topbar .btn,
 #forside-topbar .btn {
