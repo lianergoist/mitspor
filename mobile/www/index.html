@@ -17,8 +17,6 @@
             </button>
             <div class="menu" id="menu" role="menu" hidden>
                 <button type="button" role="menuitem" data-menu="hjaelp">Hjælp</button>
-                <button type="button" role="menuitem" data-menu="intro">Sådan virker appen</button>
-                <button type="button" role="menuitem" data-menu="privatliv">Privatlivspolitik</button>
                 <button type="button" role="menuitem" data-menu="om">Om MitSpor</button>
             </div>
         </div>
@@ -104,7 +102,7 @@
 
         <section>
             <h2>Gem og upload</h2>
-            <p>"Stop og gem" gemmer turen på telefonen under "Gemte ture". Tryk på "Upload", og giv turen en titel og en aktivitet. Turen bliver privat på din profil. Er du ikke på nettet, sendes den, når du er det igen.</p>
+            <p>"Stop og gem" gemmer turen på telefonen under "Gemte ture" i optagerens menu (☰). Tryk på "Upload", og giv turen en titel og en aktivitet. Turen bliver privat på din profil. Er du ikke på nettet, sendes den, når du er det igen.</p>
             <p>"Del GPX" sender GPX-filen til en anden app, fx en mail.</p>
         </section>
 
@@ -146,6 +144,15 @@
         <header class="optag-header">
             <button type="button" class="link-btn" id="optag-tilbage">‹ Tilbage</button>
             <h1>Optag tur</h1>
+            <!-- Optagerens menu (www/menu.js). -->
+            <div class="optag-menu">
+                <button type="button" class="menu-knap" id="optag-menu-knap" aria-label="Menu" aria-haspopup="menu" aria-expanded="false" aria-controls="optag-menu">
+                    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                <div class="menu" id="optag-menu" role="menu" hidden>
+                    <button type="button" role="menuitem" data-optag-menu="ture">Gemte ture<span id="optag-menu-antal"></span></button>
+                </div>
+            </div>
         </header>
 
         <p class="start-note optag-laas" id="optag-laas" hidden>Mens turen sendes live, bliver du her i optageren. Sæt optagelsen på pause eller stop den for at gå til forsiden. Livesiden kan følges i telefonens browser.</p>
@@ -194,17 +201,22 @@
             <button type="button" class="btn btn-danger" id="optag-stop" hidden>Stop og gem</button>
             <p class="start-note">Optagelsen fortsætter, når skærmen er slukket. Så længe den kører, vises en notifikation.</p>
         </nav>
-
-        <section class="ture">
-            <h2>Gemte ture</h2>
-            <p class="konto">
-                <span id="optag-konto-tekst"></span>
-                <button type="button" class="link-btn" id="optag-konto-knap"></button>
-            </p>
-            <p class="start-note" id="optag-tom">Ingen gemte ture endnu.</p>
-            <ul class="ture-liste" id="optag-liste"></ul>
-        </section>
     </main>
+
+    <!-- Gemte ture (åbnes fra optagerens menu). data-side: lukkes, når
+         optageren forlades (fx til Upload), og åbnes igen ved tilbagekomst. -->
+    <dialog class="ture-dialog" id="ture-dialog" data-side="view-optag" aria-labelledby="ture-titel">
+        <div class="ture-dialog-top">
+            <h2 id="ture-titel">Gemte ture</h2>
+            <button type="button" class="ture-luk" id="ture-luk" aria-label="Luk">&times;</button>
+        </div>
+        <p class="konto">
+            <span id="optag-konto-tekst"></span>
+            <button type="button" class="link-btn" id="optag-konto-knap"></button>
+        </p>
+        <p class="start-note" id="optag-tom">Ingen gemte ture endnu.</p>
+        <ul class="ture-liste" id="optag-liste"></ul>
+    </dialog>
 
     <!-- Waypoint under optagelse: placeringen tages, når der trykkes på knappen. -->
     <dialog class="wpt-dialog" id="wpt-dialog">

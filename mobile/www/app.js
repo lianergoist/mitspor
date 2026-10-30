@@ -202,7 +202,21 @@
     });
 
     // Appens lokale skærme er <main>-elementer. Kun én vises ad gangen.
+    // En dialog med data-side hører til den side: den lukkes, når siden
+    // forlades (fx fra Gemte ture til Upload), og åbnes igen, når man kommer
+    // tilbage til siden.
     function visSide(id) {
+        Array.prototype.forEach.call(document.querySelectorAll('dialog[data-side]'), function (dialog) {
+            if (dialog.getAttribute('data-side') === id) {
+                if (dialog.hasAttribute('data-genaabn')) {
+                    dialog.removeAttribute('data-genaabn');
+                    dialog.showModal();
+                }
+            } else if (dialog.open) {
+                dialog.setAttribute('data-genaabn', '');
+                dialog.close();
+            }
+        });
         Array.prototype.forEach.call(document.querySelectorAll('body > main'), function (side) {
             side.hidden = side.id !== id;
         });

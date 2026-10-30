@@ -364,13 +364,47 @@ body {
     margin: 0;
 }
 
-.ture {
-    margin-top: 32px;
+/* Gemte ture: dialog fra optagerens menu. Fylder det meste af skærmen,
+   og listen ruller inde i dialogen. */
+.ture-dialog {
+    width: calc(100% - 24px);
+    max-width: 520px;
+    max-height: calc(100% - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px);
+    padding: 16px 16px 8px;
+    border: none;
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--text);
+    overflow-y: auto;
 }
 
-.ture h2 {
-    margin: 0 0 12px;
-    font-size: 18px;
+.ture-dialog::backdrop {
+    background: rgba(15, 23, 42, 0.5);
+}
+
+.ture-dialog-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.ture-dialog h2 {
+    margin: 0;
+    font-size: 20px;
+    color: var(--brand);
+}
+
+.ture-luk {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text-muted);
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
 }
 
 .ture-liste {
@@ -664,6 +698,16 @@ body {
 
 .menu button:active {
     background: var(--bg);
+}
+
+/* Optagerens menu sidder til højre i overskriften. */
+.optag-menu {
+    position: relative;
+    margin-left: auto;
+}
+
+.optag-menu .menu {
+    z-index: 10;
 }
 
 /* ---------- Hjælp ---------- */
