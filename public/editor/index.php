@@ -56,7 +56,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <title>GPX-editor</title>
 
 <link rel="stylesheet" href="../vendor/leaflet/leaflet.css" />
-<link rel="stylesheet" href="style.css?v=47" />
+<link rel="stylesheet" href="style.css?v=48" />
 <link rel="stylesheet" href="../assets/videoer.css?v=1">
 </head>
 <body data-image-prefix="<?= htmlspecialchars(IMAGE_PUBLIC_URL_BASE . '/' . $userId . '/', ENT_QUOTES, 'UTF-8') ?>">
@@ -218,6 +218,56 @@ if ($initialRouteId === '' && !$isNewRoute) {
 
 <div id="map"></div>
 
+<!-- Markerings-tilstand: vises, når en strækning er markeret. -->
+<div id="selection-bar" class="selection-bar" hidden>
+  <span id="selection-summary" class="selection-summary"></span>
+  <div class="selection-buttons">
+    <button type="button" id="btn-selection-stats">Statistik</button>
+    <button type="button" id="btn-selection-save">Gem som nyt spor</button>
+    <button type="button" id="btn-selection-clear" class="selection-clear" aria-label="Ryd markeringen" title="Ryd markeringen">&times;</button>
+  </div>
+</div>
+
+<dialog id="selection-stats-dialog" class="modal-dialog">
+  <button type="button" id="selection-stats-close" class="modal-close" aria-label="Luk">&times;</button>
+  <h2>Statistik for markeringen</h2>
+  <dl id="selection-stats" class="ele-stats"></dl>
+  <p class="thin-hint">Tid og hastighed kræver tidsstempler i filen. Afstanden regnes ikke mellem to segmenter.</p>
+</dialog>
+
+<dialog id="save-selection-dialog" class="modal-dialog">
+  <button type="button" id="save-selection-close" class="modal-close" aria-label="Luk">&times;</button>
+  <h2>Gem som nyt spor</h2>
+  <div id="save-selection-errors" class="modal-errors" hidden></div>
+  <div id="save-selection-form" class="modal-dialog-body">
+    <p id="save-selection-text" class="thin-hint"></p>
+    <label>
+      Titel
+      <input type="text" id="save-selection-title" maxlength="200">
+    </label>
+    <fieldset class="plain-fieldset">
+      <legend>Type</legend>
+      <label class="checkbox-field">
+        <input type="radio" name="save-selection-type" id="save-selection-type-rute" value="rute">
+        Rute (planlagt — viser ikke tid/hastighed)
+      </label>
+      <label class="checkbox-field">
+        <input type="radio" name="save-selection-type" id="save-selection-type-spor" value="spor">
+        Spor (GPS-optagelse — viser tid og hastighed)
+      </label>
+    </fieldset>
+    <p class="thin-hint">Aktiviteten er den samme som rutens. Titel, synlighed og resten kan du rette bagefter under Rediger metadata.</p>
+  </div>
+  <div id="save-selection-done" hidden>
+    <p><strong id="save-selection-done-title"></strong> er gemt som en ny, privat rute.</p>
+    <p class="save-selection-links">
+      <a id="save-selection-open-editor" data-leave-editor href="#">Åbn i editor</a>
+      <a id="save-selection-open-page" data-leave-editor href="#">Vis side</a>
+    </p>
+  </div>
+  <button type="button" id="btn-save-selection" class="btn btn-primary"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg> Gem som nyt spor</button>
+</dialog>
+
 <input type="file" id="image-file-input" accept="image/*" multiple style="display:none">
 
 <dialog id="insert-waypoint-dialog" class="modal-dialog">
@@ -334,10 +384,18 @@ if ($initialRouteId === '' && !$isNewRoute) {
 
     <h3>Waypoints (Orange / Lilla prikker)</h3>
     <ul>
-      <li><strong>Opret:</strong> Klik på et eksisterende trackpoint (blå prik) og vælg "➕ Indsæt waypoint" (åbner en lille dialog med navn/beskrivelse), eller "📷 Indsæt billede" for at oprette et waypoint med billede(r) med det samme. Vil du sætte et waypoint et sted, der <b>ikke</b> ligger på selve ruten, kan du i stedet slå knappen øverst til venstre på kortet (ved siden af zoom-knapperne) til — den skifter fra "🔵 Rute" til "📍 Waypoint", og mens den er slået til, åbner et klik på kortet den samme lille menu som på et trackpoint ("➕ Indsæt waypoint" eller "📷 Indsæt billede") på det klikkede sted, i stedet for at tegne på ruten. Husk at slå den fra igen bagefter.</li>
+      <li><strong>Opret:</strong> Klik på et eksisterende trackpoint (blå prik) og vælg "➕ Indsæt waypoint" (åbner en lille dialog med navn/beskrivelse), eller "📷 Indsæt billede" for at oprette et waypoint med billede(r) med det samme. Vil du sætte et waypoint et sted, der <b>ikke</b> ligger på selve ruten, kan du i stedet vælge <strong>📍 Waypoint-tilstand</strong> i tilstandsvælgeren øverst til venstre på kortet (ved siden af zoom-knapperne). Så åbner et klik på kortet den samme lille menu som på et trackpoint ("➕ Indsæt waypoint" eller "📷 Indsæt billede") på det klikkede sted, i stedet for at tegne på ruten. Vælg <strong>🔵 Rute-tilstand</strong> igen bagefter.</li>
       <li><strong>Rediger:</strong> Klik på et waypoint for at åbne den relevante dialog direkte — en <b>lilla</b> prik (har billeder) åbner billed-dialogen, en <b>orange</b> prik (kun tekst) åbner navn/beskrivelse-dialogen. Begge dialoger har også en "🗑 Slet waypoint"-knap. <b>Træk</b> i et waypoint for at flytte det.</li>
       <li><strong>Farve:</strong> Et waypoint er <b>orange</b>, hvis det kun har tekst, og bliver <b>lilla</b>, så snart det har mindst ét billedlink.</li>
       <li><strong>Billeder:</strong> Vælg "📷 Billeder" på et waypoint (eller "📷 Indsæt billede" på et trackpoint for at oprette et nyt waypoint med billeder samtidig) — det åbner billed-dialogen, hvor du med "📷 Tilføj billeder" kan vælge flere billeder på én gang, give hver sin kommentar, trække dem i den rækkefølge de skal vises i (træk i <strong>⠿</strong>), eller fjerne dem igen (✕). Med "🖼 Vælg blandt mine billeder" kan du i stedet genbruge et billede, du allerede har uploadet et andet sted, uden at skulle uploade det igen.</li>
+    </ul>
+
+    <h3>Markering (🟢 Markerings-tilstand)</h3>
+    <ul>
+      <li><strong>Markér:</strong> Vælg <strong>🟢 Markerings-tilstand</strong> i tilstandsvælgeren øverst til venstre på kortet. Tryk på det første og det sidste punkt af en strækning. Punkterne imellem bliver grønne. Et tryk på et tredje punkt begynder en ny markering.</li>
+      <li>I markerings-tilstand kan punkterne ikke flyttes, og et tryk på linjen indsætter ikke et punkt.</li>
+      <li><strong>Statistik</strong> viser afstand, tid, hastighed, højde og puls (hvis filen har dem) for den markerede strækning.</li>
+      <li><strong>Gem som nyt spor</strong> gemmer strækningen som en ny, privat rute. Den rute, du redigerer, ændres ikke.</li>
     </ul>
 
     <h3>Fortryd</h3>
@@ -364,7 +422,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <script src="../assets/route-meta-dialog.js?v=2"></script>
 <script src="../assets/gpx-field-labels.js?v=4"></script>
 <script src="../assets/gpx-tools.js?v=3"></script>
-<script src="app.js?v=47"></script>
+<script src="app.js?v=48"></script>
 <script src="../assets/videoer.js?v=1"></script>
 </body>
 </html>

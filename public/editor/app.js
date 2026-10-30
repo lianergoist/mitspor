@@ -34,8 +34,14 @@
   const MAX_HISTORY = 50;
   let geometryDirty = false; // ændringer i geometri/waypoints siden sidste server-gem
   let metaConfirmed = false; // kun for en NY rute: true når brugeren har udfyldt/bekræftet metadata-dialogen
-  let waypointPlacementMode = false; // se btn-waypoint-mode / map.on("click")
-  let suppressNextMapClick = false; // se map.on("click") og btnWaypointMode-handleren
+  // Hvad et klik på kortet gør: "route" tegner ruten, "waypoint" sætter et
+  // waypoint et vilkårligt sted, "select" markerer en strækning (se
+  // tilstandsvælgeren btn-edit-mode og markeringen længere nede).
+  let editMode = "route";
+  let suppressNextMapClick = false; // se map.on("click") og tilstandsvælgeren
+  // Markeringen: id på første og sidste punkt (b er null, indtil det andet
+  // punkt er valgt). Punkternes id'er skifter ved fortryd, så den nulstilles dér.
+  let selection = { a: null, b: null };
   let currentFilename = null;
   let currentRouteId = null; // null = ny, endnu ikke gemt rute på platformen
   let thinnedSinceSave = false; // udtyndet i editoren: næste gem beder serveren gemme originalen
@@ -141,6 +147,7 @@
   function restoreStateFromXml(xmlStr, filename, resetHistory = false) {
     const parsed = parseGPX(xmlStr);
     state = parsed;
+    selection = { a: null, b: null };
     currentFilename = filename;
     if (resetHistory) {
       historyStack = [];
@@ -162,22 +169,38 @@
       attribution: "&copy; OpenStreetMap-bidragydere"
     }).addTo(map);
 
-    // Waypoint-tilstand-knappen ligger på selve kortet (under
-    // zoom-knapperne), ikke i værktøjslinjen — den skal være synlig,
-    // lige der hvor man klikker, mens man arbejder med kortet.
-    const WaypointModeControl = L.Control.extend({
+    // Tilstandsvælgeren ligger på selve kortet (ved zoom-knapperne), ikke i
+    // værktøjslinjen — den skal være synlig, lige der hvor man klikker, mens
+    // man arbejder med kortet. Knappen viser den valgte tilstand og åbner en
+    // liste med tilstandene.
+    const EditModeControl = L.Control.extend({
       options: { position: "topleft" },
       onAdd: function () {
-        const btn = L.DomUtil.create("button", "waypoint-mode-map-btn");
+        const wrap = L.DomUtil.create("div", "edit-mode-control");
+        const btn = L.DomUtil.create("button", "waypoint-mode-map-btn", wrap);
         btn.type = "button";
-        btn.id = "btn-waypoint-mode";
-        btn.setAttribute("aria-pressed", "false");
-        btn.title = "Slå til/fra: klik på kortet sætter et waypoint et vilkårligt sted (i stedet for at tegne på ruten)";
-        L.DomEvent.disableClickPropagation(btn);
-        return btn;
+        btn.id = "btn-edit-mode";
+        btn.title = "Vælg, hvad et klik på kortet gør";
+        btn.setAttribute("aria-haspopup", "true");
+        btn.setAttribute("aria-expanded", "false");
+        btn.setAttribute("aria-controls", "edit-mode-list");
+        const list = L.DomUtil.create("div", "edit-mode-list", wrap);
+        list.id = "edit-mode-list";
+        list.setAttribute("role", "menu");
+        list.hidden = true;
+        EDIT_MODES.forEach((m) => {
+          const item = L.DomUtil.create("button", "", list);
+          item.type = "button";
+          item.setAttribute("role", "menuitemradio");
+          item.setAttribute("data-edit-mode", m.key);
+          item.innerHTML = `<span aria-hidden="true">${m.icon}</span> <span><strong>${m.label}</strong><small>${m.hint}</small></span>`;
+        });
+        L.DomEvent.disableClickPropagation(wrap);
+        L.DomEvent.disableScrollPropagation(wrap);
+        return wrap;
       }
     });
-    map.addControl(new WaypointModeControl());
+    map.addControl(new EditModeControl());
 
     map.createPane("trackPane").style.zIndex = 400;
     map.createPane("trackMarkerPane").style.zIndex = 410;
@@ -208,7 +231,12 @@
         return;
       }
 
-      if (waypointPlacementMode) {
+      if (editMode === "select") {
+        setStatus(selectionHint());
+        return;
+      }
+
+      if (editMode === "waypoint") {
         // Samme lille menu som på et trackpoint (Indsæt waypoint / Indsæt billede),
         // bare uden "Slet punkt". Waypointet oprettes først, når dialogen gemmes.
         openFreeWaypointPopup(e.latlng);
@@ -583,32 +611,56 @@
 
     const allLatLngs = [];
 
+    const selecting = editMode === "select";
+    const selected = selectedIdSet();
+
+    const trackIcon = L.divIcon({
+      className: "touch-marker",
+      html: '<div class="dot-track"></div>',
+      iconSize: [40, 40],
+      iconAnchor: [20, 20]
+    });
+    const selectedIcon = L.divIcon({
+      className: "touch-marker",
+      html: '<div class="dot-track dot-selected"></div>',
+      iconSize: [40, 40],
+      iconAnchor: [20, 20]
+    });
+
     state.segments.forEach((seg) => {
       const latlngs = seg.map((p) => [p.lat, p.lon]);
       allLatLngs.push(...latlngs);
       if (latlngs.length > 1) {
         L.polyline(latlngs, { color: "#2563eb", weight: 3, opacity: 0.8, pane: "trackPane" }).addTo(trackLayer);
+        // Den markerede strækning tegnes oven på, i grøn (orange er waypoints).
+        selectedRuns(seg, selected).forEach((run) => {
+          L.polyline(run, { color: "#16a34a", weight: 6, opacity: 0.9, pane: "trackPane", interactive: false }).addTo(trackLayer);
+        });
         L.polyline(latlngs, { weight: 16, opacity: 0, interactive: true, pane: "trackPane" })
           .addTo(trackLayer)
           .on("click", (e) => {
             L.DomEvent.stopPropagation(e);
+            // I markerings-tilstand indsætter et klik på linjen ikke et punkt.
+            if (selecting) {
+              setStatus(selectionHint());
+              return;
+            }
             insertTrackpointOnSegment(seg, e.layerPoint);
           });
       }
 
-      const trackIcon = L.divIcon({
-        className: "touch-marker",
-        html: '<div class="dot-track"></div>',
-        iconSize: [40, 40],
-        iconAnchor: [20, 20]
-      });
-
       seg.forEach((p) => {
+        // I markerings-tilstand kan punkterne ikke trækkes; et tryk markerer.
         const marker = L.marker([p.lat, p.lon], {
-          icon: trackIcon,
-          draggable: true,
+          icon: selected.has(p.id) ? selectedIcon : trackIcon,
+          draggable: !selecting,
           pane: "trackMarkerPane"
         }).addTo(trackLayer);
+
+        if (selecting) {
+          marker.on("click", () => selectPoint(p.id));
+          return;
+        }
 
         marker.bindPopup(trackpointPopupHtml(p.id), { className: "gpx-popup" });
         marker.on("popupopen", () => bindTrackpointPopupEvents(p.id));
@@ -722,6 +774,336 @@
     if (allLatLngs.length && !render._hasFitBounds) {
       map.fitBounds(allLatLngs, { padding: [30, 30] });
       render._hasFitBounds = true;
+    }
+
+    updateSelectionBar();
+  }
+
+  // ---------- Markering ----------
+  // Tilstandene i tilstandsvælgeren på kortet.
+  const EDIT_MODES = [
+    { key: "route", icon: "🔵", label: "Rute-tilstand", hint: "Klik tegner ruten" },
+    { key: "waypoint", icon: "📍", label: "Waypoint-tilstand", hint: "Klik sætter et waypoint" },
+    { key: "select", icon: "🟢", label: "Markerings-tilstand", hint: "Tryk på to punkter" }
+  ];
+
+  // Alle punkter i filens rækkefølge, med segmentets nummer.
+  function flatPoints() {
+    const out = [];
+    state.segments.forEach((seg, segIndex) => seg.forEach((p) => out.push({ p, segIndex })));
+    return out;
+  }
+
+  // De markerede punkter i rækkefølge (også når det sidste punkt ligger før
+  // det første). Kun første punkt valgt = det ene punkt.
+  function selectedPoints() {
+    if (!state || !selection.a) return [];
+    const flat = flatPoints();
+    const ia = flat.findIndex((x) => x.p.id === selection.a);
+    const ib = selection.b ? flat.findIndex((x) => x.p.id === selection.b) : ia;
+    if (ia === -1 || ib === -1) return [];
+    return flat.slice(Math.min(ia, ib), Math.max(ia, ib) + 1);
+  }
+
+  function selectedIdSet() {
+    return new Set(selectedPoints().map((x) => x.p.id));
+  }
+
+  // Sammenhængende stykker af segmentet, der er markeret (til den grønne linje).
+  function selectedRuns(seg, selected) {
+    const runs = [];
+    let run = [];
+    seg.forEach((p) => {
+      if (selected.has(p.id)) {
+        run.push([p.lat, p.lon]);
+      } else {
+        if (run.length > 1) runs.push(run);
+        run = [];
+      }
+    });
+    if (run.length > 1) runs.push(run);
+    return runs;
+  }
+
+  function selectionHint() {
+    if (!selection.a) return "Markerings-tilstand: tryk på det første punkt af strækningen.";
+    if (!selection.b) return "Tryk på det sidste punkt af strækningen.";
+    return "Strækningen er markeret. Tryk på et nyt punkt for at begynde en ny markering.";
+  }
+
+  function selectPoint(id) {
+    if (!selection.a || selection.b) {
+      selection = { a: id, b: null };
+    } else if (id === selection.a) {
+      selection = { a: null, b: null }; // samme punkt igen: fortryd det første tryk
+    } else {
+      selection.b = id;
+    }
+    render._hasFitBounds = true;
+    render();
+    setStatus(selectionHint());
+  }
+
+  // Afstand langs ruten (m) for punkterne i rækkefølge. Der regnes ikke
+  // afstand mellem to segmenter, som i linjen under værktøjslinjen.
+  function selectionDistances(pts) {
+    const cum = [0];
+    for (let i = 1; i < pts.length; i++) {
+      const same = pts[i].segIndex === pts[i - 1].segIndex;
+      cum.push(cum[i - 1] + (same ? map.distance([pts[i - 1].p.lat, pts[i - 1].p.lon], [pts[i].p.lat, pts[i].p.lon]) : 0));
+    }
+    return cum;
+  }
+
+  function formatKm(meters) {
+    return (meters / 1000).toFixed(2).replace(".", ",") + " km";
+  }
+
+  function updateSelectionBar() {
+    const bar = el("selection-bar");
+    const pts = editMode === "select" && selection.b ? selectedPoints() : [];
+    bar.hidden = pts.length === 0;
+    if (bar.hidden) return;
+    const cum = selectionDistances(pts);
+    el("selection-summary").textContent = `${pts.length.toLocaleString("da-DK")} punkter · ${formatKm(cum[cum.length - 1])}`;
+    el("btn-selection-save").disabled = pts.length < 2;
+  }
+
+  // ---- Statistik for markeringen ----
+  // Samme regler som rutens side (route-view.php): et stykke er "i bevægelse"
+  // ved mindst 0,5 m/s, og maks. hastighed måles over mindst 5 sekunder.
+  const MOVING_MIN_SPEED = 0.5;
+  const SPEED_WINDOW_SECONDS = 5;
+
+  function formatDuration(seconds) {
+    seconds = Math.round(seconds);
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const sec = seconds % 60;
+    return (h > 0 ? h + "t " : "") + m + "m " + sec + "s";
+  }
+
+  function formatSpeed(mps) {
+    return (mps * 3.6).toFixed(1).replace(".", ",") + " km/t";
+  }
+
+  // Tal fra et felt i punktets <extensions> (fx puls), eller null.
+  function extensionNumber(node, names) {
+    for (const name of names) {
+      const elx = node.getElementsByTagNameNS("*", name)[0];
+      if (elx) {
+        const v = parseFloat(elx.textContent);
+        if (Number.isFinite(v)) return v;
+      }
+    }
+    return null;
+  }
+
+  function selectionStats(pts) {
+    const cum = selectionDistances(pts);
+    const rows = [
+      ["Punkter", pts.length.toLocaleString("da-DK")],
+      ["Afstand", formatKm(cum[cum.length - 1])]
+    ];
+
+    // Tid og hastighed
+    const times = pts.map((x) => {
+      const t = x.p.time ? Date.parse(x.p.time) : NaN;
+      return Number.isNaN(t) ? null : t / 1000;
+    });
+    const withTime = times.map((t, i) => (t === null ? -1 : i)).filter((i) => i >= 0);
+    if (withTime.length >= 2) {
+      const first = withTime[0], last = withTime[withTime.length - 1];
+      const total = times[last] - times[first];
+      const dist = cum[last] - cum[first];
+      let movingTime = 0, movingDist = 0, maxSpeed = null, ws = 0; // ws: vinduets start i withTime
+      for (let k = 1; k < withTime.length; k++) {
+        const i = withTime[k], j = withTime[k - 1];
+        if (pts[i].segIndex === pts[j].segIndex) {
+          const dt = times[i] - times[j];
+          const d = cum[i] - cum[j];
+          if (dt > 0 && d / dt >= MOVING_MIN_SPEED) {
+            movingTime += dt;
+            movingDist += d;
+          }
+        }
+        // Udglattet hastighed over mindst SPEED_WINDOW_SECONDS bagud.
+        while (ws < k - 1 && times[i] - times[withTime[ws + 1]] >= SPEED_WINDOW_SECONDS) ws++;
+        const wdt = times[i] - times[withTime[ws]];
+        if (wdt >= SPEED_WINDOW_SECONDS) {
+          const w = (cum[i] - cum[withTime[ws]]) / wdt;
+          if (maxSpeed === null || w > maxSpeed) maxSpeed = w;
+        }
+      }
+      if (total > 0) {
+        rows.push(["Tid", formatDuration(total)]);
+        rows.push(["Tid i bevægelse", formatDuration(movingTime)]);
+        rows.push(["Gennemsnit", formatSpeed(dist / total)]);
+        rows.push(["Gns. i bevægelse", movingTime > 0 ? formatSpeed(movingDist / movingTime) : "–"]);
+        if (maxSpeed !== null) rows.push(["Maks. hastighed", formatSpeed(maxSpeed)]);
+      }
+    }
+
+    // Højde (som "Rediger højdedata": kun mellem nabopunkter med højde i samme segment)
+    let minEle = null, maxEle = null, gain = 0, loss = 0, prev = null, prevSeg = null;
+    pts.forEach((x) => {
+      const e = x.p.ele === null || x.p.ele === "" ? NaN : parseFloat(x.p.ele);
+      if (Number.isNaN(e)) {
+        prev = null;
+        return;
+      }
+      minEle = minEle === null ? e : Math.min(minEle, e);
+      maxEle = maxEle === null ? e : Math.max(maxEle, e);
+      if (prev !== null && prevSeg === x.segIndex) {
+        if (e > prev) gain += e - prev;
+        else loss += prev - e;
+      }
+      prev = e;
+      prevSeg = x.segIndex;
+    });
+    if (minEle !== null) {
+      const m = (v) => Math.round(v).toLocaleString("da-DK") + " m";
+      rows.push(["Laveste punkt", m(minEle)]);
+      rows.push(["Højeste punkt", m(maxEle)]);
+      rows.push(["Stigning i alt", m(gain)]);
+      rows.push(["Fald i alt", m(loss)]);
+    }
+
+    // Puls, kadence og watt: gennemsnit og maksimum
+    [
+      ["Puls", ["hr", "heartrate"], "slag/min"],
+      ["Kadence", ["cad", "cadence"], "o/min"],
+      ["Watt", ["power"], "W"]
+    ].forEach(([label, names, unit]) => {
+      const vals = pts.map((x) => extensionNumber(x.p.node, names)).filter((v) => v !== null);
+      if (!vals.length) return;
+      const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+      rows.push([label + ", gns.", Math.round(avg) + " " + unit]);
+      rows.push([label + ", maks.", Math.round(Math.max(...vals)) + " " + unit]);
+    });
+
+    return rows;
+  }
+
+  function openSelectionStats() {
+    const pts = selectedPoints();
+    if (pts.length < 2) return;
+    const dl = el("selection-stats");
+    dl.innerHTML = "";
+    selectionStats(pts).forEach(([k, v]) => {
+      const dt = document.createElement("dt");
+      dt.textContent = k;
+      const dd = document.createElement("dd");
+      dd.textContent = v;
+      dl.appendChild(dt);
+      dl.appendChild(dd);
+    });
+    el("selection-stats-dialog").showModal();
+  }
+
+  // ---- Gem markeringen som et nyt spor ----
+  function currentRouteTitle() {
+    return routeMeta ? routeMeta.title : (el("meta-title").value.trim() || "Ny rute");
+  }
+
+  function openSaveSelectionDialog() {
+    const pts = selectedPoints();
+    if (pts.length < 2) return;
+    el("save-selection-errors").hidden = true;
+    el("save-selection-form").hidden = false;
+    el("save-selection-done").hidden = true;
+    el("btn-save-selection").hidden = false;
+    el("btn-save-selection").disabled = false;
+    el("save-selection-title").value = currentRouteTitle() + " (udsnit)";
+    const hasTime = pts.some((x) => x.p.time);
+    const type = routeMeta ? routeMeta.route_type : (hasTime ? "spor" : "rute");
+    el(type === "spor" ? "save-selection-type-spor" : "save-selection-type-rute").checked = true;
+    el("save-selection-text").textContent =
+      `${pts.length.toLocaleString("da-DK")} punkter gemmes som en ny, privat rute. Den rute, du redigerer, ændres ikke.`;
+    el("save-selection-dialog").showModal();
+  }
+
+  // En ny GPX-fil med de markerede punkter. Filens øvrige indhold (navnerum,
+  // extensions på punkterne) beholdes; waypoints, metadata og andre spor
+  // kommer ikke med. Punkter fra en <rte> bliver til <trkpt>.
+  function selectionGpx(pts, title) {
+    const doc = state.xml.cloneNode(true);
+    const root = doc.documentElement;
+    const ns = state.ns;
+    Array.from(root.children)
+      .filter((c) => ["metadata", "wpt", "rte", "trk"].includes(c.localName))
+      .forEach((c) => c.remove());
+
+    const trk = doc.createElementNS(ns, "trk");
+    const name = doc.createElementNS(ns, "name");
+    name.textContent = title;
+    trk.appendChild(name);
+    let seg = null, segIndex = null;
+    pts.forEach((x) => {
+      if (seg === null || x.segIndex !== segIndex) {
+        seg = doc.createElementNS(ns, "trkseg");
+        trk.appendChild(seg);
+        segIndex = x.segIndex;
+      }
+      const pt = doc.createElementNS(ns, "trkpt");
+      Array.from(x.p.node.attributes).forEach((a) => pt.setAttribute(a.name, a.value));
+      Array.from(x.p.node.childNodes).forEach((c) => pt.appendChild(doc.importNode(c, true)));
+      seg.appendChild(pt);
+    });
+    // <extensions> på rodniveau skal stå sidst i filen.
+    const rootExt = Array.from(root.children).find((c) => c.localName === "extensions");
+    root.insertBefore(trk, rootExt || null);
+
+    let out = new XMLSerializer().serializeToString(doc);
+    if (!out.startsWith("<?xml")) out = '<?xml version="1.0" encoding="UTF-8"?>\n' + out;
+    return out;
+  }
+
+  async function saveSelectionAsRoute() {
+    const pts = selectedPoints();
+    const title = el("save-selection-title").value.trim();
+    const errors = el("save-selection-errors");
+    errors.hidden = true;
+    if (title.length < 2) {
+      errors.textContent = "Titlen skal være mindst 2 tegn.";
+      errors.hidden = false;
+      return;
+    }
+    const btn = el("btn-save-selection");
+    btn.disabled = true;
+
+    const body = new URLSearchParams({
+      csrf_token: csrfToken(),
+      route_id: "",
+      gpx_data: selectionGpx(pts, title),
+      title: title,
+      description: "",
+      activity_type_id: String(routeMeta ? routeMeta.activity_type_id : el("meta-activity").value),
+      route_type: document.querySelector('input[name="save-selection-type"]:checked').value,
+      visibility: "private",
+      allow_download: "0",
+      hide_uploader_name: "0",
+      public_notice_ack: "0"
+    });
+
+    try {
+      const res = await fetch("../editor-save.php", { method: "POST", body });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error((data.errors && data.errors.join(" ")) || `Ukendt fejl (status ${res.status}).`);
+      }
+      const id = encodeURIComponent(String(data.route_id));
+      el("save-selection-form").hidden = true;
+      btn.hidden = true;
+      el("save-selection-done-title").textContent = title;
+      el("save-selection-open-editor").href = "?route=" + id;
+      el("save-selection-open-page").href = "../route-view.php?id=" + id;
+      el("save-selection-done").hidden = false;
+      setStatus(`Udsnittet er gemt som "${title}"`);
+    } catch (e) {
+      errors.textContent = e.message || "Der skete en fejl. Prøv igen.";
+      errors.hidden = false;
+      btn.disabled = false;
     }
   }
 
@@ -1525,6 +1907,7 @@
 
   function loadState(newState, filename) {
     state = newState;
+    selection = { a: null, b: null };
     currentFilename = filename;
 
     historyStack = [];
@@ -2025,32 +2408,83 @@
 
   // ---------- Event bindings ----------
   function bindUI() {
-    // ---- Waypoint uden for ruten ----
-    // Knappen viser altid, hvad et klik på kortet gør lige nu: rød nål
-    // "Waypoint" når tilstanden er slået til, blå prik "Rute" ellers
-    // (i stedet for kun at skifte baggrundsfarve på selve knappen).
-    const btnWaypointMode = el("btn-waypoint-mode");
-    function updateWaypointModeButtonLabel() {
-      if (!btnWaypointMode) return;
-      btnWaypointMode.innerHTML = waypointPlacementMode
-        ? '📍 <span class="btn-text">Waypoint-tilstand</span>'
-        : '🔵 <span class="btn-text">Rute-tilstand</span>';
+    // ---- Tilstandsvælgeren (Rute / Waypoint / Markering) ----
+    // Knappen viser altid, hvad et klik på kortet gør lige nu.
+    const btnEditMode = el("btn-edit-mode");
+    const editModeList = el("edit-mode-list");
+    function setEditModeListOpen(open) {
+      editModeList.hidden = !open;
+      btnEditMode.setAttribute("aria-expanded", open ? "true" : "false");
     }
-    if (btnWaypointMode) {
-      updateWaypointModeButtonLabel();
-      btnWaypointMode.addEventListener("click", () => {
-        waypointPlacementMode = !waypointPlacementMode;
-        suppressNextMapClick = true;
-        updateWaypointModeButtonLabel();
-        btnWaypointMode.setAttribute("aria-pressed", waypointPlacementMode ? "true" : "false");
-        map.getContainer().classList.toggle("waypoint-mode-cursor", waypointPlacementMode);
-        setStatus(
-          waypointPlacementMode
-            ? "Waypoint-tilstand slået til — klik et vilkårligt sted på kortet for at sætte et waypoint (behøver ikke ligge på ruten)."
-            : "Waypoint-tilstand slået fra — klik på kortet tegner ruten igen som normalt."
-        );
+    function updateEditModeButton() {
+      const m = EDIT_MODES.find((x) => x.key === editMode);
+      btnEditMode.innerHTML = `${m.icon} <span class="btn-text">${m.label}</span>`;
+      btnEditMode.classList.toggle("mode-active", editMode !== "route");
+      editModeList.querySelectorAll("[data-edit-mode]").forEach((item) => {
+        item.setAttribute("aria-checked", item.getAttribute("data-edit-mode") === editMode ? "true" : "false");
       });
     }
+    updateEditModeButton();
+    btnEditMode.addEventListener("click", () => {
+      suppressNextMapClick = true;
+      setEditModeListOpen(editModeList.hidden);
+    });
+    document.addEventListener("click", (e) => {
+      if (!editModeList.hidden && !btnEditMode.parentNode.contains(e.target)) setEditModeListOpen(false);
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !editModeList.hidden) setEditModeListOpen(false);
+    });
+    editModeList.querySelectorAll("[data-edit-mode]").forEach((item) => {
+      item.addEventListener("click", () => {
+        suppressNextMapClick = true;
+        setEditModeListOpen(false);
+        const mode = item.getAttribute("data-edit-mode");
+        if (mode === editMode) return;
+        editMode = mode;
+        selection = { a: null, b: null };
+        map.closePopup();
+        updateEditModeButton();
+        map.getContainer().classList.toggle("waypoint-mode-cursor", editMode === "waypoint");
+        render._hasFitBounds = true;
+        render();
+        setStatus({
+          route: "Rute-tilstand: klik på kortet tegner ruten.",
+          waypoint: "Waypoint-tilstand: klik et vilkårligt sted på kortet for at sætte et waypoint (behøver ikke ligge på ruten).",
+          select: selectionHint()
+        }[editMode]);
+      });
+    });
+
+    // ---- Markering ----
+    el("btn-selection-stats").addEventListener("click", openSelectionStats);
+    el("btn-selection-save").addEventListener("click", openSaveSelectionDialog);
+    el("btn-selection-clear").addEventListener("click", () => {
+      selection = { a: null, b: null };
+      render._hasFitBounds = true;
+      render();
+      setStatus(selectionHint());
+    });
+    const statsDialog = el("selection-stats-dialog");
+    el("selection-stats-close").addEventListener("click", () => statsDialog.close());
+    statsDialog.addEventListener("click", (e) => {
+      if (e.target === statsDialog) statsDialog.close();
+    });
+    const saveSelDialog = el("save-selection-dialog");
+    el("save-selection-close").addEventListener("click", () => saveSelDialog.close());
+    saveSelDialog.addEventListener("click", (e) => {
+      if (e.target === saveSelDialog) saveSelDialog.close();
+    });
+    el("btn-save-selection").addEventListener("click", saveSelectionAsRoute);
+    saveSelDialog.querySelectorAll("[data-leave-editor]").forEach((link) => {
+      // Linkene forlader editoren; 'beforeunload' advarer ikke altid i
+      // appens WebView, så de spørger selv, hvis der er ugemte ændringer.
+      link.addEventListener("click", (e) => {
+        if (isAnyDirty() && !window.confirm("Du har ugemte ændringer i den rute, du redigerer. De går tabt, hvis du forlader editoren. Vil du fortsætte?")) {
+          e.preventDefault();
+        }
+      });
+    });
 
     el("btn-save-server").addEventListener("click", () => saveToServer());
     // ---- Vis side ----
