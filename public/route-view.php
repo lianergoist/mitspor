@@ -209,7 +209,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
     <meta name="twitter:image" content="<?= htmlspecialchars($ogImageUrl, ENT_QUOTES, 'UTF-8') ?>">
 
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/style.css?v=37">
+    <link rel="stylesheet" href="assets/style.css?v=38">
     <link rel="stylesheet" href="assets/videoer.css?v=1">
     <style>
         html, body { height: 100%; margin: 0; }
@@ -338,7 +338,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
                 gap: 6px;
             }
             .map-page .topbar .brand { padding: 0; }
-            /* Grafer og Download er kun ikoner på mobil, så topbaren holdes på én linje. */
+            /* Grafer og Menu er kun ikoner på mobil, så topbaren holdes på én linje. */
             .btn-label { display: none; }
             .topbar-buttons { flex: 1 1 0; min-width: 0; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
             .map-page .topbar .btn { padding: 6px 12px; font-size: 14px; min-height: 40px; }
@@ -449,17 +449,22 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
         <?php endif; ?>
         <div class="topbar-buttons">
             <button type="button" id="btn-graphs-toggle" class="btn" hidden title="Vis/skjul grafer" aria-label="Grafer"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg><span class="btn-label">Grafer</span></button>
-            <?php if ($canDownload): ?>
-                <a class="btn" href="<?= htmlspecialchars(gpx_download_url($route['public_id'], $hasValidShareToken ? $shareToken : ''), ENT_QUOTES, 'UTF-8') ?>" title="Download GPX-fil" aria-label="Download"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M12 3v12m0 0l-5-5m5 5l5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="btn-label">Download</span></a>
-            <?php endif; ?>
-            <?php if ($isOwner && $liveEvent === null): ?>
-                <a href="editor/?route=<?= htmlspecialchars($route['public_id'], ENT_QUOTES, 'UTF-8') ?>" class="btn" title="Redigér punkter, billeder og waypoints i editoren" aria-label="Editor"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg><span class="btn-label">Editor</span></a>
-            <?php endif; ?>
             <?php if (!$loggedIn): ?>
                 <button type="button" id="btn-open-register" class="btn" title="Opret konto" aria-label="Opret konto"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M19 8v6"/><path d="M16 11h6"/></svg><span class="btn-label">Opret konto</span></button>
                 <button type="button" id="btn-open-login" class="btn" title="Log ind" aria-label="Log ind"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M22 11h-6"/><path d="M19 8l-3 3 3 3"/></svg><span class="btn-label">Log ind</span></button>
             <?php endif; ?>
-            <?= topbar_menu([['id' => 'btn-open-route-help', 'label' => 'Hjælp', 'icon' => 'help']], 'btn-label') ?>
+            <?php
+            // Menuen: Åbn i editor (ejeren), Download GPX (når det er tilladt), Hjælp.
+            $menuItems = [];
+            if ($isOwner && $liveEvent === null) {
+                $menuItems[] = ['href' => 'editor/?route=' . $route['public_id'], 'label' => 'Åbn i editor'];
+            }
+            if ($canDownload) {
+                $menuItems[] = ['href' => gpx_download_url($route['public_id'], $hasValidShareToken ? $shareToken : ''), 'label' => 'Download GPX'];
+            }
+            $menuItems[] = ['id' => 'btn-open-route-help', 'label' => 'Hjælp'];
+            ?>
+            <?= topbar_menu($menuItems, 'btn-label') ?>
         </div>
     </div>
 
@@ -546,10 +551,10 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
                 <li><strong>Ruter</strong>, der er plottet ind på et kort — de viser aldrig tid/hastighed, og bruger altid en simpel blå prik som bevægelig markør.</li>
             </ul>
             <p>Knapperne under kortet (<strong>◀◀ ◀ ▶ ▶▶</strong>) lader dig bevæge dig punkt for punkt eller i spring på 1/25 af ruten (højst 25 klik fra start til slut) langs ruten — den blå/farvede markør følger med. Indeholder filen data til det (fx højde, puls, kadence eller watt), og ejeren har slået det til, vises en graf nederst på siden fra start. Du kan skjule og vise den igen med <strong>Grafer</strong>-knappen øverst — findes der data til flere typer, skifter du mellem dem med fanebladene øverst i grafen.</p>
-            <p>Pilen øverst til venstre tager dig tilbage til det, du kom fra. <strong>Download</strong> henter rutens GPX-fil, når ejeren har tilladt det.</p>
+            <p>Pilen øverst til venstre tager dig tilbage til det, du kom fra. <strong>Download GPX</strong> i menuen (☰) henter rutens GPX-fil, når ejeren har tilladt det.</p>
             <p>Er ruten <strong>offentlig</strong>, kan alle se den; er den <strong>privat</strong>, kræver det enten at du er ejeren, eller at du har et gyldigt del-link.</p>
             <?php if ($isOwner): ?>
-                <p><strong>Som ejer</strong> kan du trykke <strong>Editor</strong> for at rette ruten (punkter, waypoints og billeder). Hvad siden viser — højdeprofil, hastighed, puls m.m. — vælger du i kontrolpanelet under <strong>Visning af datafelter</strong>.</p>
+                <p><strong>Som ejer</strong> kan du vælge <strong>Åbn i editor</strong> i menuen (☰) for at rette ruten (punkter, waypoints og billeder). Hvad siden viser — højdeprofil, hastighed, puls m.m. — vælger du i kontrolpanelet under <strong>Visning af datafelter</strong>.</p>
             <?php endif; ?>
             <?php if ($route['visibility'] === 'public' && !$route['hide_uploader_name'] && $liveEvent === null): ?>
                 <p><a href="uploader-routes.php?route=<?= htmlspecialchars($route['public_id'], ENT_QUOTES, 'UTF-8') ?>">Andre ruter fra denne bruger</a></p>

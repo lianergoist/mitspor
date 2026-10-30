@@ -1105,8 +1105,12 @@ a { color: var(--primary); }
 .topbar-menu-list[hidden] {
     display: none;
 }
+.topbar-menu-list > form {
+    margin: 0;
+}
 .topbar-menu-list > button,
-.topbar-menu-list > a {
+.topbar-menu-list > a,
+.topbar-menu-list > form > button {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -1126,12 +1130,11 @@ a { color: var(--primary); }
 }
 .topbar-menu-list > button:hover,
 .topbar-menu-list > a:hover,
+.topbar-menu-list > form > button:hover,
 .topbar-menu-list > button:focus-visible,
-.topbar-menu-list > a:focus-visible {
+.topbar-menu-list > a:focus-visible,
+.topbar-menu-list > form > button:focus-visible {
     background: #f1f5f9;
-}
-.topbar-menu-list .help-icon {
-    color: var(--primary);
 }
 
 .icon-btn {

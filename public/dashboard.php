@@ -67,7 +67,7 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mit kontrolpanel</title>
-    <link rel="stylesheet" href="assets/style.css?v=37">
+    <link rel="stylesheet" href="assets/style.css?v=38">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
     <link rel="stylesheet" href="assets/dashboard.css?v=31">
     <link rel="stylesheet" href="assets/videoer.css?v=1">
@@ -86,12 +86,11 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
         </div>
     </div>
     <div class="topbar-actions">
-        <button type="button" id="btn-open-profile" class="icon-btn" title="Profil og konto" aria-label="Profil og konto"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
-        <form method="post" action="logout.php">
-            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
-            <button type="submit" class="btn" title="Log ud" aria-label="Log ud"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M16 11h6"/><path d="M19 8l3 3-3 3"/></svg><span class="tb-label">Log ud</span></button>
-        </form>
-        <?= topbar_menu([['id' => 'btn-open-dashboard-help', 'label' => 'Hjælp', 'icon' => 'help']]) ?>
+        <?= topbar_menu([
+            ['form' => '/logout.php', 'label' => 'Log ud'],
+            ['id' => 'btn-open-profile', 'label' => 'Profil og konto'],
+            ['id' => 'btn-open-dashboard-help', 'label' => 'Hjælp'],
+        ]) ?>
     </div>
 </div>
 

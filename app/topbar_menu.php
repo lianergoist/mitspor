@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/csrf.php';
+
 /*
  * Menuen (☰) til højre i topbaren på forsiden, kortet, rutens side og i
  * kontrolpanelet, og den fælles "Om MitSpor"-dialog. Editoren har sin egen
@@ -8,13 +10,13 @@ declare(strict_types=1);
  *
  * Menuen åbnes og lukkes af assets/topbar-menu.js, der også åbner "Om MitSpor".
  * Et menupunkt med et id (fx btn-open-route-help) er en knap, som siden selv
- * lytter på; menuen lukkes, når der klikkes på et punkt.
+ * lytter på; med href er det et link, og med form en knap, der POST'er til
+ * adressen med CSRF-token (fx Log ud). Menuen lukkes ved klik på et punkt.
  */
 
 /**
- * @param array<int, array{id?: string, href?: string, label: string, icon?: string}> $items
- *        Sidens egne punkter øverst (fx Hjælp). "Privatlivspolitik" og
- *        "Om MitSpor" kommer altid til sidst.
+ * @param array<int, array{id?: string, href?: string, form?: string, label: string}> $items
+ *        Sidens egne punkter øverst (fx Hjælp). "Om MitSpor" kommer altid til sidst.
  * @param string $labelClass Klassen, der skjuler knapteksten på mobil
  *        (tb-label, eller btn-label på rutens side).
  */
@@ -22,7 +24,6 @@ function topbar_menu(array $items, string $labelClass = 'tb-label'): string
 {
     $h = static fn(string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8');
 
-    $items[] = ['href' => '/privatlivspolitik.php', 'label' => 'Privatlivspolitik'];
     $items[] = ['id' => 'btn-open-about', 'label' => 'Om MitSpor'];
 
     $html = '<div class="topbar-menu" data-topbar-menu>'
@@ -31,11 +32,14 @@ function topbar_menu(array $items, string $labelClass = 'tb-label'): string
         . '<span class="' . $h($labelClass) . '">Menu</span></button>'
         . '<div class="topbar-menu-list" id="topbar-menu-list" role="menu" hidden>';
     foreach ($items as $item) {
-        $icon = ($item['icon'] ?? '') === 'help' ? '<span class="help-icon" aria-hidden="true">?</span> ' : '';
-        if (isset($item['href'])) {
-            $html .= '<a role="menuitem" href="' . $h($item['href']) . '">' . $icon . $h($item['label']) . '</a>';
+        if (isset($item['form'])) {
+            $html .= '<form method="post" action="' . $h($item['form']) . '">'
+                . '<input type="hidden" name="csrf_token" value="' . $h(csrf_token()) . '">'
+                . '<button type="submit" role="menuitem">' . $h($item['label']) . '</button></form>';
+        } elseif (isset($item['href'])) {
+            $html .= '<a role="menuitem" href="' . $h($item['href']) . '">' . $h($item['label']) . '</a>';
         } else {
-            $html .= '<button type="button" role="menuitem" id="' . $h($item['id'] ?? '') . '">' . $icon . $h($item['label']) . '</button>';
+            $html .= '<button type="button" role="menuitem" id="' . $h($item['id'] ?? '') . '">' . $h($item['label']) . '</button>';
         }
     }
 
