@@ -196,10 +196,139 @@ html {
 .waypoint-mode-map-btn:hover {
   background: #f8fafc;
 }
-.waypoint-mode-map-btn[aria-pressed="true"] {
+.waypoint-mode-map-btn.mode-active {
   background: #eff6ff;
   border-color: #2563eb;
   color: #1d4ed8;
+}
+
+/* Listen med tilstande under tilstandsvælgeren. */
+.edit-mode-control {
+  position: relative;
+}
+.edit-mode-list {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 1000;
+  min-width: 240px;
+  padding: 6px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+  display: flex;
+  flex-direction: column;
+}
+.edit-mode-list[hidden] {
+  display: none;
+}
+.edit-mode-list button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #1e293b;
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+}
+.edit-mode-list button:hover,
+.edit-mode-list button:focus-visible {
+  background: #f1f5f9;
+}
+.edit-mode-list button[aria-checked="true"] {
+  background: #eff6ff;
+}
+.edit-mode-list strong {
+  display: block;
+  font-weight: 600;
+}
+.edit-mode-list small {
+  display: block;
+  color: #64748b;
+  font-size: 13px;
+}
+
+/* Markerings-tilstand: bjælken nederst over kortet. */
+.selection-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 12px;
+  max-width: calc(100vw - 24px);
+  box-sizing: border-box;
+  padding: 8px 10px 8px 14px;
+  background: #ffffff;
+  border: 2px solid #16a34a;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.25);
+  color: #1e293b;
+  font-size: 14px;
+}
+.selection-bar[hidden] {
+  display: none;
+}
+.selection-summary {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.selection-buttons {
+  display: flex;
+  gap: 6px;
+}
+.selection-buttons button {
+  min-height: 40px;
+  padding: 6px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1e293b;
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.selection-buttons button:hover:not(:disabled) {
+  background: #f8fafc;
+}
+.selection-buttons button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.selection-buttons .selection-clear {
+  min-width: 40px;
+  font-size: 20px;
+  line-height: 1;
+  color: #64748b;
+}
+.plain-fieldset {
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+.save-selection-links {
+  display: flex;
+  gap: 18px;
+}
+.save-selection-links a {
+  color: #2563eb;
+  font-weight: 600;
 }
 
 #toolbar #btn-save-server.save-dirty {
@@ -679,7 +808,8 @@ html {
   margin: 0;
 }
 
-#meta-panel legend {
+#meta-panel legend,
+.plain-fieldset legend {
   font-size: 12px;
   color: #64748b;
   padding: 0 4px;
@@ -982,6 +1112,12 @@ html {
   border: 2px solid #9a3412;
   border-radius: 50%;
   opacity: 0.95;
+}
+
+/* Markeret trackpoint (markerings-tilstand) */
+.touch-marker .dot-track.dot-selected {
+  background-color: #22c55e;
+  border-color: #14532d;
 }
 
 /* Lilla waypoint-prik: bruges når waypointet har mindst ét billedlink */
