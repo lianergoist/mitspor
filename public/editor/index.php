@@ -56,7 +56,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <title>GPX-editor</title>
 
 <link rel="stylesheet" href="../vendor/leaflet/leaflet.css" />
-<link rel="stylesheet" href="style.css?v=48" />
+<link rel="stylesheet" href="style.css?v=49" />
 <link rel="stylesheet" href="../assets/videoer.css?v=1">
 </head>
 <body data-image-prefix="<?= htmlspecialchars(IMAGE_PUBLIC_URL_BASE . '/' . $userId . '/', ENT_QUOTES, 'UTF-8') ?>">
@@ -268,6 +268,39 @@ if ($initialRouteId === '' && !$isNewRoute) {
   <button type="button" id="btn-save-selection" class="btn btn-primary"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg> Gem som nyt spor</button>
 </dialog>
 
+<!-- Opdel-tilstand: vises, mens tilstanden er valgt. -->
+<div id="split-bar" class="selection-bar" hidden>
+  <span id="split-summary" class="selection-summary"></span>
+  <div class="selection-buttons">
+    <button type="button" id="btn-split-segments">Opdel ved filens spor</button>
+    <button type="button" id="btn-split-save">Gem som gruppe</button>
+    <button type="button" id="btn-split-clear" class="selection-clear" aria-label="Fjern alle delepunkter" title="Fjern alle delepunkter">&times;</button>
+  </div>
+</div>
+
+<dialog id="split-dialog" class="modal-dialog">
+  <button type="button" id="split-close" class="modal-close" aria-label="Luk">&times;</button>
+  <h2>Gem etaperne som gruppe</h2>
+  <div id="split-errors" class="modal-errors" hidden></div>
+  <div id="split-form" class="modal-dialog-body">
+    <p class="thin-hint">Den rute, du redigerer, bliver etape 1 og beholder sit link. De øvrige etaper oprettes som nye ruter med samme aktivitet, type, synlighed og markør. Waypoints kommer med i den etape, de ligger nærmest.</p>
+    <p id="split-group-text" class="thin-hint"></p>
+    <label id="split-group-fields">
+      Gruppens titel
+      <input type="text" id="split-group-title" maxlength="200">
+    </label>
+    <ol id="split-stage-list" class="split-stage-list"></ol>
+  </div>
+  <div id="split-done" hidden>
+    <p id="split-done-text"></p>
+    <p class="save-selection-links">
+      <a id="split-open-group" data-leave-editor href="#">Vis gruppen</a>
+      <a data-leave-editor href="../dashboard.php">Kontrolpanel</a>
+    </p>
+  </div>
+  <button type="button" id="btn-split-confirm" class="btn btn-primary"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg> Gem etaperne</button>
+</dialog>
+
 <input type="file" id="image-file-input" accept="image/*" multiple style="display:none">
 
 <dialog id="insert-waypoint-dialog" class="modal-dialog">
@@ -398,6 +431,14 @@ if ($initialRouteId === '' && !$isNewRoute) {
       <li><strong>Gem som nyt spor</strong> gemmer strækningen som en ny, privat rute. Den rute, du redigerer, ændres ikke.</li>
     </ul>
 
+    <h3>Opdeling i etaper (✂️ Opdel-tilstand)</h3>
+    <ul>
+      <li><strong>Del:</strong> Vælg <strong>✂️ Opdel-tilstand</strong> i tilstandsvælgeren. Tryk på de punkter, hvor en ny etape skal begynde. Delepunktet er både det sidste punkt i den ene etape og det første i den næste. Etaperne vises i hver sin farve.</li>
+      <li>Tryk på et delepunkt igen for at fjerne det. <strong>Fortryd</strong> og <strong>Gentag</strong> gælder delepunkterne, mens du er i opdel-tilstand, og <strong>×</strong> fjerner dem alle.</li>
+      <li><strong>Opdel ved filens spor</strong> (kun når filen har flere spor eller segmenter) laver en etape af hvert.</li>
+      <li><strong>Gem som gruppe</strong> gemmer etaperne. Ruten skal være gemt først. Den rute, du redigerer, bliver etape 1 og beholder sit link, og de øvrige etaper bliver nye ruter med samme aktivitet, synlighed og markør. Er ruten allerede en etape i en gruppe, sættes de nye etaper ind lige efter den; ellers oprettes en ny gruppe. Waypoints kommer med i den etape, de ligger nærmest.</li>
+    </ul>
+
     <h3>Fortryd</h3>
     <ul>
       <li><strong>Fortryd/Gendan:</strong> Brug knapperne Fortryd og Gendan i værktøjslinjen, eller Ctrl+Z og Ctrl+Y.</li>
@@ -422,7 +463,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <script src="../assets/route-meta-dialog.js?v=2"></script>
 <script src="../assets/gpx-field-labels.js?v=4"></script>
 <script src="../assets/gpx-tools.js?v=3"></script>
-<script src="app.js?v=48"></script>
+<script src="app.js?v=49"></script>
 <script src="../assets/videoer.js?v=1"></script>
 </body>
 </html>

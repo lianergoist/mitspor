@@ -463,6 +463,80 @@ function group_reorder(PDO $pdo, int $userId, string $groupPublicId, array $orde
 }
 
 /**
+ * Efter en opdeling i editoren (editor-split-save.php): de nye etaper
+ * ($newRouteIds, i rækkefølge) sættes ind lige efter den opdelte rute.
+ * Er ruten i en gruppe, rykkes de efterfølgende etaper ned; ellers
+ * oprettes en ny gruppe med ruten som etape 1. Alt i én transaktion.
+ *
+ * @param int[] $newRouteIds
+ * @return array{success: bool, errors?: string[], group_public_id?: string, created?: bool}
+ */
+function group_insert_split(PDO $pdo, int $userId, int $routeId, array $newRouteIds, string $groupTitle, string $groupDescription): array
+{
+    $stmt = $pdo->prepare(
+        "SELECT r.group_id, r.group_position, g.public_id AS group_public_id
+         FROM routes r LEFT JOIN route_groups g ON g.id = r.group_id
+         WHERE r.id = :id AND r.user_id = :uid AND r.status = 'active' LIMIT 1"
+    );
+    $stmt->execute(['id' => $routeId, 'uid' => $userId]);
+    $route = $stmt->fetch();
+    if (!$route) {
+        return ['success' => false, 'errors' => ['Ruten blev ikke fundet, eller tilhører dig ikke.']];
+    }
+
+    $created = $route['group_id'] === null;
+    if ($created) {
+        $errors = group_validate_text(trim($groupTitle), trim($groupDescription));
+        if ($errors) {
+            return ['success' => false, 'errors' => $errors];
+        }
+    }
+
+    $pdo->beginTransaction();
+    try {
+        if ($created) {
+            $group = group_create($pdo, $userId, $groupTitle, $groupDescription);
+            if (!$group['success']) {
+                throw new RuntimeException(implode(' ', $group['errors'] ?? ['Fejl']));
+            }
+            $groupId = (int) $group['group_id'];
+            $groupPublicId = (string) $group['public_id'];
+            $position = 1;
+            $pdo->prepare('UPDATE routes SET group_id = :gid, group_position = 1, updated_at = updated_at WHERE id = :id')
+                ->execute(['gid' => $groupId, 'id' => $routeId]);
+        } else {
+            $groupId = (int) $route['group_id'];
+            $groupPublicId = (string) $route['group_public_id'];
+            $position = (int) $route['group_position'];
+            $pdo->prepare(
+                'UPDATE routes SET group_position = group_position + :n, updated_at = updated_at
+                 WHERE group_id = :gid AND group_position > :pos'
+            )->execute(['n' => count($newRouteIds), 'gid' => $groupId, 'pos' => $position]);
+        }
+
+        $upd = $pdo->prepare(
+            'UPDATE routes SET group_id = :gid, group_position = :pos, updated_at = updated_at
+             WHERE id = :id AND user_id = :uid'
+        );
+        foreach ($newRouteIds as $i => $newId) {
+            $upd->execute(['gid' => $groupId, 'pos' => $position + $i + 1, 'id' => (int) $newId, 'uid' => $userId]);
+        }
+        group_renumber($pdo, $groupId);
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        error_log('Opdeling i gruppe fejlede: ' . $e->getMessage());
+
+        return ['success' => false, 'errors' => ['Der skete en fejl. Prøv igen.']];
+    }
+    group_invalidate_cache_by_id($pdo, $groupId);
+
+    return ['success' => true, 'group_public_id' => $groupPublicId, 'created' => $created];
+}
+
+/**
  * Tidspunkt for rutens første punkt med tid (unix-sekunder), eller null.
  * Læser kun starten af filen.
  */
