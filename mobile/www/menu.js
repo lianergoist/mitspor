@@ -1,39 +1,45 @@
-// Menuen på startsiden: Hjælp, Sådan virker appen, Privatlivspolitik og
-// "Om MitSpor" med appens versionsnummer.
+// Menuerne: på startsiden (Hjælp og "Om MitSpor" med appens
+// versionsnummer) og i optageren (Gemte ture).
 (function () {
     'use strict';
 
     var App = window.capacitorApp.App;
-    var knap = document.getElementById('menu-knap');
-    var menu = document.getElementById('menu');
     var omDialog = document.getElementById('om-dialog');
     var omVersion = document.getElementById('om-version');
+    var tureDialog = document.getElementById('ture-dialog');
 
-    function aabn() {
-        menu.hidden = false;
-        knap.setAttribute('aria-expanded', 'true');
-    }
+    // En menu: knappen åbner og lukker listen; et tryk på et punkt kører
+    // punktets handling (attributten attr), og et tryk udenfor lukker den.
+    function menu(knapId, menuId, attr, handlinger) {
+        var knap = document.getElementById(knapId);
+        var liste = document.getElementById(menuId);
 
-    function luk() {
-        menu.hidden = true;
-        knap.setAttribute('aria-expanded', 'false');
-    }
-
-    knap.addEventListener('click', function (event) {
-        event.stopPropagation();
-        if (menu.hidden) {
-            aabn();
-        } else {
-            luk();
+        function saetAaben(aaben) {
+            liste.hidden = !aaben;
+            knap.setAttribute('aria-expanded', aaben ? 'true' : 'false');
         }
-    });
 
-    // Et tryk uden for menuen lukker den.
-    document.addEventListener('click', function (event) {
-        if (!menu.hidden && !menu.contains(event.target)) {
-            luk();
-        }
-    });
+        knap.addEventListener('click', function (event) {
+            event.stopPropagation();
+            saetAaben(liste.hidden);
+        });
+        document.addEventListener('click', function (event) {
+            if (!liste.hidden && !liste.contains(event.target)) {
+                saetAaben(false);
+            }
+        });
+        Array.prototype.forEach.call(liste.querySelectorAll('[' + attr + ']'), function (punkt) {
+            punkt.addEventListener('click', function () {
+                saetAaben(false);
+                handlinger[punkt.getAttribute(attr)]();
+            });
+        });
+
+        return {
+            aaben: function () { return !liste.hidden; },
+            luk: function () { saetAaben(false); }
+        };
+    }
 
     // Versionen fra butikken (fx 1.1) og buildnummeret (fx 7).
     // I en almindelig browser findes de ikke.
@@ -47,42 +53,46 @@
             });
     }
 
-    var handlinger = {
+    var startMenu = menu('menu-knap', 'menu', 'data-menu', {
         hjaelp: function () { window.MitSporApp.visSide('view-hjaelp'); },
-        intro: function () { document.getElementById('open-intro').click(); },
-        privatliv: function () { window.MitSporApp.aabnSite('/privatlivspolitik.php'); },
         om: function () {
             visVersion();
             omDialog.showModal();
         }
-    };
-
-    Array.prototype.forEach.call(menu.querySelectorAll('[data-menu]'), function (punkt) {
-        punkt.addEventListener('click', function () {
-            luk();
-            handlinger[punkt.getAttribute('data-menu')]();
-        });
     });
 
-    // Et tryk på baggrunden uden for dialogen lukker den også.
-    omDialog.addEventListener('click', function (event) {
-        if (event.target === omDialog) {
-            omDialog.close();
-        }
+    var optagMenu = menu('optag-menu-knap', 'optag-menu', 'data-optag-menu', {
+        ture: function () { tureDialog.showModal(); }
+    });
+
+    // Et tryk på baggrunden uden for en dialog lukker den også.
+    [omDialog, tureDialog].forEach(function (dialog) {
+        dialog.addEventListener('click', function (event) {
+            if (event.target === dialog) {
+                dialog.close();
+            }
+        });
+    });
+    document.getElementById('ture-luk').addEventListener('click', function () {
+        tureDialog.close();
     });
 
     document.getElementById('hjaelp-tilbage').addEventListener('click', function () {
         window.MitSporApp.visSide('view-start');
     });
 
-    // Android-tilbageknappen (kaldes fra optager.js): true, hvis menuen,
-    // Om-dialogen eller hjælpesiden tog sig af trykket.
+    // Android-tilbageknappen (kaldes fra optager.js): true, hvis en menu,
+    // en af dialogerne eller hjælpesiden tog sig af trykket.
     window.MitSporMenu = {
         tilbage: function () {
             if (omDialog.open) {
                 omDialog.close();
-            } else if (!menu.hidden) {
-                luk();
+            } else if (tureDialog.open) {
+                tureDialog.close();
+            } else if (startMenu.aaben()) {
+                startMenu.luk();
+            } else if (optagMenu.aaben()) {
+                optagMenu.luk();
             } else if (window.MitSporApp.aktivSide() === 'view-hjaelp') {
                 window.MitSporApp.visSide('view-start');
             } else {

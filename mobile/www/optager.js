@@ -55,6 +55,8 @@
     var afslutKnap = document.getElementById('optag-afslut');
     var listeFelt = document.getElementById('optag-liste');
     var tomFelt = document.getElementById('optag-tom');
+    var tureDialog = document.getElementById('ture-dialog');
+    var menuAntal = document.getElementById('optag-menu-antal');
     var liveValg = document.getElementById('optag-live-valg');
     var liveSelect = document.getElementById('optag-live');
     var liveLabel = document.getElementById('optag-live-label');
@@ -193,6 +195,7 @@
 
             listeFelt.textContent = '';
             tomFelt.hidden = faerdige.length > 0;
+            menuAntal.textContent = faerdige.length ? ' (' + faerdige.length + ')' : '';
             faerdige.forEach(function (m) {
                 listeFelt.appendChild(listePunkt(m));
             });
@@ -675,6 +678,14 @@
         return live.titel;
     }
 
+    // Efter "Stop og gem": vis Gemte ture, så man ser turen og kan uploade
+    // den. (Uden punkter er turen ikke gemt.)
+    function visGemt(antalPunkter) {
+        if (antalPunkter > 0 && !tureDialog.open && window.MitSporApp.aktivSide() === 'view-optag') {
+            tureDialog.showModal();
+        }
+    }
+
     function afslutAfbrudt() {
         var m = afbrudt;
         if (!m) {
@@ -688,9 +699,11 @@
                 m.slut = m.pauseStart || (gemte.length ? gemte[gemte.length - 1][3] : m.start);
                 m.pauseStart = null;
                 afbrudt = null;
-                return afslut(m, gemte, svar[1]).then(function () { return afslutLive(m, gemte, false); });
-            })
-            .then(visListe);
+                return afslut(m, gemte, svar[1])
+                    .then(function () { return afslutLive(m, gemte, false); })
+                    .then(visListe)
+                    .then(function () { visGemt(gemte.length); });
+            });
     }
 
     // ---------- Waypoints ----------
@@ -917,7 +930,8 @@
             'Var det den sidste etape i livesendingen "' + meta.live.titel + '"?\n\n' +
             'OK: afslut livesendingen.\nAnnuller: hold den åben til næste etape.'
         );
-        stop(false, sidsteEtape);
+        var antal = punkter.length;
+        stop(false, sidsteEtape).then(function () { visGemt(antal); });
     });
     wptKnap.addEventListener('click', aabnWaypoint);
     wptTagKnap.addEventListener('click', function () { hentBilleder(Kamera.tag); });
