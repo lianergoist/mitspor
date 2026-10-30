@@ -36,7 +36,7 @@ $stmt = $pdo->prepare(
     "SELECT r.public_id, r.title, r.visibility, r.route_type, r.created_at, r.original_gpx_file_path, r.share_token,
             r.group_id, r.group_position, g.public_id AS group_public_id, g.title AS group_title,
             r.distance_meters, r.allow_download, r.has_time_data, a.name_da AS activity_name,
-            COALESCE(r.marker_icon, a.icon_filename) AS activity_icon
+            COALESCE(r.marker_icon, a.icon_filename) AS activity_icon, r.marker_icon, a.icon_filename AS activity_marker
      FROM routes r
      LEFT JOIN route_groups g ON g.id = r.group_id
      LEFT JOIN activity_types a ON a.id = r.activity_type_id
@@ -111,14 +111,12 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
         <p><strong>Rutens værktøjer:</strong></p>
         <ul>
             <li><strong>Vis rute på kort</strong> åbner rutens egen side — den, andre ser, hvis ruten er offentlig eller delt med et link.</li>
-            <li><strong>Rediger i GPX-editor</strong> åbner editoren, hvor du flytter punkter og indsætter waypoints med billeder og kommentarer.</li>
-            <li><strong>Rediger metadata</strong> ændrer titel, beskrivelse, aktivitet, type (rute/spor), synlighed og download-tilladelse uden at åbne editoren.</li>
+            <li><strong>Rediger i GPX-editor</strong> åbner editoren, hvor du flytter punkter og indsætter waypoints med billeder og kommentarer. I editorens menu (☰) finder du også Rediger metadata (titel, beskrivelse, aktivitet, synlighed m.m.), Slet datafelter, Rediger højdedata og Udtynd punkter.</li>
             <li><strong>Visning af datafelter</strong> vælger, hvad rutens side viser (fx højdeprofil, hastighed og puls).</li>
-            <li><strong>Slet datafelter</strong> fjerner et felts data helt fra filen, fx tidsstempler, puls eller højdedata.</li>
-            <li><strong>Rediger højdedata</strong> viser rutens højder og kan hente nye fra internettet eller slette dem.</li>
-            <li><strong>Udtynd punkter</strong> gør filen mindre ved at beholde færre punkter.</li>
-            <li><strong>Del-link</strong> (kun private ruter), <strong>Download GPX-fil</strong> og <strong>Slet</strong>.</li>
+            <li><strong>Vælg markør</strong> vælger det billede, der viser ruten på kortet.</li>
+            <li><strong>Del-link</strong> (kun private ruter).</li>
             <li><strong>Gendan original fil</strong> vises kun, hvis ruten er blevet udtyndet — den henter den oprindelige, fulde fil tilbage og kasserer ændringer, du har lavet siden.</li>
+            <li><strong>Download GPX-fil</strong> og <strong>Slet</strong>.</li>
         </ul>
 
         <p><strong>Grupper:</strong> En gruppe samler flere ruter (etaper) til én tur, fx en flerdagestur. Sæt kryds ved ruterne i listen og tryk "Gruppér valgte", eller vælg flere GPX-filer på én gang, når du uploader. Under fanen Grupper vælger du en gruppe for at åbne den med "Vis gruppe på kort" eller ændre den med "Rediger gruppe". Der kan du også tilføje og fjerne etaper. Etaperne vises som én tur på forsiden, med "Forrige" og "Næste" på hver etape. Synligheden bestemmer du stadig pr. rute, men under "Rediger gruppe" kan du gøre hele gruppen offentlig eller privat med ét klik.</p>
@@ -226,7 +224,7 @@ function dash_h(?string $value): string
 }
 
 /**
- * Markørvalget (radioknapper med billeder) til "Rediger metadata" og upload.
+ * Markørvalget (radioknapper med billeder) til "Vælg markør" og upload.
  * $defaultBoxId: feltet, der viser den valgte aktivitets standardmarkør
  * (fyldes af markerDefaultPreview() i assets/dashboard.js). Markører med en
  * aktivitet vises kun, når den aktivitet er valgt; de neutrale vises altid.
@@ -324,24 +322,12 @@ function render_route_detail(array $route): void
                 <?= dash_help_btn('editor', 'Rediger i GPX-editor') ?>
             </div>
             <div class="tool-row">
-                <button type="button" class="tool" data-edit-meta="<?= dash_h($id) ?>">Rediger metadata</button>
-                <?= dash_help_btn('meta', 'Rediger metadata') ?>
-            </div>
-            <div class="tool-row">
                 <button type="button" class="tool" data-tool-fields="<?= dash_h($id) ?>" data-route-title="<?= dash_h($title) ?>">Visning af datafelter</button>
                 <?= dash_help_btn('fields', 'Visning af datafelter') ?>
             </div>
             <div class="tool-row">
-                <button type="button" class="tool" data-tool-strip="<?= dash_h($id) ?>" data-route-title="<?= dash_h($title) ?>">Slet datafelter</button>
-                <?= dash_help_btn('strip', 'Slet datafelter') ?>
-            </div>
-            <div class="tool-row">
-                <button type="button" class="tool" data-tool-ele="<?= dash_h($id) ?>" data-route-title="<?= dash_h($title) ?>">Rediger højdedata</button>
-                <?= dash_help_btn('ele', 'Rediger højdedata') ?>
-            </div>
-            <div class="tool-row">
-                <button type="button" class="tool" data-tool-thin="<?= dash_h($id) ?>" data-route-title="<?= dash_h($title) ?>">Udtynd punkter</button>
-                <?= dash_help_btn('thin', 'Udtynd punkter') ?>
+                <button type="button" class="tool" data-pick-marker="<?= dash_h($id) ?>" data-route-title="<?= dash_h($title) ?>" data-marker-current="<?= dash_h($route['marker_icon']) ?>" data-marker-activity="<?= dash_h($route['activity_marker']) ?>" data-marker-url="<?= dash_h(marker_image_urls($route['activity_marker'] ?: null)['east'] ?? '') ?>">Vælg markør</button>
+                <?= dash_help_btn('marker', 'Vælg markør') ?>
             </div>
             <?php if ($route['visibility'] === 'private'): ?>
                 <div class="tool-row">
@@ -349,16 +335,16 @@ function render_route_detail(array $route): void
                     <?= dash_help_btn('share', 'Del-link') ?>
                 </div>
             <?php endif; ?>
-            <div class="tool-row">
-                <a class="tool" href="<?= dash_h(gpx_download_url($id)) ?>">Download GPX-fil</a>
-                <?= dash_help_btn('download', 'Download GPX-fil') ?>
-            </div>
             <?php if ($route['original_gpx_file_path'] !== null): ?>
                 <div class="tool-row">
                     <button type="button" class="tool" data-restore-original="<?= dash_h($id) ?>" data-route-title="<?= dash_h($title) ?>">Gendan original fil</button>
                     <?= dash_help_btn('restore', 'Gendan original fil') ?>
                 </div>
             <?php endif; ?>
+            <div class="tool-row">
+                <a class="tool" href="<?= dash_h(gpx_download_url($id)) ?>">Download GPX-fil</a>
+                <?= dash_help_btn('download', 'Download GPX-fil') ?>
+            </div>
             <div class="tool-row">
                 <button type="button" class="tool danger" data-delete-route="<?= dash_h($id) ?>" data-route-title="<?= dash_h($title) ?>">Slet</button>
                 <?= dash_help_btn('delete', 'Slet') ?>
@@ -569,23 +555,6 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
     <div id="tool-help-body"></div>
 </dialog>
 
-<dialog id="tool-thin-dialog" class="modal-dialog">
-    <button type="button" id="tool-thin-close" class="modal-close" aria-label="Luk">&times;</button>
-    <h2>Udtynd punkter</h2>
-    <p><strong id="tool-thin-title"></strong></p>
-
-    <div id="tool-thin-errors" class="modal-errors" hidden></div>
-
-    <p class="hint">Fjerner punkter på lige strækninger og bevarer sving, slingrende stier og bakker. Tallet er, hvor meget sporet højst må afvige fra det oprindelige. Der er højst 50 m og 60 sekunder mellem de punkter, der bliver tilbage. Første gang gemmes den oprindelige fil, så den kan gendannes.</p>
-    <div class="tool-thin-buttons">
-        <button type="button" class="btn" data-thin-tolerance="2">Let</button>
-        <button type="button" class="btn" data-thin-tolerance="5">Middel</button>
-        <button type="button" class="btn" data-thin-tolerance="10">Kraftig</button>
-    </div>
-    <p class="hint">Let: højst 2 m afvigelse · Middel: 5 m · Kraftig: 10 m</p>
-    <p id="tool-thin-status" class="hint" hidden></p>
-</dialog>
-
 <dialog id="tool-fields-dialog" class="modal-dialog tool-wide">
     <button type="button" id="tool-fields-close" class="modal-close" aria-label="Luk">&times;</button>
     <h2>Visning af datafelter</h2>
@@ -608,134 +577,20 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
     <button type="button" id="tool-fields-save" class="btn btn-primary" disabled>💾 Gem</button>
 </dialog>
 
-<dialog id="tool-strip-dialog" class="modal-dialog">
-    <button type="button" id="tool-strip-close" class="modal-close" aria-label="Luk">&times;</button>
-    <h2>Slet datafelter</h2>
-    <p><strong id="tool-strip-title"></strong></p>
+<dialog id="marker-dialog" class="modal-dialog">
+    <button type="button" id="marker-dialog-close" class="modal-close" aria-label="Luk">&times;</button>
+    <h2>Vælg markør</h2>
+    <p><strong id="marker-dialog-title"></strong></p>
 
-    <div id="tool-strip-errors" class="modal-errors" hidden></div>
+    <div id="marker-dialog-errors" class="modal-errors" hidden></div>
 
-    <div id="tool-strip-body" hidden>
-        <p class="hint">De datafelter, filen indeholder. Slet fjerner feltets data fra selve filen, også fra den fil, andre kan downloade. Ændringer gemmes først, når du trykker Gem.</p>
-        <ul id="tool-strip-list" class="data-fields-list"></ul>
-    </div>
-
-    <p id="tool-strip-status" class="hint" hidden></p>
-    <button type="button" id="tool-strip-save" class="btn btn-primary" disabled>💾 Gem</button>
-</dialog>
-
-<dialog id="tool-ele-dialog" class="modal-dialog">
-    <button type="button" id="tool-ele-close" class="modal-close" aria-label="Luk">&times;</button>
-    <h2>Rediger højdedata</h2>
-    <p><strong id="tool-ele-title"></strong></p>
-
-    <div id="tool-ele-errors" class="modal-errors" hidden></div>
-
-    <div id="tool-ele-body" hidden>
-        <dl id="tool-ele-stats" class="ele-stats"></dl>
-        <p class="hint">"Hent fra internettet" slår højden op for hvert punkt i en højdemodel (SRTM, 30 m opløsning, via Open Topo Data) og overskriver de højder, filen har. Det er ofte mere præcist end GPS'ens egen højde. Det tager cirka et sekund pr. 100 punkter.</p>
-        <div class="tool-thin-buttons">
-            <button type="button" class="btn" id="tool-ele-fetch">Hent fra internettet</button>
-            <button type="button" class="btn btn-danger" id="tool-ele-delete" hidden>Slet højdedata</button>
-        </div>
-    </div>
-
-    <p id="tool-ele-status" class="hint" hidden></p>
-    <button type="button" id="tool-ele-save" class="btn btn-primary" disabled>💾 Gem</button>
-</dialog>
-
-<dialog id="edit-meta-dialog" class="modal-dialog">
-    <button type="button" id="edit-meta-close" class="modal-close" aria-label="Luk">&times;</button>
-    <h2>Rediger metadata</h2>
-
-    <div id="edit-meta-errors" class="modal-errors" hidden></div>
-
-    <form id="edit-meta-form">
+    <form id="marker-form">
         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
-        <input type="hidden" name="route_id" id="edit-meta-route-id">
+        <input type="hidden" name="route_id" id="marker-route-id">
 
-        <label>
-            Titel
-            <input type="text" name="title" id="edit-meta-title" required maxlength="200">
-        </label>
+        <?php render_marker_picker('marker-dialog-default'); ?>
 
-        <label>
-            Beskrivelse
-            <textarea name="description" id="edit-meta-description"></textarea>
-        </label>
-
-        <label>
-            Aktivitetstype
-            <select name="activity_type_id" id="edit-meta-activity">
-                <?php foreach ($activityTypes as $type): ?>
-                    <option value="<?= (int) $type['id'] ?>" data-marker-activity="<?= dash_h((string) $type['icon_filename']) ?>" data-marker-url="<?= dash_h(marker_image_urls((string) $type['icon_filename'])['east'] ?? '') ?>"><?= htmlspecialchars($type['name_da'], ENT_QUOTES, 'UTF-8') ?></option>
-                <?php endforeach; ?>
-            </select>
-        </label>
-
-        <?php render_marker_picker('edit-meta-marker-default'); ?>
-
-        <?php if (!empty($groups)): ?>
-        <label>
-            Gruppe (etape-tur)
-            <select name="group_id" id="edit-meta-group">
-                <option value="">Ingen gruppe</option>
-                <?php foreach ($groups as $g): ?>
-                    <option value="<?= htmlspecialchars($g['public_id'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($g['title'], ENT_QUOTES, 'UTF-8') ?></option>
-                <?php endforeach; ?>
-            </select>
-        </label>
-        <?php endif; ?>
-
-        <fieldset>
-            <legend>Type</legend>
-            <label class="checkbox-field">
-                <input type="radio" name="route_type" value="rute" id="edit-meta-route-type-rute" checked>
-                Rute (planlagt — viser ikke tid/hastighed)
-            </label>
-            <label class="checkbox-field">
-                <input type="radio" name="route_type" value="spor" id="edit-meta-route-type-spor">
-                Spor (GPS-optagelse — viser tid og hastighed)
-            </label>
-        </fieldset>
-
-        <fieldset>
-            <legend>Synlighed</legend>
-            <label class="checkbox-field">
-                <input type="radio" name="visibility" value="private" id="edit-meta-visibility-private">
-                Privat (kun dig)
-            </label>
-            <label class="checkbox-field">
-                <input type="radio" name="visibility" value="public" id="edit-meta-visibility-public">
-                Offentlig (alle kan se den)
-            </label>
-        </fieldset>
-
-        <p class="notice-field" id="edit-meta-public-notice" hidden>
-            <label class="checkbox-field">
-                <input type="checkbox" name="public_notice_ack" id="edit-meta-public-notice-ack">
-                Jeg forstår at start-/slutpunkter i en offentlig rute kan afsløre min bopæl (GDPR).
-            </label>
-        </p>
-
-        <label class="checkbox-field">
-            <input type="checkbox" name="allow_download" id="edit-meta-allow-download">
-            Tillad download af GPX-filen
-        </label>
-
-        <p class="notice-field" id="edit-meta-time-in-rute-notice" hidden>
-            Bemærk: Du har tilladt download af denne rute. Hvis denne fil indeholder tidsstempler, ligger de stadig i
-            den fil, andre kan downloade. Vil du undgå det, kan du fjerne dem under "Slet datafelter".
-        </p>
-
-        <div id="edit-meta-anonymous" hidden>
-            <label class="checkbox-field">
-                <input type="checkbox" name="hide_uploader_name" id="edit-meta-hide-uploader-name">
-                Vær anonym som uploader (skjul mit navn)
-            </label>
-        </div>
-
-        <button type="submit" class="btn btn-primary">Gem ændringer</button>
+        <button type="submit" class="btn btn-primary">Gem</button>
     </form>
 </dialog>
 
@@ -834,7 +689,7 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
 
         <p class="notice-field" id="upload-time-in-rute-notice" hidden>
             Bemærk: Du har tilladt download af denne rute. Hvis denne fil indeholder tidsstempler, ligger de stadig i
-            den fil, andre kan downloade. Vil du undgå det, kan du efter upload fjerne dem under "Slet datafelter".
+            den fil, andre kan downloade. Vil du undgå det, kan du efter upload fjerne dem i editoren under "Slet datafelter".
         </p>
 
         <div id="upload-anonymous" hidden>
@@ -1154,8 +1009,8 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
 <script src="assets/gpx-field-labels.js?v=4"></script>
 <script src="assets/gpx-tools.js?v=3"></script>
 <script src="assets/genindlaes.js?v=1"></script>
-<script src="assets/dashboard.js?v=27"></script>
-<script src="assets/dashboard-tools.js?v=8"></script>
+<script src="assets/dashboard.js?v=28"></script>
+<script src="assets/dashboard-tools.js?v=9"></script>
 <script src="assets/activity-marker.js?v=3"></script>
 <script src="assets/dashboard-map.js?v=7"></script>
 <script src="assets/dashboard-live.js?v=2"></script>

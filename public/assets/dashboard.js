@@ -1,13 +1,10 @@
 /* Kontrolpanelets JavaScript (flyttet ud af dashboard.php). */
-// Markørvalget: "Standard" viser markøren for den valgte aktivitet (fra
-// <option data-marker-url>), eller "Ingen", hvis aktiviteten ikke har en.
-// Kun den valgte aktivitets markører og de neutrale vises; er den valgte
+// Markørvalget: "Standard" viser markøren for aktiviteten (fra
+// <option data-marker-url> i upload, eller knappens data-marker-url i
+// "Vælg markør"), eller "Ingen", hvis aktiviteten ikke har en.
+// Kun aktivitetens markører og de neutrale vises; er den valgte
 // markør skjult, vælges "Standard".
-function markerDefaultPreview(select, box) {
-    if (!select || !box) return;
-    var option = select.options[select.selectedIndex];
-    var markerUrl = option ? option.getAttribute('data-marker-url') : '';
-    var activity = option ? (option.getAttribute('data-marker-activity') || '') : '';
+function markerPickerShow(box, activity, markerUrl) {
     var picker = box.closest('.marker-picker');
     if (picker) {
         picker.querySelectorAll('.marker-option[data-marker-activity]').forEach(function (label) {
@@ -30,6 +27,16 @@ function markerDefaultPreview(select, box) {
     } else {
         box.textContent = 'Ingen';
     }
+}
+
+function markerDefaultPreview(select, box) {
+    if (!select || !box) return;
+    var option = select.options[select.selectedIndex];
+    markerPickerShow(
+        box,
+        option ? (option.getAttribute('data-marker-activity') || '') : '',
+        option ? option.getAttribute('data-marker-url') : ''
+    );
 }
 
 (function () {
@@ -197,109 +204,59 @@ function markerDefaultPreview(select, box) {
     });
 })();
 
+// "Vælg markør": rutens markør på kortet. Aktiviteten vælges i editorens
+// "Rediger metadata", så her vises kun dens markører og de neutrale.
 (function () {
     "use strict";
-    var metaDialog = document.getElementById('edit-meta-dialog');
-    var metaCloseBtn = document.getElementById('edit-meta-close');
-    var metaForm = document.getElementById('edit-meta-form');
-    var metaErrors = document.getElementById('edit-meta-errors');
+    var dialog = document.getElementById('marker-dialog');
+    if (!dialog) return;
+    var form = document.getElementById('marker-form');
+    var errors = document.getElementById('marker-dialog-errors');
+    var submitBtn = form.querySelector('button[type="submit"]');
 
-    var metaBehavior = RouteMetaDialog.init({
-        routeTypeRute: 'edit-meta-route-type-rute',
-        visibilityPublic: 'edit-meta-visibility-public',
-        visibilityPrivate: 'edit-meta-visibility-private',
-        allowDownload: 'edit-meta-allow-download',
-        publicNotice: 'edit-meta-public-notice',
-        anonymousField: 'edit-meta-anonymous',
-        timeInRuteNotice: 'edit-meta-time-in-rute-notice',
-        publicNoticeAck: 'edit-meta-public-notice-ack'
-    });
-
-    document.querySelectorAll('[data-edit-meta]').forEach(function (btn) {
+    document.querySelectorAll('[data-pick-marker]').forEach(function (btn) {
         btn.addEventListener('click', function () {
-            var publicId = btn.getAttribute('data-edit-meta');
-            metaErrors.hidden = true;
-
-            fetch('route-metadata.php?id=' + encodeURIComponent(publicId))
-                .then(function (res) { return res.json(); })
-                .then(function (data) {
-                    if (!data.success) {
-                        alert((data.errors && data.errors.join(' ')) || 'Kunne ikke hente ruten.');
-                        return;
-                    }
-
-                    document.getElementById('edit-meta-route-id').value = data.public_id;
-                    document.getElementById('edit-meta-title').value = data.title;
-                    document.getElementById('edit-meta-description').value = data.description || '';
-                    document.getElementById('edit-meta-activity').value = String(data.activity_type_id);
-                    var markerRadio = metaForm.querySelector('input[name="marker_icon"][value="' + (data.marker_icon || '') + '"]')
-                        || metaForm.querySelector('input[name="marker_icon"][value=""]');
-                    if (markerRadio) markerRadio.checked = true;
-                    updateDefaultMarker();
-                    document.getElementById('edit-meta-allow-download').checked = data.allow_download;
-                    document.getElementById('edit-meta-hide-uploader-name').checked = data.hide_uploader_name;
-                    var metaGroupSelect = document.getElementById('edit-meta-group');
-                    if (metaGroupSelect) metaGroupSelect.value = data.group_id || '';
-
-                    var routeTypeRadio = document.querySelector('input[name="route_type"][value="' + data.route_type + '"]');
-                    if (routeTypeRadio) routeTypeRadio.checked = true;
-
-                    var visRadio = document.querySelector('input[name="visibility"][value="' + data.visibility + '"]');
-                    if (visRadio) visRadio.checked = true;
-
-                    metaBehavior.setLoadedVisibility(data.visibility);
-                    metaBehavior.setHasTimeData(data.has_time_data);
-
-                    metaDialog.showModal();
-                });
+            errors.hidden = true;
+            submitBtn.disabled = false;
+            document.getElementById('marker-route-id').value = btn.getAttribute('data-pick-marker');
+            document.getElementById('marker-dialog-title').textContent = btn.getAttribute('data-route-title');
+            var radio = form.querySelector('input[name="marker_icon"][value="' + CSS.escape(btn.getAttribute('data-marker-current') || '') + '"]')
+                || form.querySelector('input[name="marker_icon"][value=""]');
+            radio.checked = true;
+            markerPickerShow(
+                document.getElementById('marker-dialog-default'),
+                btn.getAttribute('data-marker-activity') || '',
+                btn.getAttribute('data-marker-url') || ''
+            );
+            dialog.showModal();
         });
     });
 
-    metaCloseBtn.addEventListener('click', function () { metaDialog.close(); });
-    metaDialog.addEventListener('click', function (ev) {
-        if (ev.target === metaDialog) {
-            metaDialog.close();
-        }
+    document.getElementById('marker-dialog-close').addEventListener('click', function () { dialog.close(); });
+    dialog.addEventListener('click', function (ev) {
+        if (ev.target === dialog) dialog.close();
     });
 
-    // "Standard" i markørvalget viser markøren for den valgte aktivitet
-    // (eller "Ingen", hvis aktiviteten ikke har en, fx "Rute på land").
-    var metaActivity = document.getElementById('edit-meta-activity');
-    function updateDefaultMarker() {
-        markerDefaultPreview(metaActivity, document.getElementById('edit-meta-marker-default'));
+    function fail(message) {
+        errors.textContent = message || 'Der skete en fejl. Prøv igen.';
+        errors.hidden = false;
+        submitBtn.disabled = false;
     }
-    if (metaActivity) metaActivity.addEventListener('change', updateDefaultMarker);
 
-    metaForm.addEventListener('submit', function (ev) {
+    form.addEventListener('submit', function (ev) {
         ev.preventDefault();
-        metaErrors.hidden = true;
-
-        if (!metaBehavior.requireGdprAckIfPublic()) {
-            return;
-        }
-
-        var submitBtn = metaForm.querySelector('button[type="submit"]');
+        errors.hidden = true;
         submitBtn.disabled = true;
-
-        fetch('update-route-metadata.php', {
-            method: 'POST',
-            body: new URLSearchParams(new FormData(metaForm))
-        })
+        fetch('update-route-marker.php', { method: 'POST', body: new URLSearchParams(new FormData(form)) })
             .then(function (res) { return res.json(); })
             .then(function (data) {
                 if (data.success) {
                     window.MitSporGenindlaes();
                     return;
                 }
-                metaErrors.textContent = (data.errors && data.errors.join(' ')) || 'Der skete en fejl. Prøv igen.';
-                metaErrors.hidden = false;
-                submitBtn.disabled = false;
+                fail(data.errors && data.errors.join(' '));
             })
-            .catch(function () {
-                metaErrors.textContent = 'Der skete en fejl. Prøv igen.';
-                metaErrors.hidden = false;
-                submitBtn.disabled = false;
-            });
+            .catch(function () { fail(); });
     });
 })();
 
@@ -1545,14 +1502,7 @@ function markerDefaultPreview(select, box) {
             title: 'Rediger i GPX-editor',
             text: [
                 'Åbner editoren, hvor du retter selve ruten: flytter, tilføjer og sletter punkter og indsætter waypoints og billeder.',
-                'Husk at trykke Gem i editoren. Titel, synlighed og lignende ændres under Rediger metadata, og hvad rutens side viser, vælger du under Visning af datafelter.'
-            ]
-        },
-        meta: {
-            title: 'Rediger metadata',
-            text: [
-                'Ændrer titel, beskrivelse, aktivitet, om det er en rute eller et spor, om den er privat eller offentlig, om andre må downloade filen, og om dit navn skjules.',
-                'Selve GPX-filen og dens punkter ændres ikke.'
+                'I editorens menu (☰) kan du også rette titel, synlighed og lignende (Rediger metadata), slette datafelter, rette højdedata og udtynde punkter. Husk at trykke Gem i editoren.'
             ]
         },
         fields: {
@@ -1562,27 +1512,11 @@ function markerDefaultPreview(select, box) {
                 'Filen ændres ikke. Dine valg gælder først, når du trykker Gem.'
             ]
         },
-        strip: {
-            title: 'Slet datafelter',
+        marker: {
+            title: 'Vælg markør',
             text: [
-                'Viser de datafelter, filen indeholder (fx tid, højde, puls og kadence), og fjerner et felts data helt fra filen. Så er det heller ikke med i den fil, andre kan downloade.',
-                'Visninger, der bygger på feltet, forsvinder fra rutens side. Sletter du fx tiden, forsvinder hastighed og tid i bevægelse. Ændringen gemmes først, når du trykker Gem.'
-            ]
-        },
-        ele: {
-            title: 'Rediger højdedata',
-            text: [
-                'Viser, om ruten har højdedata, og rutens laveste og højeste punkt samt samlet stigning og fald.',
-                'Du kan hente højden for alle punkter fra internettet (en højdemodel med 30 m opløsning). Det overskriver de højder, filen har, og er ofte mere præcist end GPS\'ens egen højde. Du kan også slette al højdedata fra filen.',
-                'Ændringen gemmes først, når du trykker Gem.'
-            ]
-        },
-        thin: {
-            title: 'Udtynd punkter',
-            text: [
-                'Gør filen mindre ved at fjerne punkter, der ikke ændrer sporets form. Lige strækninger mister mange punkter, mens sving, slingrende stier og bakker bevares. Let, Middel og Kraftig tillader 2, 5 og 10 meters afvigelse fra det oprindelige spor.',
-                'Der bliver højst 50 m og 60 sekunder mellem de punkter, der er tilbage, så højdeprofil og fart stadig kan vises. Før noget gemmes, ser du, hvor mange punkter der fjernes.',
-                'Første gang gemmes den oprindelige fil, så du kan fortryde med Gendan original fil.'
+                'Vælger det billede, der viser ruten på kortet. Standard er aktivitetens egen markør.',
+                'Du kan vælge mellem aktivitetens markører og dem, der passer til alle aktiviteter. Skifter du aktivitet i editoren, og passer markøren ikke til den nye aktivitet, bruges den nye aktivitets standardmarkør.'
             ]
         },
         share: {

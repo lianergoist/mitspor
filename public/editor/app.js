@@ -12,6 +12,10 @@
      ?route=<id>, og alle senere Gem er almindelige opdateringer.
    - Ved en eksisterende rute sendes ingen metadata ved Gem —
      editor-save.php beholder dem, der allerede ligger i databasen.
+     Menuen (☰) har "Rediger metadata", som gemmer metadata for sig selv
+     via update-route-metadata.php, og værktøjerne "Slet datafelter",
+     "Rediger højdedata" og "Udtynd punkter", der ændrer ruten her i
+     editoren som almindelige ændringer, man kan fortryde og gemme.
    - Nye, håndtegnede punkter får IKKE noget tidsstempel (undgår
      misvisende hastighedsdata for ruter der ikke er GPS-optaget)
    - Har en rute mere end THIN_SUGGEST_POINTS punkter, spørges der om
@@ -35,6 +39,11 @@
   let currentFilename = null;
   let currentRouteId = null; // null = ny, endnu ikke gemt rute på platformen
   let thinnedSinceSave = false; // udtyndet i editoren: næste gem beder serveren gemme originalen
+  let routeMeta = null; // eksisterende rutes metadata (fra editor-load.php) til "Rediger metadata"
+  // Visningerne på rutens side: brugerens valg (null = ikke valgt endnu) og
+  // de visninger, filen havde data til ved sidste gem. Se enabledFunctionsForSave().
+  let enabledFunctions = null;
+  let availableFunctionsAtSave = [];
   const THIN_SUGGEST_POINTS = 2000;
 
   function setCurrentRouteId(id) {
@@ -1419,6 +1428,7 @@
     allowDownload: "meta-allow-download",
     publicNotice: "public-notice-field",
     anonymousField: "meta-anonymous-field",
+    timeInRuteNotice: "meta-time-in-rute-notice",
     publicNoticeAck: "meta-public-notice-ack"
   });
 
@@ -1427,8 +1437,66 @@
     const dialog = el("edit-meta-dialog");
     const errors = el("edit-meta-errors");
     if (errors) errors.hidden = true;
+    el("edit-meta-heading").textContent = "Gem ny rute";
+    el("btn-save-meta-label").textContent = "Gem rute";
     metaBehavior.refresh();
     if (dialog) dialog.showModal();
+  }
+
+  // "Rediger metadata" i menuen: samme dialog, udfyldt med den gemte rutes
+  // metadata. Gemmes for sig selv (saveExistingMeta), uden om Gem-knappen.
+  function openExistingMetaDialog() {
+    if (!currentRouteId || !routeMeta) return;
+    el("edit-meta-errors").hidden = true;
+    el("edit-meta-heading").textContent = "Rediger metadata";
+    el("btn-save-meta-label").textContent = "Gem ændringer";
+    el("meta-title").value = routeMeta.title;
+    el("meta-description").value = routeMeta.description || "";
+    el("meta-activity").value = String(routeMeta.activity_type_id);
+    if (el("meta-group")) el("meta-group").value = routeMeta.group_id || "";
+    const typeRadio = el(routeMeta.route_type === "spor" ? "meta-route-type-spor" : "meta-route-type-rute");
+    typeRadio.checked = true;
+    el(routeMeta.visibility === "public" ? "meta-visibility-public" : "meta-visibility-private").checked = true;
+    el("meta-allow-download").checked = !!routeMeta.allow_download;
+    el("meta-hide-uploader-name").checked = !!routeMeta.hide_uploader_name;
+    metaBehavior.setLoadedVisibility(routeMeta.visibility);
+    metaBehavior.setHasTimeData(!!state && window.GpxTools.detectFields(toolGpx()).indexOf("time") !== -1);
+    el("edit-meta-dialog").showModal();
+  }
+
+  async function saveExistingMeta(meta) {
+    const body = new URLSearchParams({
+      csrf_token: csrfToken(),
+      route_id: currentRouteId,
+      title: meta.title,
+      description: meta.description,
+      activity_type_id: meta.activityTypeId,
+      route_type: meta.routeType,
+      visibility: meta.visibility,
+      allow_download: meta.allowDownload ? "1" : "0",
+      hide_uploader_name: meta.hideUploaderName ? "1" : "0",
+      public_notice_ack: meta.publicNoticeAck ? "1" : "0"
+    });
+    if (meta.groupId !== null && meta.groupId !== undefined) body.append("group_id", meta.groupId);
+
+    const res = await fetch("../update-route-metadata.php", { method: "POST", body });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error((data.errors && data.errors.join(" ")) || `Ukendt fejl (status ${res.status}).`);
+    }
+
+    routeMeta = Object.assign(routeMeta, {
+      title: meta.title.trim(),
+      description: meta.description,
+      activity_type_id: parseInt(meta.activityTypeId, 10),
+      route_type: meta.routeType,
+      visibility: meta.visibility,
+      allow_download: meta.allowDownload,
+      hide_uploader_name: meta.hideUploaderName,
+      group_id: meta.groupId !== null && meta.groupId !== undefined ? meta.groupId : routeMeta.group_id
+    });
+    setRouteTitleLabel(routeMeta.title);
+    currentFilename = routeMeta.title + ".gpx";
   }
 
   // ---------- Ny fil ----------
@@ -1484,7 +1552,12 @@
       }
 
       setCurrentRouteId(data.route_id);
-      metaConfirmed = true; // eksisterende rute — metadata røres ikke af editoren
+      metaConfirmed = true; // eksisterende rute — metadata ændres kun via "Rediger metadata"
+      routeMeta = data;
+      enabledFunctions = Array.isArray(data.enabled_functions)
+        ? (window.gpxExpandFunctions ? window.gpxExpandFunctions(data.enabled_functions) : data.enabled_functions)
+        : null;
+      availableFunctionsAtSave = availableFunctionKeys(data.gpx_content);
       setRouteTitleLabel(data.title);
       const filename = data.title + ".gpx";
       const thinned = await askThin(data.gpx_content, data.route_id);
@@ -1540,6 +1613,8 @@
       b.textContent = `${label}: ${left.toLocaleString("da-DK")} punkter tilbage`;
       b.disabled = plans[tolerance].total === 0;
     });
+    el("thin-dialog-heading").textContent = "Mange punkter";
+    el("thin-dialog-skip").hidden = false;
     el("thin-dialog-text").textContent =
       `Ruten har ${before.toLocaleString("da-DK")} punkter. Det kan gøre editoren langsom, især på mobiltelefoner. Vil du udtynde den først?`;
 
@@ -1576,6 +1651,264 @@
       dialog.onclose = () => done(null); // Esc
       dialog.showModal();
     });
+  }
+
+  // ---------- Visninger på rutens side ----------
+  function availableFunctionKeys(content) {
+    const G = window.GpxTools;
+    try {
+      return G.availableFunctions(G.detectFields(G.parse(content))).map((fn) => fn.key);
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // Har brugeren selv valgt visninger (Visning af datafelter), slås de
+  // visninger til, som filen først nu har data til (fx højdeprofilen efter
+  // "Hent fra internettet"), så de faktisk vises. Svarer null, hvis intet
+  // skal sendes med; så beholder serveren valget.
+  function enabledFunctionsForSave(content) {
+    if (enabledFunctions === null) return null;
+    const added = availableFunctionKeys(content).filter(
+      (key) => availableFunctionsAtSave.indexOf(key) === -1 && enabledFunctions.indexOf(key) === -1
+    );
+    return added.length ? enabledFunctions.concat(added) : null;
+  }
+
+  // ---------- Værktøjer i menuen (Slet datafelter, Rediger højdedata, Udtynd punkter) ----------
+  // Værktøjerne fra assets/gpx-tools.js arbejder på deres egen udgave af
+  // filen. Den laves ud fra editorens nuværende rute, og resultatet lægges
+  // tilbage som en almindelig ændring, man kan fortryde og skal gemme.
+  function toolGpx() {
+    return window.GpxTools.parse(serializeGPX(state));
+  }
+
+  function applyToolGpx(gpx, message) {
+    pushHistory();
+    restoreStateFromXml(window.GpxTools.serialize(gpx), currentFilename, false);
+    render._hasFitBounds = true;
+    render();
+    markDirty();
+    setStatus(message);
+  }
+
+  function fieldLabel(field) {
+    return window.gpxFieldLabel ? window.gpxFieldLabel(field) : field;
+  }
+
+  // ---- Slet datafelter ----
+  function renderStripList() {
+    const G = window.GpxTools;
+    const list = el("strip-list");
+    list.innerHTML = "";
+    const detected = G.detectFields(toolGpx());
+    if (detected.length === 0) {
+      const li = document.createElement("li");
+      li.className = "thin-hint";
+      li.textContent = "Filen indeholder ingen datafelter ud over positionerne.";
+      list.appendChild(li);
+    }
+    detected.forEach((field) => {
+      const li = document.createElement("li");
+      li.className = "data-field-row";
+      const name = document.createElement("span");
+      name.className = "data-field-note";
+      name.textContent = fieldLabel(field);
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "btn-small btn-danger";
+      del.textContent = "Slet";
+      del.setAttribute("aria-label", "Slet " + fieldLabel(field));
+      del.addEventListener("click", () => stripField(field));
+      li.appendChild(name);
+      li.appendChild(del);
+      list.appendChild(li);
+    });
+  }
+
+  function stripField(field) {
+    const G = window.GpxTools;
+    const label = fieldLabel(field);
+    const gpx = toolGpx();
+    const detected = G.detectFields(gpx);
+    // Visninger, der forsvinder fra rutens side, når feltet er væk.
+    const after = G.availableFunctions(detected.filter((f) => f !== field)).map((fn) => fn.key);
+    const lost = G.availableFunctions(detected).filter((fn) => after.indexOf(fn.key) === -1).map((fn) => fn.label);
+
+    let msg = `Fjern alle "${label}"-værdier fra filen?`;
+    if (lost.length) msg += "\n\nDisse visninger forsvinder fra rutens side: " + lost.join(", ") + ".";
+    msg += "\n\nDu kan fortryde, og ændringen gemmes først, når du trykker Gem.";
+    if (!window.confirm(msg)) return;
+
+    const removed = G.stripField(gpx, field);
+    applyToolGpx(gpx, `Fjernede ${removed} "${label}"-værdi(er). Tryk Gem for at beholde det`);
+    renderStripList();
+  }
+
+  function openStripDialog() {
+    if (!state) return;
+    renderStripList();
+    el("strip-dialog").showModal();
+  }
+
+  // ---- Rediger højdedata ----
+  let eleBusy = false;
+
+  function meters(v) {
+    return Math.round(v).toLocaleString("da-DK") + " m";
+  }
+
+  // Samme beregning som serveren (gpx_compute_stats): summen af alle
+  // stigninger og fald mellem nabopunkter, inden for hvert segment.
+  function eleStats(gpx) {
+    const r = { total: 0, withEle: 0, min: null, max: null, gain: 0, loss: 0 };
+    gpx.segments.forEach((seg) => {
+      let prev = null;
+      seg.forEach((p) => {
+        r.total++;
+        const ele = p.ele === null || p.ele === "" ? null : parseFloat(p.ele);
+        if (ele !== null && !isNaN(ele)) {
+          r.withEle++;
+          r.min = r.min === null ? ele : Math.min(r.min, ele);
+          r.max = r.max === null ? ele : Math.max(r.max, ele);
+          if (prev !== null) {
+            if (ele > prev) r.gain += ele - prev;
+            else r.loss += prev - ele;
+          }
+          prev = ele;
+        } else {
+          prev = null;
+        }
+      });
+    });
+    return r;
+  }
+
+  function setEleStatus(text) {
+    el("ele-status").textContent = text || "";
+    el("ele-status").hidden = !text;
+  }
+
+  function renderEleDialog() {
+    const gpx = toolGpx();
+    const s = eleStats(gpx);
+    const rows = [["Punkter med højde", s.withEle.toLocaleString("da-DK") + " af " + s.total.toLocaleString("da-DK")]];
+    if (s.withEle > 0) {
+      rows.push(["Laveste punkt", meters(s.min)]);
+      rows.push(["Højeste punkt", meters(s.max)]);
+      rows.push(["Stigning i alt", meters(s.gain)]);
+      rows.push(["Fald i alt", meters(s.loss)]);
+    }
+    const stats = el("ele-stats");
+    stats.innerHTML = "";
+    rows.forEach((row) => {
+      const dt = document.createElement("dt");
+      dt.textContent = row[0];
+      const dd = document.createElement("dd");
+      dd.textContent = row[1];
+      stats.appendChild(dt);
+      stats.appendChild(dd);
+    });
+    el("ele-fetch").disabled = eleBusy;
+    el("ele-delete").hidden = s.withEle === 0;
+    el("ele-delete").disabled = eleBusy;
+  }
+
+  function openEleDialog() {
+    if (!state) return;
+    el("ele-errors").hidden = true;
+    if (!eleBusy) setEleStatus("");
+    renderEleDialog();
+    el("ele-dialog").showModal();
+  }
+
+  function fetchEle() {
+    const G = window.GpxTools;
+    const gpx = toolGpx();
+    const points = G.pointCount(gpx);
+    if (points === 0) {
+      setEleStatus("Ruten har ingen punkter at hente højdedata til.");
+      return;
+    }
+    const hasEle = eleStats(gpx).withEle > 0;
+    const ok = window.confirm(
+      `Hent højdedata fra internettet til alle ${points} punkter?` +
+      (hasEle ? " Det overskriver den højdedata, ruten har nu." : "") +
+      " Du kan fortryde, og ændringen gemmes først, når du trykker Gem."
+    );
+    if (!ok) return;
+
+    // Ruten må ikke ændres, mens højderne hentes: dialogen kan ikke lukkes
+    // undervejs, og resultatet lægges oven på den rute, der blev sendt af sted.
+    eleBusy = true;
+    el("ele-errors").hidden = true;
+    renderEleDialog();
+    G.fetchElevation(gpx, {
+      proxyUrl: "../elevation-proxy.php",
+      onProgress: (done, total) => setEleStatus(`Henter højdedata… (${done}/${total})`)
+    })
+      .then((result) => {
+        eleBusy = false;
+        applyToolGpx(gpx, `Højdedata hentet for ${result.updated} af ${result.total} punkter. Tryk Gem for at beholde det`);
+        setEleStatus(`Højdedata hentet for ${result.updated} af ${result.total} punkter. Tryk Gem for at beholde det.`);
+        renderEleDialog();
+      })
+      .catch((e) => {
+        eleBusy = false;
+        setEleStatus("");
+        el("ele-errors").textContent = "Fejl ved hentning af højdedata: " + e.message;
+        el("ele-errors").hidden = false;
+        renderEleDialog();
+      });
+  }
+
+  function deleteEle() {
+    if (!window.confirm("Fjern al højdedata fra ruten? Du kan fortryde, og ændringen gemmes først, når du trykker Gem.")) return;
+    const gpx = toolGpx();
+    const removed = window.GpxTools.stripField(gpx, "ele");
+    applyToolGpx(gpx, `Fjernede ${removed} højdeværdi(er). Tryk Gem for at beholde det`);
+    setEleStatus(`Fjernede ${removed} højdeværdi(er). Tryk Gem for at beholde det.`);
+    renderEleDialog();
+  }
+
+  // ---- Udtynd punkter ----
+  // Samme dialog som spørgsmålet ved mange punkter (askThin), men uden
+  // "Fortsæt uden at udtynde".
+  function openThinTool() {
+    if (!state) return;
+    const G = window.GpxTools;
+    const gpx = toolGpx();
+    const before = G.pointCount(gpx);
+    const dialog = el("thin-dialog");
+    const buttons = Array.from(dialog.querySelectorAll("[data-thin-tolerance]"));
+    const plans = {};
+    buttons.forEach((b) => {
+      const tolerance = parseInt(b.getAttribute("data-thin-tolerance"), 10);
+      const label = b.getAttribute("data-label") || b.textContent.trim();
+      b.setAttribute("data-label", label);
+      plans[tolerance] = G.thinPlan(gpx, tolerance);
+      const left = before - plans[tolerance].total;
+      b.textContent = `${label}: ${left.toLocaleString("da-DK")} punkter tilbage`;
+      b.disabled = plans[tolerance].total === 0;
+      b.onclick = () => {
+        G.applyThin(gpx, plans[tolerance]);
+        thinnedSinceSave = true;
+        dialog.close();
+        applyToolGpx(gpx, `Udtyndet (${label}): ${plans[tolerance].total} af ${before} punkter fjernet. Tryk Gem for at beholde det`);
+      };
+    });
+    el("thin-dialog-heading").textContent = "Udtynd punkter";
+    el("thin-dialog-text").textContent = buttons.every((b) => b.disabled)
+      ? `Ruten har ${before.toLocaleString("da-DK")} punkter. Der er ingen punkter, der kan fjernes.`
+      : `Ruten har ${before.toLocaleString("da-DK")} punkter. Hvor kraftigt skal den udtyndes?`;
+    el("thin-dialog-skip").hidden = true;
+    el("thin-dialog-close").onclick = () => dialog.close();
+    dialog.onclose = () => {
+      buttons.forEach((b) => { b.onclick = null; });
+      el("thin-dialog-close").onclick = null;
+      dialog.onclose = null;
+    };
+    dialog.showModal();
   }
 
   // ---------- Gemning (til platformen) ----------
@@ -1624,6 +1957,8 @@
       // Får serveren til at gemme originalen første gang (Gendan original fil).
       body.append("thin_interval", "1");
     }
+    const enabledForSave = enabledFunctionsForSave(content);
+    if (enabledForSave) body.append("enabled_functions", JSON.stringify(enabledForSave));
     if (meta) {
       // Metadata sendes KUN ved oprettelse. Ved en eksisterende rute beholder
       // editor-save.php de værdier, der ligger i databasen (de ændres i
@@ -1650,6 +1985,8 @@
       const wasNewRoute = !currentRouteId;
       setCurrentRouteId(data.route_id);
       thinnedSinceSave = false;
+      if (enabledForSave) enabledFunctions = enabledForSave;
+      availableFunctionsAtSave = availableFunctionKeys(content);
       markServerSaved();
       setStatus("Gemt på platformen");
 
@@ -1659,6 +1996,16 @@
         metaConfirmed = true;
         setRouteTitleLabel(meta.title);
         metaBehavior.setLoadedVisibility(meta.visibility);
+        routeMeta = {
+          title: meta.title.trim(),
+          description: meta.description,
+          activity_type_id: parseInt(meta.activityTypeId, 10),
+          route_type: meta.routeType,
+          visibility: meta.visibility,
+          allow_download: meta.allowDownload,
+          hide_uploader_name: meta.hideUploaderName,
+          group_id: meta.groupId || ""
+        };
         try {
           window.history.replaceState(null, "", "?route=" + encodeURIComponent(String(data.route_id)));
         } catch (e) {
@@ -1757,9 +2104,9 @@
       });
     }
 
-    // ---- Metadata-dialog (kun første gem af en NY rute) ----
-    // Eksisterende ruters metadata redigeres i kontrolpanelet. Dialogen her
-    // åbnes af saveToServer(), når en ny rute gemmes første gang.
+    // ---- Metadata-dialog ----
+    // En NY rute: åbnes af saveToServer(), når ruten gemmes første gang.
+    // En gemt rute: "Rediger metadata" i menuen; gemmes med det samme.
     const editMetaDialog = el("edit-meta-dialog");
     const editMetaClose = el("edit-meta-dialog-close");
     const btnSaveMetaDialog = el("btn-save-meta-dialog");
@@ -1791,6 +2138,20 @@
           return;
         }
 
+        if (currentRouteId) {
+          btnSaveMetaDialog.disabled = true;
+          try {
+            await saveExistingMeta(meta);
+            editMetaDialog.close();
+            setStatus("Metadata gemt");
+          } catch (e) {
+            showMetaDialogError(e.message || "Der skete en fejl. Prøv igen.");
+          } finally {
+            btnSaveMetaDialog.disabled = false;
+          }
+          return;
+        }
+
         metaConfirmed = true;
         editMetaDialog.close();
         await saveToServer();
@@ -1803,8 +2164,69 @@
     }
     // ---- Hjælp-dialog ----
     const helpDialog = el("help-dialog");
-    const btnHelp = el("btn-help");
     const btnCloseHelp = el("btn-close-help");
+
+    // ---- Menuen (☰) ----
+    const btnMenu = el("btn-menu");
+    const menu = el("editor-menu");
+    function setMenuOpen(open) {
+      menu.hidden = !open;
+      btnMenu.setAttribute("aria-expanded", open ? "true" : "false");
+      if (open) {
+        // "Rediger metadata" kræver, at ruten findes på platformen.
+        const metaItem = menu.querySelector('[data-menu="meta"]');
+        metaItem.disabled = !currentRouteId || !routeMeta;
+        metaItem.title = metaItem.disabled ? "Gem ruten først" : "";
+        menu.querySelectorAll('[data-menu="strip"], [data-menu="ele"], [data-menu="thin"]').forEach((b) => {
+          b.disabled = !state || countPoints() === 0;
+        });
+      }
+    }
+    btnMenu.addEventListener("click", (e) => {
+      e.stopPropagation();
+      setMenuOpen(menu.hidden);
+    });
+    document.addEventListener("click", (e) => {
+      if (!menu.hidden && !menu.contains(e.target)) setMenuOpen(false);
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !menu.hidden) {
+        setMenuOpen(false);
+        btnMenu.focus();
+      }
+    });
+    const menuActions = {
+      meta: openExistingMetaDialog,
+      strip: openStripDialog,
+      ele: openEleDialog,
+      thin: openThinTool,
+      help: () => helpDialog.showModal()
+    };
+    menu.querySelectorAll("[data-menu]").forEach((item) => {
+      item.addEventListener("click", () => {
+        setMenuOpen(false);
+        menuActions[item.getAttribute("data-menu")]();
+      });
+    });
+
+    // ---- Værktøjsdialoger ----
+    const stripDialog = el("strip-dialog");
+    el("strip-dialog-close").addEventListener("click", () => stripDialog.close());
+    stripDialog.addEventListener("click", (e) => {
+      if (e.target === stripDialog) stripDialog.close();
+    });
+    const eleDialog = el("ele-dialog");
+    el("ele-dialog-close").addEventListener("click", () => {
+      if (!eleBusy) eleDialog.close();
+    });
+    eleDialog.addEventListener("click", (e) => {
+      if (e.target === eleDialog && !eleBusy) eleDialog.close();
+    });
+    eleDialog.addEventListener("cancel", (e) => {
+      if (eleBusy) e.preventDefault(); // Esc, mens højderne hentes
+    });
+    el("ele-fetch").addEventListener("click", fetchEle);
+    el("ele-delete").addEventListener("click", deleteEle);
 
     // ---- Hjælp-dialog for metadata (Rute/Spor og synlighed) ----
     const metaHelpDialog = el("meta-help-dialog");
@@ -1827,9 +2249,6 @@
     if (btnUndo) btnUndo.addEventListener("click", performUndo);
     if (btnRedo) btnRedo.addEventListener("click", performRedo);
 
-    if (btnHelp && helpDialog) {
-      btnHelp.addEventListener("click", () => helpDialog.showModal());
-    }
     if (btnCloseHelp && helpDialog) {
       btnCloseHelp.addEventListener("click", () => helpDialog.close());
     }
