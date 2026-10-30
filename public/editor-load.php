@@ -19,7 +19,7 @@ $publicId = (string) ($_GET['id'] ?? '');
 $pdo = get_db();
 $stmt = $pdo->prepare(
     "SELECT r.id, r.public_id, r.title, r.description, r.activity_type_id, r.route_type, r.visibility, r.allow_download, r.hide_uploader_name, r.gpx_file_path, r.enabled_data_fields, r.enabled_functions,
-            g.public_id AS group_public_id
+            g.public_id AS group_public_id, g.title AS group_title
      FROM routes r
      LEFT JOIN route_groups g ON g.id = r.group_id
      WHERE r.public_id = :public_id AND r.user_id = :user_id AND r.status = 'active'
@@ -66,6 +66,7 @@ echo json_encode([
     'allow_download'   => (bool) $route['allow_download'],
     'hide_uploader_name' => (bool) $route['hide_uploader_name'],
     'group_id'         => $route['group_public_id'] ?? '',
+    'group_title'      => $route['group_title'] ?? '', // til Opdel-tilstand
     'enabled_data_fields' => $enabledDataFields, // liste af feltnavne, eller null = "ikke sat endnu"
     'enabled_functions'   => $enabledFunctions,   // liste af funktionsnøgler, eller null = "ikke sat endnu"
     'gpx_content'      => file_get_contents($fullPath),

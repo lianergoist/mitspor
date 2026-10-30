@@ -42,6 +42,22 @@
   // Markeringen: id på første og sidste punkt (b er null, indtil det andet
   // punkt er valgt). Punkternes id'er skifter ved fortryd, så den nulstilles dér.
   let selection = { a: null, b: null };
+  // Opdel-tilstand: delepunkterne (punkt-id -> "at" = punktet slutter én
+  // etape og begynder den næste, "before" = ny etape begynder ved punktet,
+  // brugt ved filens egne spor). Har sin egen fortryd-historik, som
+  // Fortryd/Gentag bruger i opdel-tilstand. Nulstilles, når punkternes
+  // id'er skifter (fortryd af en anden ændring, indlæsning).
+  let splitCuts = new Map();
+  let splitUndo = [];
+  let splitRedo = [];
+  // Hele gruppen åbnet (editor/?group=…): etaperne ligger i én samlet fil,
+  // hvor hver etapes <wpt>, <rte> og <trk> er mærket med attributten
+  // STAGE_ATTR (etapens nummer fra 0). Ved Gem deles filen op igen, og kun
+  // de etaper, der er ændret, gemmes (se saveGroup()).
+  // { id, title, stages: [{ meta, template, saved, enabledFunctions, availableAtSave }] }
+  let groupMode = null;
+  let metaStage = 0; // etapen, "Rediger metadata" gælder i gruppe-tilstand
+  const STAGE_ATTR = "mitspor-etape";
   let currentFilename = null;
   let currentRouteId = null; // null = ny, endnu ikke gemt rute på platformen
   let thinnedSinceSave = false; // udtyndet i editoren: næste gem beder serveren gemme originalen
@@ -106,11 +122,16 @@
   function updateUndoRedoButtons() {
     const btnUndo = el("btn-undo");
     const btnRedo = el("btn-redo");
-    if (btnUndo) btnUndo.disabled = historyStack.length === 0;
-    if (btnRedo) btnRedo.disabled = redoStack.length === 0;
+    const splitting = editMode === "split";
+    if (btnUndo) btnUndo.disabled = (splitting ? splitUndo : historyStack).length === 0;
+    if (btnRedo) btnRedo.disabled = (splitting ? splitRedo : redoStack).length === 0;
   }
 
   function performUndo() {
+    if (editMode === "split") {
+      undoSplitCut(splitUndo, splitRedo, "Fortrudt");
+      return;
+    }
     if (historyStack.length === 0 || !state) return;
     const currentXmlStr = new XMLSerializer().serializeToString(state.xml);
     redoStack.push({ xmlStr: currentXmlStr, filename: currentFilename });
@@ -132,6 +153,10 @@
   }
 
   function performRedo() {
+    if (editMode === "split") {
+      undoSplitCut(splitRedo, splitUndo, "Gentaget");
+      return;
+    }
     if (redoStack.length === 0 || !state) return;
     const currentXmlStr = new XMLSerializer().serializeToString(state.xml);
     historyStack.push({ xmlStr: currentXmlStr, filename: currentFilename });
@@ -148,6 +173,7 @@
     const parsed = parseGPX(xmlStr);
     state = parsed;
     selection = { a: null, b: null };
+    resetSplit();
     currentFilename = filename;
     if (resetHistory) {
       historyStack = [];
@@ -233,6 +259,10 @@
 
       if (editMode === "select") {
         setStatus(selectionHint());
+        return;
+      }
+      if (editMode === "split") {
+        setStatus(splitHint());
         return;
       }
 
@@ -612,6 +642,7 @@
     const allLatLngs = [];
 
     const selecting = editMode === "select";
+    const splitting = editMode === "split";
     const selected = selectedIdSet();
 
     const trackIcon = L.divIcon({
@@ -626,12 +657,34 @@
       iconSize: [40, 40],
       iconAnchor: [20, 20]
     });
+    const splitIcon = L.divIcon({
+      className: "touch-marker",
+      html: '<div class="dot-track dot-split"></div>',
+      iconSize: [40, 40],
+      iconAnchor: [20, 20]
+    });
+
+    // En hel gruppe: prikkerne får etapens farve (uden for opdel-tilstand).
+    const stageIcons = {};
+    const stageIcon = (stage) => stageIcons[stage] || (stageIcons[stage] = L.divIcon({
+      className: "touch-marker",
+      html: `<div class="dot-track" style="background-color:${stageColor(stage)}"></div>`,
+      iconSize: [40, 40],
+      iconAnchor: [20, 20]
+    }));
 
     state.segments.forEach((seg) => {
       const latlngs = seg.map((p) => [p.lat, p.lon]);
+      const segStage = groupMode && seg.length ? Math.max(0, topStage(seg[0].node)) : 0;
+      const pointIcon = groupMode && !splitting ? stageIcon(segStage) : trackIcon;
       allLatLngs.push(...latlngs);
       if (latlngs.length > 1) {
-        L.polyline(latlngs, { color: "#2563eb", weight: 3, opacity: 0.8, pane: "trackPane" }).addTo(trackLayer);
+        // I opdel-tilstand tegnes etaperne i hver sin farve (længere nede).
+        // En hel gruppe: hver etape i sin farve.
+        if (!splitting) {
+          const color = groupMode ? stageColor(segStage) : "#2563eb";
+          L.polyline(latlngs, { color, weight: 3, opacity: 0.8, pane: "trackPane" }).addTo(trackLayer);
+        }
         // Den markerede strækning tegnes oven på, i grøn (orange er waypoints).
         selectedRuns(seg, selected).forEach((run) => {
           L.polyline(run, { color: "#16a34a", weight: 6, opacity: 0.9, pane: "trackPane", interactive: false }).addTo(trackLayer);
@@ -640,9 +693,9 @@
           .addTo(trackLayer)
           .on("click", (e) => {
             L.DomEvent.stopPropagation(e);
-            // I markerings-tilstand indsætter et klik på linjen ikke et punkt.
-            if (selecting) {
-              setStatus(selectionHint());
+            // I markerings- og opdel-tilstand indsætter et klik på linjen ikke et punkt.
+            if (selecting || splitting) {
+              setStatus(selecting ? selectionHint() : splitHint());
               return;
             }
             insertTrackpointOnSegment(seg, e.layerPoint);
@@ -650,15 +703,20 @@
       }
 
       seg.forEach((p) => {
-        // I markerings-tilstand kan punkterne ikke trækkes; et tryk markerer.
+        // I markerings- og opdel-tilstand kan punkterne ikke trækkes; et
+        // tryk markerer eller sætter/fjerner et delepunkt.
         const marker = L.marker([p.lat, p.lon], {
-          icon: selected.has(p.id) ? selectedIcon : trackIcon,
-          draggable: !selecting,
+          icon: splitting && splitCuts.has(p.id) ? splitIcon : (selected.has(p.id) ? selectedIcon : pointIcon),
+          draggable: !selecting && !splitting,
           pane: "trackMarkerPane"
         }).addTo(trackLayer);
 
         if (selecting) {
           marker.on("click", () => selectPoint(p.id));
+          return;
+        }
+        if (splitting) {
+          marker.on("click", () => toggleSplitCut(p.id));
           return;
         }
 
@@ -776,7 +834,16 @@
       render._hasFitBounds = true;
     }
 
+    if (splitting) {
+      splitStages().forEach((stage, i) => {
+        stageRuns(stage).forEach((run) => {
+          L.polyline(run, { color: stageColor(i), weight: 5, opacity: 0.9, pane: "trackPane", interactive: false }).addTo(trackLayer);
+        });
+      });
+    }
+
     updateSelectionBar();
+    updateSplitBar();
   }
 
   // ---------- Markering ----------
@@ -784,13 +851,18 @@
   const EDIT_MODES = [
     { key: "route", icon: "🔵", label: "Rute-tilstand", hint: "Klik tegner ruten" },
     { key: "waypoint", icon: "📍", label: "Waypoint-tilstand", hint: "Klik sætter et waypoint" },
-    { key: "select", icon: "🟢", label: "Markerings-tilstand", hint: "Tryk på to punkter" }
+    { key: "select", icon: "🟢", label: "Markerings-tilstand", hint: "Tryk på to punkter" },
+    { key: "split", icon: "✂️", label: "Opdel-tilstand", hint: "Del ruten i etaper" }
   ];
 
   // Alle punkter i filens rækkefølge, med segmentets nummer.
   function flatPoints() {
     const out = [];
-    state.segments.forEach((seg, segIndex) => seg.forEach((p) => out.push({ p, segIndex })));
+    state.segments.forEach((seg, segIndex) => {
+      // Etapen (gruppe-tilstand): -1 = ikke mærket (fx nye punkter i et nyt spor).
+      const stage = groupMode && seg.length ? topStage(seg[0].node) : 0;
+      seg.forEach((p) => out.push({ p, segIndex, stage }));
+    });
     return out;
   }
 
@@ -1003,12 +1075,21 @@
 
   // ---- Gem markeringen som et nyt spor ----
   function currentRouteTitle() {
+    if (groupMode) return groupMode.title;
     return routeMeta ? routeMeta.title : (el("meta-title").value.trim() || "Ny rute");
+  }
+
+  // Metadata, en markering arver: rutens, eller i en gruppe etapen for
+  // markeringens første punkt.
+  function selectionMeta(pts) {
+    if (groupMode && pts.length) return groupMode.stages[Math.max(0, pts[0].stage)].meta;
+    return routeMeta;
   }
 
   function openSaveSelectionDialog() {
     const pts = selectedPoints();
     if (pts.length < 2) return;
+    const routeMeta = selectionMeta(pts);
     el("save-selection-errors").hidden = true;
     el("save-selection-form").hidden = false;
     el("save-selection-done").hidden = true;
@@ -1027,32 +1108,58 @@
   // extensions på punkterne) beholdes; waypoints, metadata og andre spor
   // kommer ikke med. Punkter fra en <rte> bliver til <trkpt>.
   function selectionGpx(pts, title) {
+    return partGpx(pts, title, [], false);
+  }
+
+  // En ny GPX-fil med punkterne pts (fra flatPoints()) og waypoints wpts.
+  // keepRte: punkter fra en <rte> bliver i en <rte> (ellers <trkpt>).
+  function partGpx(pts, title, wpts, keepRte) {
     const doc = state.xml.cloneNode(true);
     const root = doc.documentElement;
     const ns = state.ns;
     Array.from(root.children)
       .filter((c) => ["metadata", "wpt", "rte", "trk"].includes(c.localName))
       .forEach((c) => c.remove());
+    // <extensions> på rodniveau skal stå sidst i filen; rækkefølgen er wpt, rte, trk.
+    const rootExt = Array.from(root.children).find((c) => c.localName === "extensions") || null;
 
-    const trk = doc.createElementNS(ns, "trk");
-    const name = doc.createElementNS(ns, "name");
-    name.textContent = title;
-    trk.appendChild(name);
-    let seg = null, segIndex = null;
+    wpts.forEach((w) => {
+      const node = doc.importNode(w.node, true);
+      if (node.removeAttribute) node.removeAttribute(STAGE_ATTR);
+      root.insertBefore(node, rootExt);
+    });
+
+    function named(tag) {
+      const node = doc.createElementNS(ns, tag);
+      const name = doc.createElementNS(ns, "name");
+      name.textContent = title;
+      node.appendChild(name);
+      return node;
+    }
+    let trk = null;
+    let seg = null, segIndex = null, pointTag = "trkpt";
     pts.forEach((x) => {
       if (seg === null || x.segIndex !== segIndex) {
-        seg = doc.createElementNS(ns, "trkseg");
-        trk.appendChild(seg);
         segIndex = x.segIndex;
+        if (keepRte && x.p.node.parentNode && x.p.node.parentNode.localName === "rte") {
+          seg = named("rte");
+          pointTag = "rtept";
+          root.insertBefore(seg, trk || rootExt);
+        } else {
+          if (!trk) {
+            trk = named("trk");
+            root.insertBefore(trk, rootExt);
+          }
+          seg = doc.createElementNS(ns, "trkseg");
+          pointTag = "trkpt";
+          trk.appendChild(seg);
+        }
       }
-      const pt = doc.createElementNS(ns, "trkpt");
+      const pt = doc.createElementNS(ns, pointTag);
       Array.from(x.p.node.attributes).forEach((a) => pt.setAttribute(a.name, a.value));
       Array.from(x.p.node.childNodes).forEach((c) => pt.appendChild(doc.importNode(c, true)));
       seg.appendChild(pt);
     });
-    // <extensions> på rodniveau skal stå sidst i filen.
-    const rootExt = Array.from(root.children).find((c) => c.localName === "extensions");
-    root.insertBefore(trk, rootExt || null);
 
     let out = new XMLSerializer().serializeToString(doc);
     if (!out.startsWith("<?xml")) out = '<?xml version="1.0" encoding="UTF-8"?>\n' + out;
@@ -1061,6 +1168,7 @@
 
   async function saveSelectionAsRoute() {
     const pts = selectedPoints();
+    const routeMeta = selectionMeta(pts);
     const title = el("save-selection-title").value.trim();
     const errors = el("save-selection-errors");
     errors.hidden = true;
@@ -1105,6 +1213,566 @@
       errors.hidden = false;
       btn.disabled = false;
     }
+  }
+
+  // ---------- Opdel-tilstand ----------
+  // Ruten deles i etaper ved delepunkter. Intet gemmes, før man trykker
+  // "Gem som gruppe": så bliver ruten etape 1, og de øvrige etaper oprettes
+  // som nye ruter i en gruppe (editor-split-save.php).
+  // Ingen grøn (markeringen) og ingen orange/lilla (waypoints).
+  const STAGE_COLORS = ["#2563eb", "#dc2626", "#0891b2", "#db2777", "#1e293b", "#92400e", "#7c3aed", "#0f766e"];
+
+  function stageColor(i) {
+    return STAGE_COLORS[i % STAGE_COLORS.length];
+  }
+
+  function resetSplit() {
+    splitCuts = new Map();
+    splitUndo = [];
+    splitRedo = [];
+    updateUndoRedoButtons();
+  }
+
+  // Etaperne som lister af punkter fra flatPoints(). Ved et "at"-delepunkt
+  // står punktet i begge etaper, medmindre det er første eller sidste punkt
+  // i sit segment (så kommer der ikke et segment med ét punkt).
+  function splitStages() {
+    const flat = flatPoints();
+    const stages = [];
+    let cur = [];
+    flat.forEach((x, i) => {
+      const cut = splitCuts.get(x.p.id);
+      const prev = flat[i - 1];
+      const next = flat[i + 1];
+      const firstInSeg = !prev || prev.segIndex !== x.segIndex;
+      const newStage = !!prev && prev.stage !== x.stage; // gruppe-tilstand: etaperne holdes adskilt
+      if (cur.length && (cut === "before" || (cut === "at" && firstInSeg) || newStage)) {
+        stages.push(cur);
+        cur = [];
+      }
+      cur.push(x);
+      if (cut === "at" && !firstInSeg && next) {
+        stages.push(cur);
+        cur = next.segIndex === x.segIndex ? [x] : [];
+      }
+    });
+    if (cur.length) stages.push(cur);
+    return stages;
+  }
+
+  // Etapens punkter delt op pr. segment (til linjerne på kortet).
+  function stageRuns(stage) {
+    const runs = [];
+    let run = [], segIndex = null;
+    stage.forEach((x) => {
+      if (x.segIndex !== segIndex && run.length) {
+        runs.push(run);
+        run = [];
+      }
+      segIndex = x.segIndex;
+      run.push([x.p.lat, x.p.lon]);
+    });
+    if (run.length > 1) runs.push(run);
+    return runs.filter((r) => r.length > 1);
+  }
+
+  function splitHint() {
+    if (!state || countPoints() < 2) return "Opdel-tilstand: ruten har for få punkter til at blive delt.";
+    const n = splitStages().length;
+    if (n <= splitBaseCount()) return "Opdel-tilstand: tryk på de punkter, hvor en ny etape skal begynde.";
+    return groupMode
+      ? `Gruppen får ${n} etaper i stedet for ${splitBaseCount()}. Tryk på et delepunkt igen for at fjerne det.`
+      : `Ruten er delt i ${n} etaper. Tryk på et delepunkt igen for at fjerne det.`;
+  }
+
+  // Antal etaper uden delepunkter: 1, eller gruppens etaper.
+  function splitBaseCount() {
+    return groupMode ? groupMode.stages.length : 1;
+  }
+
+  function changeSplitCuts(fn) {
+    splitUndo.push(new Map(splitCuts));
+    if (splitUndo.length > MAX_HISTORY) splitUndo.shift();
+    splitRedo = [];
+    fn();
+    updateUndoRedoButtons();
+    render._hasFitBounds = true;
+    render();
+    setStatus(splitHint());
+  }
+
+  function undoSplitCut(from, to, label) {
+    if (!from.length) return;
+    to.push(new Map(splitCuts));
+    splitCuts = from.pop();
+    updateUndoRedoButtons();
+    render._hasFitBounds = true;
+    render();
+    setStatus(`${label}. ${splitHint()}`);
+  }
+
+  function toggleSplitCut(id) {
+    const flat = flatPoints();
+    const i = flat.findIndex((x) => x.p.id === id);
+    const edge = i <= 0 || i === flat.length - 1
+      || (groupMode && (flat[i - 1].stage !== flat[i].stage || flat[i + 1].stage !== flat[i].stage));
+    if (!splitCuts.has(id) && edge) {
+      setStatus(groupMode
+        ? "En etapes første og sidste punkt kan ikke være delepunkter."
+        : "Rutens første og sidste punkt kan ikke være delepunkter.");
+      return;
+    }
+    changeSplitCuts(() => {
+      if (splitCuts.has(id)) splitCuts.delete(id);
+      else splitCuts.set(id, "at");
+    });
+  }
+
+  // Del ved filens egne spor/segmenter: en ny etape ved hvert segment.
+  function splitAtSegments() {
+    changeSplitCuts(() => {
+      splitCuts = new Map();
+      state.segments.forEach((seg, i) => {
+        if (i > 0 && seg.length) splitCuts.set(seg[0].id, "before");
+      });
+    });
+  }
+
+  function stageDistance(stage) {
+    const cum = selectionDistances(stage);
+    return cum[cum.length - 1];
+  }
+
+  function updateSplitBar() {
+    const bar = el("split-bar");
+    if (!bar) return;
+    const show = editMode === "split" && !!state && countPoints() > 1;
+    bar.hidden = !show;
+    if (!show) return;
+    const n = splitStages().length;
+    const base = splitBaseCount();
+    el("split-summary").textContent = n <= base
+      ? "Ingen delepunkter"
+      : (groupMode ? `${base} → ${n} etaper` : `${n} etaper`);
+    el("btn-split-save").disabled = n <= base;
+    el("btn-split-clear").disabled = splitCuts.size === 0;
+    el("btn-split-segments").hidden =
+      state.segments.filter((seg) => seg.length).length <= (groupMode ? groupMode.stages.length : 1);
+  }
+
+  // Hvert waypoint kommer med i den etape, hvis spor ligger nærmest.
+  function waypointsByStage(stages, wpts = state.waypoints) {
+    const out = stages.map(() => []);
+    wpts.forEach((w) => {
+      let best = 0, bestD = Infinity;
+      stages.forEach((stage, i) => {
+        stage.forEach((x) => {
+          const d = map.distance([w.lat, w.lon], [x.p.lat, x.p.lon]);
+          if (d < bestD) {
+            bestD = d;
+            best = i;
+          }
+        });
+      });
+      out[best].push(w);
+    });
+    return out;
+  }
+
+  // Hvad der deles: én post pr. rute, der deles, med dens dele. For én rute
+  // er det ruten selv; i gruppe-tilstand hver etape, der har delepunkter.
+  function splitPlan() {
+    const parts = splitStages();
+    if (!groupMode) {
+      return [{ stage: null, routeId: currentRouteId, title: currentRouteTitle(), parts, first: 0, wpts: state.waypoints }];
+    }
+    const owners = waypointOwners();
+    const plan = [];
+    parts.forEach((part, i) => {
+      const stage = Math.max(0, part[0].stage);
+      let entry = plan.find((e) => e.stage === stage);
+      if (!entry) {
+        const meta = groupMode.stages[stage].meta;
+        entry = {
+          stage, routeId: meta.route_id, title: meta.title, parts: [], first: i,
+          wpts: state.waypoints.filter((w) => owners.get(w.node) === stage)
+        };
+        plan.push(entry);
+      }
+      entry.parts.push(part);
+    });
+    return plan.filter((e) => e.parts.length > 1);
+  }
+
+  function openSplitDialog() {
+    const plan = splitPlan();
+    if (!plan.length) return;
+    const errors = el("split-errors");
+    errors.hidden = true;
+    const saved = !!currentRouteId && !!routeMeta;
+    if (!saved) {
+      errors.textContent = "Gem ruten først. Derefter kan den deles i etaper.";
+      errors.hidden = false;
+    }
+    el("split-form").hidden = false;
+    el("split-done").hidden = true;
+    el("btn-split-confirm").hidden = false;
+    el("btn-split-confirm").disabled = !saved;
+
+    // Er ruten allerede en etape, hedder delene "del 1, 2 …" (ikke "etape 1 – etape 1").
+    const inGroup = !!groupMode || !!(routeMeta && routeMeta.group_id);
+    el("split-group-fields").hidden = inGroup;
+    el("split-group-title").value = currentRouteTitle();
+    el("split-group-text").textContent = groupMode
+      ? `De nye etaper sættes ind i gruppen "${groupMode.title}" lige efter den etape, de er delt fra.${isAnyDirty() ? " Dine øvrige ændringer gemmes først." : ""}`
+      : (inGroup
+        ? `Etaperne sættes ind i gruppen "${routeMeta.group_title}" lige efter denne rute.`
+        : "Etaperne samles i en ny gruppe.");
+
+    el("split-heading").textContent = groupMode ? "Del etaper" : "Gem etaperne som gruppe";
+    el("split-intro").textContent = groupMode
+      ? "Den etape, du deler, bliver del 1 og beholder sit link. De øvrige dele oprettes som nye ruter med samme aktivitet, type, synlighed og markør. Waypoints kommer med i den del, de ligger nærmest."
+      : "Den rute, du redigerer, bliver etape 1 og beholder sit link. De øvrige etaper oprettes som nye ruter med samme aktivitet, type, synlighed og markør. Waypoints kommer med i den etape, de ligger nærmest.";
+
+    const list = el("split-stage-list");
+    list.innerHTML = "";
+    plan.forEach((entry, e) => {
+      entry.parts.forEach((part, j) => {
+        const li = document.createElement("li");
+        const label = document.createElement("label");
+        const head = document.createElement("span");
+        head.className = "split-stage-head";
+        head.innerHTML = `<span class="split-swatch" style="background:${stageColor(entry.first + j)}"></span>`;
+        const name = groupMode ? `Etape ${entry.stage + 1}, del ${j + 1}` : `Etape ${j + 1}`;
+        head.appendChild(document.createTextNode(
+          `${name} · ${formatKm(stageDistance(part))} · ${part.length.toLocaleString("da-DK")} punkter`
+        ));
+        const input = document.createElement("input");
+        input.type = "text";
+        input.maxLength = 200;
+        input.value = inGroup ? `${entry.title} – del ${j + 1}` : `${entry.title} – etape ${j + 1}`;
+        input.setAttribute("data-split-entry", String(e));
+        input.setAttribute("data-split-part", String(j));
+        label.appendChild(head);
+        label.appendChild(input);
+        li.appendChild(label);
+        list.appendChild(li);
+      });
+    });
+    el("split-dialog").showModal();
+  }
+
+  function newEtaper(n) {
+    return n === 1 ? "1 ny etape er" : `${n} nye etaper er`;
+  }
+
+  async function saveSplit() {
+    const plan = splitPlan();
+    const errors = el("split-errors");
+    errors.hidden = true;
+    function fail(msg) {
+      errors.textContent = msg;
+      errors.hidden = false;
+    }
+
+    const inputs = Array.from(document.querySelectorAll("[data-split-entry]"));
+    if (inputs.length !== plan.reduce((n, e) => n + e.parts.length, 0)) {
+      fail("Etaperne er ændret. Luk dialogen og prøv igen.");
+      return;
+    }
+    plan.forEach((entry) => { entry.titles = []; });
+    inputs.forEach((inp) => {
+      plan[+inp.getAttribute("data-split-entry")].titles[+inp.getAttribute("data-split-part")] = inp.value.trim();
+    });
+    for (const entry of plan) {
+      const name = (j) => (groupMode ? `etape ${entry.stage + 1}, del ${j + 1}` : `etape ${j + 1}`);
+      const shortTitle = entry.titles.findIndex((t) => t.length < 2);
+      if (shortTitle !== -1) {
+        fail(`Titlen på ${name(shortTitle)} skal være mindst 2 tegn.`);
+        return;
+      }
+      const fewPoints = entry.parts.findIndex((part) => part.length < 2);
+      if (fewPoints !== -1) {
+        fail(`${name(fewPoints).replace(/^e/, "E")} har kun ét punkt. En etape skal have mindst to.`);
+        return;
+      }
+    }
+    const groupTitle = el("split-group-title").value.trim();
+    if (!el("split-group-fields").hidden && groupTitle.length < 2) {
+      fail("Gruppens titel skal være mindst 2 tegn.");
+      return;
+    }
+
+    const btn = el("btn-split-confirm");
+    btn.disabled = true;
+
+    // I en gruppe gemmes de øvrige ændringer først, så de ikke går tabt,
+    // når gruppen indlæses igen bagefter.
+    if (groupMode && isAnyDirty()) {
+      setStatus("Gemmer ændringerne først …");
+      if (!(await saveGroup())) {
+        fail("Dine ændringer kunne ikke gemmes, så etaperne er ikke delt. Prøv igen.");
+        btn.disabled = false;
+        return;
+      }
+    }
+    setStatus("Gemmer etaperne …");
+
+    let newCount = 0;
+    let groupId = groupMode ? groupMode.id : "";
+    let groupCreated = false;
+    let done = 0;
+    try {
+      for (const entry of plan) {
+        const wpts = waypointsByStage(entry.parts, entry.wpts);
+        const payload = entry.parts.map((part, j) => ({
+          title: entry.titles[j],
+          gpx: partGpx(part, entry.titles[j], wpts[j], true)
+        }));
+        const meta = groupMode ? groupMode.stages[entry.stage].meta : routeMeta;
+        const body = new URLSearchParams({
+          csrf_token: csrfToken(),
+          route_id: entry.routeId,
+          stages: JSON.stringify(payload),
+          group_title: groupTitle,
+          group_description: meta.description || ""
+        });
+        const res = await fetch("../editor-split-save.php", { method: "POST", body });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          const prefix = groupMode && plan.length > 1 ? `Etape ${entry.stage + 1}: ` : "";
+          throw new Error(prefix + ((data.errors && data.errors.join(" ")) || `Ukendt fejl (status ${res.status}).`));
+        }
+        newCount += entry.parts.length - 1;
+        groupId = String(data.group_id);
+        groupCreated = !!data.group_created;
+        done++;
+      }
+    } catch (e) {
+      // Deles flere etaper, kan de første allerede være gemt.
+      if (done) {
+        fail(`${e.message || "Der skete en fejl."} De første ${done} etaper er delt. Gruppen indlæses igen.`);
+        await loadGroup(groupMode.id);
+      } else {
+        fail(e.message || "Der skete en fejl. Prøv igen.");
+        btn.disabled = false;
+        setStatus("Etaperne blev ikke gemt");
+      }
+      return;
+    }
+
+    el("split-form").hidden = true;
+    btn.hidden = true;
+    const total = plan[0].parts.length;
+    el("split-done-text").textContent = groupMode
+      ? `${newEtaper(newCount)} sat ind i gruppen "${groupMode.title}".`
+      : (groupCreated
+        ? `Ruten er delt i ${total} etaper og samlet i den nye gruppe "${groupTitle}".`
+        : `Ruten er delt i ${total} etaper i gruppen "${routeMeta.group_title}".`);
+    el("split-open-group").href = "../group-view.php?id=" + encodeURIComponent(groupId);
+    el("split-done").hidden = false;
+    thinnedSinceSave = false;
+    if (groupMode) {
+      await loadGroup(groupMode.id);
+      setStatus(`${newEtaper(newCount)} sat ind i gruppen`);
+    } else {
+      // Editoren viser nu etape 1 — den rute, der blev delt.
+      await loadFromServer(currentRouteId);
+      setStatus(`Ruten er delt i ${total} etaper. Editoren viser etape 1`);
+    }
+  }
+
+  // ---------- Hel gruppe i editoren ----------
+  // Etapen, et element i den samlede fil hører til: attributten på dets
+  // øverste forfader under <gpx>. -1 = ikke mærket.
+  function topStage(node) {
+    let n = node;
+    while (n && n.parentNode && n.parentNode !== n.ownerDocument.documentElement) n = n.parentNode;
+    if (!n || !n.getAttribute) return -1;
+    const v = n.getAttribute(STAGE_ATTR);
+    return v === null ? -1 : parseInt(v, 10);
+  }
+
+  // Waypoint-node -> etape. Nye waypoints (uden mærke) hører til den
+  // etape, hvis spor ligger nærmest.
+  function waypointOwners() {
+    const owners = new Map();
+    const flat = flatPoints();
+    state.waypoints.forEach((w) => {
+      const v = w.node.getAttribute(STAGE_ATTR);
+      if (v !== null) {
+        owners.set(w.node, parseInt(v, 10));
+        return;
+      }
+      let best = 0, bestD = Infinity;
+      flat.forEach((x) => {
+        const d = map.distance([w.lat, w.lon], [x.p.lat, x.p.lon]);
+        if (d < bestD) {
+          bestD = d;
+          best = Math.max(0, x.stage);
+        }
+      });
+      owners.set(w.node, best);
+    });
+    return owners;
+  }
+
+  // Alle etaperne i én fil. Grundlaget er etape 1's fil (navnerum, metadata).
+  function buildGroupXml(stages) {
+    const docs = stages.map((st, k) => {
+      const doc = new DOMParser().parseFromString(st.template, "application/xml");
+      if (doc.querySelector("parsererror")) throw new Error(`Etape ${k + 1} kunne ikke læses.`);
+      return doc;
+    });
+    const base = docs[0];
+    const root = base.documentElement;
+    const wpts = [], tracks = [];
+    docs.forEach((doc, k) => {
+      Array.from(doc.documentElement.children).forEach((c) => {
+        if (!["wpt", "rte", "trk"].includes(c.localName)) return;
+        const node = doc === base ? c.cloneNode(true) : base.importNode(c, true);
+        node.setAttribute(STAGE_ATTR, String(k));
+        (c.localName === "wpt" ? wpts : tracks).push(node);
+      });
+    });
+    Array.from(root.children).filter((c) => ["wpt", "rte", "trk"].includes(c.localName)).forEach((c) => c.remove());
+    const rootExt = Array.from(root.children).find((c) => c.localName === "extensions") || null;
+    wpts.concat(tracks).forEach((node) => root.insertBefore(node, rootExt));
+    let out = new XMLSerializer().serializeToString(base);
+    if (!out.startsWith("<?xml")) out = '<?xml version="1.0" encoding="UTF-8"?>\n' + out;
+    return out;
+  }
+
+  // Etape k's fil, som den ser ud nu: etapens egen fil (metadata, navnerum,
+  // extensions) med de spor og waypoints, der er mærket med k. Spor uden
+  // mærke (tegnet i et nyt spor) hører til den sidste etape.
+  function stageGpxFromState(k, owners = waypointOwners()) {
+    const doc = new DOMParser().parseFromString(groupMode.stages[k].template, "application/xml");
+    const root = doc.documentElement;
+    Array.from(root.children).filter((c) => ["wpt", "rte", "trk"].includes(c.localName)).forEach((c) => c.remove());
+    const rootExt = Array.from(root.children).find((c) => c.localName === "extensions") || null;
+    const last = groupMode.stages.length - 1;
+    const ownerOf = (c) => {
+      const v = c.getAttribute(STAGE_ATTR);
+      return v === null ? last : parseInt(v, 10);
+    };
+    const tops = Array.from(state.xml.documentElement.children);
+    const pick = (name, test) => tops.filter((c) => c.localName === name && test(c));
+    pick("wpt", (c) => owners.get(c) === k)
+      .concat(pick("rte", (c) => ownerOf(c) === k), pick("trk", (c) => ownerOf(c) === k))
+      .forEach((c) => {
+        const node = doc.importNode(c, true);
+        node.removeAttribute(STAGE_ATTR);
+        root.insertBefore(node, rootExt);
+      });
+    // Gennem parseGPX/serializeGPX, så <bounds> passer til etapens punkter.
+    return serializeGPX(parseGPX(new XMLSerializer().serializeToString(doc)));
+  }
+
+  async function loadGroup(groupId) {
+    try {
+      const res = await fetch("../editor-group-load.php?id=" + encodeURIComponent(groupId));
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error((data.errors && data.errors.join(" ")) || "Ukendt fejl.");
+      }
+
+      const expand = (list) => Array.isArray(list)
+        ? (window.gpxExpandFunctions ? window.gpxExpandFunctions(list) : list)
+        : null;
+      groupMode = {
+        id: data.group_id,
+        title: data.title,
+        stages: data.stages.map((st) => {
+          const template = st.gpx_content;
+          delete st.gpx_content;
+          return {
+            meta: st,
+            template,
+            saved: null,
+            enabledFunctions: expand(st.enabled_functions),
+            availableAtSave: availableFunctionKeys(template)
+          };
+        })
+      };
+      metaStage = 0;
+      setCurrentRouteId(groupMode.stages[0].meta.route_id); // gruppen findes på platformen
+      metaConfirmed = true;
+      routeMeta = groupMode.stages[0].meta;
+      el("route-title-kind").textContent = "Gruppe:";
+      setRouteTitleLabel(`${data.title} (${data.stages.length} etaper)`);
+      el("btn-view-page").title = "Vis gruppens side";
+
+      const combined = buildGroupXml(groupMode.stages);
+      // Hver etapes fil, som den ser ud nu, så Gem kun sender de ændrede.
+      state = parseGPX(combined);
+      const owners = waypointOwners();
+      groupMode.stages.forEach((st, k) => { st.saved = stageGpxFromState(k, owners); });
+
+      const filename = data.title + ".gpx";
+      const thinned = await askThin(combined, "g" + data.group_id);
+      if (thinned) {
+        loadState(parseGPX(thinned.content), filename);
+        historyStack = [{ xmlStr: combined, filename: filename }];
+        updateUndoRedoButtons();
+        thinnedSinceSave = true;
+        markDirty();
+        setStatus(`Udtyndet (${thinned.label}): ${thinned.removed} af ${thinned.before} punkter fjernet. Tryk Gem for at beholde det`);
+      } else {
+        loadState(parseGPX(combined), filename);
+        setStatus(`Gruppen er åbnet med ${data.stages.length} etaper. Gem gemmer de etaper, du har ændret`);
+      }
+    } catch (e) {
+      setStatus("Fejl ved indlæsning af gruppen: " + e.message);
+    }
+  }
+
+  // Gem i gruppe-tilstand: hver ændret etape gemmes i sin egen fil.
+  async function saveGroup() {
+    const owners = waypointOwners();
+    const changed = [];
+    groupMode.stages.forEach((st, k) => {
+      const gpx = stageGpxFromState(k, owners);
+      if (gpx !== st.saved) changed.push({ k, gpx });
+    });
+    if (!changed.length) {
+      markServerSaved();
+      setStatus("Der er ingen ændringer at gemme");
+      return true;
+    }
+
+    setStatus("Gemmer …");
+    const failed = [];
+    for (const { k, gpx } of changed) {
+      const st = groupMode.stages[k];
+      const body = new URLSearchParams({ csrf_token: csrfToken(), route_id: st.meta.route_id, gpx_data: gpx });
+      if (thinnedSinceSave) body.append("thin_interval", "1");
+      const enabledForSave = enabledFunctionsForSave(gpx, st.enabledFunctions, st.availableAtSave);
+      if (enabledForSave) body.append("enabled_functions", JSON.stringify(enabledForSave));
+      try {
+        const res = await fetch("../editor-save.php", { method: "POST", body });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error((data.errors && data.errors.join(" ")) || `Ukendt fejl (status ${res.status}).`);
+        }
+        st.saved = gpx;
+        if (enabledForSave) st.enabledFunctions = enabledForSave;
+        st.availableAtSave = availableFunctionKeys(gpx);
+      } catch (e) {
+        failed.push(`Etape ${k + 1} (${st.meta.title}): ${e.message}`);
+      }
+    }
+
+    if (failed.length) {
+      // De etaper, der blev gemt, er gemt; resten gemmes ved næste Gem.
+      markDirty();
+      setStatus("Fejl ved gem: " + failed.join(" "));
+      return false;
+    }
+    thinnedSinceSave = false;
+    markServerSaved();
+    setStatus(changed.length === 1 ? "Gemt på platformen (1 etape)" : `Gemt på platformen (${changed.length} etaper)`);
+    return true;
   }
 
   // ---------- Popup-indhold ----------
@@ -1829,6 +2497,23 @@
   // metadata. Gemmes for sig selv (saveExistingMeta), uden om Gem-knappen.
   function openExistingMetaDialog() {
     if (!currentRouteId || !routeMeta) return;
+    // En hel gruppe: metadata gælder én etape, som vælges øverst i dialogen.
+    const stageField = el("meta-stage-field");
+    stageField.hidden = !groupMode;
+    if (el("meta-group-field")) el("meta-group-field").hidden = !!groupMode;
+    if (groupMode) {
+      if (metaStage >= groupMode.stages.length) metaStage = 0;
+      routeMeta = groupMode.stages[metaStage].meta;
+      const select = el("meta-stage");
+      select.innerHTML = "";
+      groupMode.stages.forEach((st, k) => {
+        const opt = document.createElement("option");
+        opt.value = String(k);
+        opt.textContent = `${k + 1}. ${st.meta.title}`;
+        select.appendChild(opt);
+      });
+      select.value = String(metaStage);
+    }
     el("edit-meta-errors").hidden = true;
     el("edit-meta-heading").textContent = "Rediger metadata";
     el("btn-save-meta-label").textContent = "Gem ændringer";
@@ -1843,13 +2528,13 @@
     el("meta-hide-uploader-name").checked = !!routeMeta.hide_uploader_name;
     metaBehavior.setLoadedVisibility(routeMeta.visibility);
     metaBehavior.setHasTimeData(!!state && window.GpxTools.detectFields(toolGpx()).indexOf("time") !== -1);
-    el("edit-meta-dialog").showModal();
+    if (!el("edit-meta-dialog").open) el("edit-meta-dialog").showModal();
   }
 
   async function saveExistingMeta(meta) {
     const body = new URLSearchParams({
       csrf_token: csrfToken(),
-      route_id: currentRouteId,
+      route_id: groupMode ? routeMeta.route_id : currentRouteId,
       title: meta.title,
       description: meta.description,
       activity_type_id: meta.activityTypeId,
@@ -1877,6 +2562,7 @@
       hide_uploader_name: meta.hideUploaderName,
       group_id: meta.groupId !== null && meta.groupId !== undefined ? meta.groupId : routeMeta.group_id
     });
+    if (groupMode) return; // titlen øverst er gruppens
     setRouteTitleLabel(routeMeta.title);
     currentFilename = routeMeta.title + ".gpx";
   }
@@ -1908,6 +2594,7 @@
   function loadState(newState, filename) {
     state = newState;
     selection = { a: null, b: null };
+    resetSplit();
     currentFilename = filename;
 
     historyStack = [];
@@ -2050,12 +2737,12 @@
   // visninger til, som filen først nu har data til (fx højdeprofilen efter
   // "Hent fra internettet"), så de faktisk vises. Svarer null, hvis intet
   // skal sendes med; så beholder serveren valget.
-  function enabledFunctionsForSave(content) {
-    if (enabledFunctions === null) return null;
+  function enabledFunctionsForSave(content, enabled = enabledFunctions, atSave = availableFunctionsAtSave) {
+    if (enabled === null) return null;
     const added = availableFunctionKeys(content).filter(
-      (key) => availableFunctionsAtSave.indexOf(key) === -1 && enabledFunctions.indexOf(key) === -1
+      (key) => atSave.indexOf(key) === -1 && enabled.indexOf(key) === -1
     );
-    return added.length ? enabledFunctions.concat(added) : null;
+    return added.length ? enabled.concat(added) : null;
   }
 
   // ---------- Værktøjer i menuen (Slet datafelter, Rediger højdedata, Udtynd punkter) ----------
@@ -2297,6 +2984,7 @@
   // ---------- Gemning (til platformen) ----------
   async function saveToServer() {
     if (!state) return false;
+    if (groupMode) return saveGroup();
 
     const isNewRoute = !currentRouteId;
     let meta = null;
@@ -2451,10 +3139,20 @@
         setStatus({
           route: "Rute-tilstand: klik på kortet tegner ruten.",
           waypoint: "Waypoint-tilstand: klik et vilkårligt sted på kortet for at sætte et waypoint (behøver ikke ligge på ruten).",
-          select: selectionHint()
+          select: selectionHint(),
+          split: splitHint()
         }[editMode]);
+        updateUndoRedoButtons();
       });
     });
+
+    // ---- Opdeling ----
+    el("btn-split-save").addEventListener("click", openSplitDialog);
+    el("btn-split-segments").addEventListener("click", splitAtSegments);
+    el("btn-split-clear").addEventListener("click", () => changeSplitCuts(() => { splitCuts = new Map(); }));
+    const splitDialog = el("split-dialog");
+    el("split-close").addEventListener("click", () => splitDialog.close());
+    el("btn-split-confirm").addEventListener("click", saveSplit);
 
     // ---- Markering ----
     el("btn-selection-stats").addEventListener("click", openSelectionStats);
@@ -2489,6 +3187,10 @@
     el("btn-save-server").addEventListener("click", () => saveToServer());
     // ---- Vis side ----
     el("btn-view-page").addEventListener("click", () => {
+      if (groupMode) {
+        window.location.href = "../group-view.php?id=" + encodeURIComponent(groupMode.id);
+        return;
+      }
       if (!currentRouteId) return;
       window.location.href = "../route-view.php?id=" + encodeURIComponent(currentRouteId);
     });
@@ -2591,6 +3293,11 @@
         await saveToServer();
       });
     }
+    // Gruppe-tilstand: skift af etape fylder dialogen med den etapes metadata.
+    el("meta-stage").addEventListener("change", (e) => {
+      metaStage = parseInt(e.target.value, 10) || 0;
+      openExistingMetaDialog();
+    });
     if (editMetaDialog) {
       editMetaDialog.addEventListener("click", (e) => {
         if (e.target === editMetaDialog) editMetaDialog.close();
@@ -2752,8 +3459,11 @@
     updateSaveButtonState();
 
     const initialRouteId = el("initial-route-id").value;
+    const initialGroupId = el("initial-group-id").value;
     if (initialRouteId) {
       loadFromServer(initialRouteId);
+    } else if (initialGroupId) {
+      loadGroup(initialGroupId);
     } else {
       startNewRoute();
     }
