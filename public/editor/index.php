@@ -246,6 +246,13 @@ if ($initialRouteId === '' && $initialGroupId === '' && !$isNewRoute) {
   <p class="thin-hint">Tid og hastighed kræver tidsstempler i filen. Afstanden regnes ikke mellem to segmenter.</p>
 </dialog>
 
+<dialog id="point-info-dialog" class="modal-dialog">
+  <button type="button" id="point-info-close" class="modal-close" aria-label="Luk">&times;</button>
+  <h2>Info om punktet</h2>
+  <dl id="point-info" class="ele-stats"></dl>
+  <p class="thin-hint">Afstanden måles langs ruten og regnes ikke mellem to segmenter. Tid og hastighed kræver tidsstempler i filen.</p>
+</dialog>
+
 <dialog id="save-selection-dialog" class="modal-dialog">
   <button type="button" id="save-selection-close" class="modal-close" aria-label="Luk">&times;</button>
   <h2>Gem som nyt spor</h2>
@@ -434,6 +441,11 @@ if ($initialRouteId === '' && $initialGroupId === '' && !$isNewRoute) {
       <li><strong>Billeder:</strong> Vælg "📷 Billeder" på et waypoint (eller "📷 Indsæt billede" på et trackpoint for at oprette et nyt waypoint med billeder samtidig) — det åbner billed-dialogen, hvor du med "📷 Tilføj billeder" kan vælge flere billeder på én gang, give hver sin kommentar, trække dem i den rækkefølge de skal vises i (træk i <strong>⠿</strong>), eller fjerne dem igen (✕). Med "🖼 Vælg blandt mine billeder" kan du i stedet genbruge et billede, du allerede har uploadet et andet sted, uden at skulle uploade det igen.</li>
     </ul>
 
+    <h3>Info om et punkt</h3>
+    <ul>
+      <li><strong>Dobbeltklik</strong> (eller dobbelttryk) på et punkt for at se dets nummer, afstanden fra start og til slut, højde, tidspunkt, tid fra start, hastighed og puls, kadence og watt, hvis filen har dem.</li>
+    </ul>
+
     <h3>Markering (🟢 Markerings-tilstand)</h3>
     <ul>
       <li><strong>Markér:</strong> Vælg <strong>🟢 Markerings-tilstand</strong> i tilstandsvælgeren øverst til venstre på kortet. Tryk på det første og det sidste punkt af en strækning. Punkterne imellem bliver grønne. Et tryk på et tredje punkt begynder en ny markering.</li>
@@ -483,7 +495,7 @@ if ($initialRouteId === '' && $initialGroupId === '' && !$isNewRoute) {
 <script src="../assets/route-meta-dialog.js?v=2"></script>
 <script src="../assets/gpx-field-labels.js?v=4"></script>
 <script src="../assets/gpx-tools.js?v=3"></script>
-<script src="app.js?v=50"></script>
+<script src="app.js?v=51"></script>
 <script src="../assets/videoer.js?v=1"></script>
 </body>
 </html>
