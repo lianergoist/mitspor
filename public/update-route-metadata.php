@@ -36,14 +36,15 @@ $routePublicId = (string) ($_POST['route_id'] ?? '');
 
 $pdo = get_db();
 $stmt = $pdo->prepare(
-    "SELECT id FROM routes WHERE public_id = :public_id AND user_id = :user_id AND status = 'active' LIMIT 1"
+    "SELECT id, activity_type_id, marker_icon FROM routes WHERE public_id = :public_id AND user_id = :user_id AND status = 'active' LIMIT 1"
 );
 $stmt->execute(['public_id' => $routePublicId, 'user_id' => $user['id']]);
-$internalRouteId = $stmt->fetchColumn();
+$existing = $stmt->fetch();
 
-if ($internalRouteId === false) {
+if ($existing === false) {
     json_fail_meta(['Ruten blev ikke fundet, eller tilhører dig ikke.'], 404);
 }
+$internalRouteId = (int) $existing['id'];
 
 // Markør: kun hvis formularen har feltet med. Tom værdi = aktivitetens standard.
 $markerIcon = array_key_exists('marker_icon', $_POST) ? (string) $_POST['marker_icon'] : null;
@@ -75,6 +76,17 @@ if (!$result['success']) {
 // svaret er sendt (og_refresh), så det får den nye markør med.
 if ($markerIcon !== null) {
     marker_save($pdo, (int) $internalRouteId, (int) $user['id'], $markerIcon);
+} elseif ($existing['marker_icon'] !== null && (int) ($_POST['activity_type_id'] ?? 0) !== (int) $existing['activity_type_id']) {
+    // Markøren vælges i kontrolpanelet ("Vælg markør"). Skiftes aktiviteten
+    // her, og hører markøren til den gamle aktivitet, bruges den nye
+    // aktivitets standardmarkør (som markørvalget gjorde i den gamle dialog).
+    $stmt = $pdo->prepare('SELECT icon_filename FROM activity_types WHERE id = :id');
+    $stmt->execute(['id' => (int) $_POST['activity_type_id']]);
+    $newActivityFolder = (string) $stmt->fetchColumn();
+    $markerFolder = strstr((string) $existing['marker_icon'], '/', true);
+    if ($markerFolder !== MARKER_NEUTRAL && $markerFolder !== $newActivityFolder) {
+        marker_save($pdo, (int) $internalRouteId, (int) $user['id'], null);
+    }
 }
 
 // Gruppe (etape-tur): kun hvis formularen har et gruppe-felt med.
