@@ -55,7 +55,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <title>GPX-editor</title>
 
 <link rel="stylesheet" href="../vendor/leaflet/leaflet.css" />
-<link rel="stylesheet" href="style.css?v=45" />
+<link rel="stylesheet" href="style.css?v=46" />
 <link rel="stylesheet" href="../assets/videoer.css?v=1">
 </head>
 <body data-image-prefix="<?= htmlspecialchars(IMAGE_PUBLIC_URL_BASE . '/' . $userId . '/', ENT_QUOTES, 'UTF-8') ?>">
@@ -77,9 +77,19 @@ if ($initialRouteId === '' && !$isNewRoute) {
     <button id="btn-view-page" title="Vis rutens side" aria-label="Vis side" disabled><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg><span class="btn-text">Vis side</span></button>
   </div>
 
-  <!-- "Hjælp" med samme ?-ikon som på rutens side, forsiden og i kontrolpanelet. -->
+  <!-- Menuen (☰) til højre: rutens metadata, værktøjerne til filens data og Hjælp. -->
   <div class="toolbar-group toolbar-group-help">
-    <button id="btn-help" title="Hjælp &amp; Vejledning" aria-label="Hjælp"><span class="help-icon" aria-hidden="true">?</span><span class="btn-text">Hjælp</span></button>
+    <div class="menu-wrap">
+      <button id="btn-menu" title="Menu" aria-label="Menu" aria-haspopup="true" aria-expanded="false" aria-controls="editor-menu"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg><span class="btn-text">Menu</span></button>
+      <div id="editor-menu" class="editor-menu" role="menu" hidden>
+        <button type="button" role="menuitem" data-menu="meta">Rediger metadata</button>
+        <button type="button" role="menuitem" data-menu="strip">Slet datafelter</button>
+        <button type="button" role="menuitem" data-menu="ele">Rediger højdedata</button>
+        <button type="button" role="menuitem" data-menu="thin">Udtynd punkter</button>
+        <div class="editor-menu-sep" role="separator"></div>
+        <button type="button" role="menuitem" data-menu="help"><span class="help-icon" aria-hidden="true">?</span> Hjælp</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -95,7 +105,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <dialog id="edit-meta-dialog" class="modal-dialog">
   <button type="button" id="edit-meta-dialog-close" class="modal-close" aria-label="Luk">&times;</button>
   <button type="button" id="btn-open-meta-help" class="modal-close meta-help-btn" aria-label="Hjælp" title="Hjælp til rute/spor og synlighed">?</button>
-  <h2>Gem ny rute</h2>
+  <h2 id="edit-meta-heading">Gem ny rute</h2>
 
   <div id="edit-meta-errors" class="modal-errors" hidden></div>
 
@@ -167,6 +177,11 @@ if ($initialRouteId === '' && !$isNewRoute) {
       Tillad download af GPX-filen
     </label>
 
+    <p class="notice-field" id="meta-time-in-rute-notice" hidden>
+      Bemærk: Du har tilladt download af denne rute. Hvis denne fil indeholder tidsstempler, ligger de stadig i
+      den fil, andre kan downloade. Vil du undgå det, kan du fjerne dem under "Slet datafelter" i menuen.
+    </p>
+
     <div id="meta-anonymous-field" hidden>
       <label class="checkbox-field">
         <input type="checkbox" id="meta-hide-uploader-name">
@@ -175,7 +190,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
     </div>
   </div>
 
-  <button type="button" id="btn-save-meta-dialog" class="btn btn-primary"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg> Gem rute</button>
+  <button type="button" id="btn-save-meta-dialog" class="btn btn-primary"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg> <span id="btn-save-meta-label">Gem rute</span></button>
 </dialog>
 
 <dialog id="meta-help-dialog">
@@ -223,15 +238,35 @@ if ($initialRouteId === '' && !$isNewRoute) {
 
 <dialog id="thin-dialog" class="modal-dialog">
   <button type="button" id="thin-dialog-close" class="modal-close" aria-label="Luk">&times;</button>
-  <h2>Mange punkter</h2>
+  <h2 id="thin-dialog-heading">Mange punkter</h2>
   <p id="thin-dialog-text"></p>
-  <p class="thin-hint">Udtynding fjerner punkter på lige strækninger og bevarer sving, slingrende stier og bakker. Let, Middel og Kraftig tillader 2, 5 og 10 meters afvigelse. Du kan fortryde, og intet gemmes, før du trykker Gem.</p>
+  <p class="thin-hint">Udtynding fjerner punkter på lige strækninger og bevarer sving, slingrende stier og bakker. Let, Middel og Kraftig tillader 2, 5 og 10 meters afvigelse. Der bliver højst 50 m og 60 sekunder mellem de punkter, der er tilbage. Du kan fortryde, og intet gemmes, før du trykker Gem. Første gang gemmes den oprindelige fil, så den kan gendannes i kontrolpanelet.</p>
   <div class="thin-buttons">
     <button type="button" class="btn-primary" data-thin-tolerance="2">Let</button>
     <button type="button" class="btn-primary" data-thin-tolerance="5">Middel</button>
     <button type="button" class="btn-primary" data-thin-tolerance="10">Kraftig</button>
   </div>
   <button type="button" id="thin-dialog-skip" class="link-btn thin-skip">Fortsæt uden at udtynde</button>
+</dialog>
+
+<dialog id="strip-dialog" class="modal-dialog">
+  <button type="button" id="strip-dialog-close" class="modal-close" aria-label="Luk">&times;</button>
+  <h2>Slet datafelter</h2>
+  <p class="thin-hint">De datafelter, filen indeholder. Slet fjerner feltets data fra selve filen, også fra den fil, andre kan downloade. Du kan fortryde, og intet gemmes, før du trykker Gem.</p>
+  <ul id="strip-list" class="data-fields-list"></ul>
+</dialog>
+
+<dialog id="ele-dialog" class="modal-dialog">
+  <button type="button" id="ele-dialog-close" class="modal-close" aria-label="Luk">&times;</button>
+  <h2>Rediger højdedata</h2>
+  <div id="ele-errors" class="modal-errors" hidden></div>
+  <dl id="ele-stats" class="ele-stats"></dl>
+  <p class="thin-hint">"Hent fra internettet" slår højden op for hvert punkt i en højdemodel (SRTM, 30 m opløsning, via Open Topo Data) og overskriver de højder, filen har. Det er ofte mere præcist end GPS'ens egen højde. Det tager cirka et sekund pr. 100 punkter. Du kan fortryde, og intet gemmes, før du trykker Gem.</p>
+  <div class="thin-buttons">
+    <button type="button" class="btn-primary" id="ele-fetch">Hent fra internettet</button>
+    <button type="button" class="btn-primary btn-danger" id="ele-delete" hidden>Slet højdedata</button>
+  </div>
+  <p id="ele-status" class="thin-hint" hidden></p>
 </dialog>
 
 <dialog id="edit-images-dialog" class="modal-dialog images-dialog">
@@ -283,7 +318,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 
     <h3>Gem</h3>
     <ul>
-      <li>Titel, beskrivelse, aktivitet, synlighed osv. ændres i <strong>Kontrolpanelet</strong> (Rediger metadata).</li>
+      <li>Titel, beskrivelse, aktivitet, synlighed osv. ændres under <strong>Rediger metadata</strong> i menuen (☰). De gemmes med det samme, når du trykker Gem ændringer i dialogen.</li>
       <li>Værktøjslinjens <strong>Gem</strong>-knap gemmer rutens geometri (trackpoints/waypoints) på platformen — og opretter ruten første gang, hvis den er ny. Den er rød, når der er ugemte ændringer, og bliver grøn, når alt er gemt.</li>
     </ul>
 
@@ -304,7 +339,17 @@ if ($initialRouteId === '' && !$isNewRoute) {
     <h3>Fortryd</h3>
     <ul>
       <li><strong>Fortryd/Gendan:</strong> Brug knapperne Fortryd og Gendan i værktøjslinjen, eller Ctrl+Z og Ctrl+Y.</li>
-      <li>Alle øvrige data i filen (puls, kadence osv.) bevares uændret, når du gemmer. Udtynding af punkter og valg af, hvad rutens side viser (<strong>Visning af datafelter</strong>), sletning af datafelter og højdedata fra internettet (<strong>Rediger højdedata</strong>) findes i <strong>Kontrolpanelet</strong>.</li>
+      <li>Alle øvrige data i filen (puls, kadence osv.) bevares uændret, når du gemmer.</li>
+    </ul>
+
+    <h3>Menuen (☰)</h3>
+    <ul>
+      <li><strong>Rediger metadata:</strong> titel, beskrivelse, aktivitet, gruppe, rute/spor, synlighed og download-tilladelse. Findes, når ruten er gemt første gang.</li>
+      <li><strong>Slet datafelter:</strong> fjerner et felts data helt fra filen, fx tidsstempler, puls eller højdedata. Visninger, der bygger på feltet, forsvinder fra rutens side.</li>
+      <li><strong>Rediger højdedata:</strong> viser rutens højder og kan hente nye fra internettet eller slette dem.</li>
+      <li><strong>Udtynd punkter:</strong> gør filen mindre og editoren hurtigere ved at beholde færre punkter.</li>
+      <li>De tre værktøjer ændrer ruten her i editoren. Du kan fortryde dem, og de gemmes først, når du trykker <strong>Gem</strong>.</li>
+      <li>Hvad rutens side viser (<strong>Visning af datafelter</strong>) og rutens markør (<strong>Vælg markør</strong>) vælges i <strong>Kontrolpanelet</strong>.</li>
     </ul>
   </div>
 </dialog>
@@ -313,8 +358,9 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <script src="../vendor/leaflet-path-drag/index.js"></script>
 <script src="../vendor/sortablejs/Sortable.min.js"></script>
 <script src="../assets/route-meta-dialog.js?v=2"></script>
+<script src="../assets/gpx-field-labels.js?v=4"></script>
 <script src="../assets/gpx-tools.js?v=3"></script>
-<script src="app.js?v=45"></script>
+<script src="app.js?v=46"></script>
 <script src="../assets/videoer.js?v=1"></script>
 </body>
 </html>
