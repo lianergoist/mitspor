@@ -595,11 +595,12 @@ body {
 /* ---------- Livesending ---------- */
 
 .optag-live-valg {
-    margin: 0 0 4px;
+    margin: 0 0 20px;
 }
 
-.optag-live-valg .start-note {
-    margin: 0;
+/* Lidt mere luft over "Start optagelse" (med og uden "Send live"). */
+#view-optag > .start-actions {
+    margin-top: 8px;
 }
 
 /* "Send live" og valget på samme linje. */
