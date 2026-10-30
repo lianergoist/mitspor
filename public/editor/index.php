@@ -33,15 +33,20 @@ $myGroups = $stmt->fetchAll();
 // Editoren er ikke en selvstændig side, men et værktøj til kontrolpanelet:
 //   editor/?route=123  redigér punkter/billeder/waypoints på en eksisterende rute
 //   editor/?new=1      tegn en ny rute (oprettes først på serveren ved første Gem)
+//   editor/?group=123  redigér alle etaperne i en gruppe på én gang
 // Uden et af delene sendes brugeren tilbage til kontrolpanelet.
 $initialRouteId = (string) ($_GET['route'] ?? '');
 // Kun cifre er gyldige i et public_id — undgå at videresende vilkårlig input.
 if (!preg_match('/^\d{1,8}$/', $initialRouteId)) {
     $initialRouteId = '';
 }
-$isNewRoute = $initialRouteId === '' && (string) ($_GET['new'] ?? '') === '1';
+$initialGroupId = $initialRouteId === '' ? (string) ($_GET['group'] ?? '') : '';
+if (!preg_match('/^\d{8}$/', $initialGroupId)) {
+    $initialGroupId = '';
+}
+$isNewRoute = $initialRouteId === '' && $initialGroupId === '' && (string) ($_GET['new'] ?? '') === '1';
 
-if ($initialRouteId === '' && !$isNewRoute) {
+if ($initialRouteId === '' && $initialGroupId === '' && !$isNewRoute) {
     header('Location: ../dashboard.php');
     exit;
 }
@@ -63,6 +68,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 
 <input type="hidden" id="csrf-token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
 <input type="hidden" id="initial-route-id" value="<?= htmlspecialchars($initialRouteId, ENT_QUOTES, 'UTF-8') ?>">
+<input type="hidden" id="initial-group-id" value="<?= htmlspecialchars($initialGroupId, ENT_QUOTES, 'UTF-8') ?>">
 <input type="hidden" id="initial-new-route" value="<?= $isNewRoute ? '1' : '' ?>">
 
 <div id="toolbar">
@@ -98,7 +104,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <!-- Rutens titel, antal punkter og længde, og under dem den seneste besked. -->
 <div id="route-title-bar">
   <div class="route-title-line">
-    <strong>Rute:</strong> <span id="route-title-label" class="truncate">—</span>
+    <strong id="route-title-kind">Rute:</strong> <span id="route-title-label" class="truncate">—</span>
     <span id="route-stats"></span>
   </div>
   <div id="status" role="status"></div>
@@ -112,6 +118,11 @@ if ($initialRouteId === '' && !$isNewRoute) {
   <div id="edit-meta-errors" class="modal-errors" hidden></div>
 
   <div id="meta-panel">
+    <!-- Kun når en hel gruppe er åbnet: hvilken etape metadata gælder. -->
+    <label id="meta-stage-field" hidden>
+      Etape
+      <select id="meta-stage"></select>
+    </label>
     <label>
       Titel
       <input type="text" id="meta-title" maxlength="200" placeholder="Rutens titel">
@@ -132,7 +143,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
     </label>
 
     <?php if (!empty($myGroups)): ?>
-    <label>
+    <label id="meta-group-field">
       Gruppe (etape-tur)
       <select id="meta-group">
         <option value="">Ingen gruppe</option>
@@ -280,10 +291,10 @@ if ($initialRouteId === '' && !$isNewRoute) {
 
 <dialog id="split-dialog" class="modal-dialog">
   <button type="button" id="split-close" class="modal-close" aria-label="Luk">&times;</button>
-  <h2>Gem etaperne som gruppe</h2>
+  <h2 id="split-heading">Gem etaperne som gruppe</h2>
   <div id="split-errors" class="modal-errors" hidden></div>
   <div id="split-form" class="modal-dialog-body">
-    <p class="thin-hint">Den rute, du redigerer, bliver etape 1 og beholder sit link. De øvrige etaper oprettes som nye ruter med samme aktivitet, type, synlighed og markør. Waypoints kommer med i den etape, de ligger nærmest.</p>
+    <p id="split-intro" class="thin-hint">Den rute, du redigerer, bliver etape 1 og beholder sit link. De øvrige etaper oprettes som nye ruter med samme aktivitet, type, synlighed og markør. Waypoints kommer med i den etape, de ligger nærmest.</p>
     <p id="split-group-text" class="thin-hint"></p>
     <label id="split-group-fields">
       Gruppens titel
@@ -431,6 +442,15 @@ if ($initialRouteId === '' && !$isNewRoute) {
       <li><strong>Gem som nyt spor</strong> gemmer strækningen som en ny, privat rute. Den rute, du redigerer, ændres ikke.</li>
     </ul>
 
+    <h3>En hel gruppe</h3>
+    <ul>
+      <li>Vælg <strong>Rediger i GPX-editor</strong> på en gruppe i kontrolpanelet for at åbne alle etaperne på én gang. Hver etape vises i sin egen farve.</li>
+      <li>Du kan flytte punkter, waypoints og billeder som i en enkelt rute. <strong>Gem</strong> gemmer kun de etaper, du har ændret, hver i sin egen fil. Nye waypoints kommer med i den etape, de ligger nærmest.</li>
+      <li><strong>Slet datafelter</strong>, <strong>Rediger højdedata</strong> og <strong>Udtynd punkter</strong> gælder hele gruppen. <strong>Rediger metadata</strong> gælder én etape, som du vælger øverst i dialogen.</li>
+      <li>Markeringen kan gå hen over flere etaper. I opdel-tilstand deles en etape, og de nye etaper sættes ind lige efter den.</li>
+      <li>Rækkefølgen og fjernelse af etaper ændres under <strong>Rediger gruppe</strong> i kontrolpanelet.</li>
+    </ul>
+
     <h3>Opdeling i etaper (✂️ Opdel-tilstand)</h3>
     <ul>
       <li><strong>Del:</strong> Vælg <strong>✂️ Opdel-tilstand</strong> i tilstandsvælgeren. Tryk på de punkter, hvor en ny etape skal begynde. Delepunktet er både det sidste punkt i den ene etape og det første i den næste. Etaperne vises i hver sin farve.</li>
@@ -463,7 +483,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <script src="../assets/route-meta-dialog.js?v=2"></script>
 <script src="../assets/gpx-field-labels.js?v=4"></script>
 <script src="../assets/gpx-tools.js?v=3"></script>
-<script src="app.js?v=49"></script>
+<script src="app.js?v=50"></script>
 <script src="../assets/videoer.js?v=1"></script>
 </body>
 </html>

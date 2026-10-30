@@ -381,6 +381,7 @@ function render_group_detail(array $g): void
 
         <div class="tool-list">
             <a class="tool" href="group-view.php?id=<?= dash_h($id) ?>">Vis gruppe på kort</a>
+            <a class="tool" href="editor/?group=<?= dash_h($id) ?>">Rediger i GPX-editor</a>
             <?php if (group_download_available()): ?>
             <a class="tool" href="<?= dash_h(group_download_url($id)) ?>">Download gruppen som én GPX</a>
             <?php endif; ?>
