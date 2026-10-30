@@ -711,14 +711,21 @@
           pane: "trackMarkerPane"
         }).addTo(trackLayer);
 
+        // Dobbeltklik viser info om punktet. I markerings- og opdel-tilstand
+        // tegnes punkterne forfra efter hvert klik, så dér genkendes to klik
+        // på samme punkt i pointClick() i stedet.
         if (selecting) {
-          marker.on("click", () => selectPoint(p.id));
+          marker.on("click", () => pointClick(p.id, () => selectPointUndoable(p.id)));
           return;
         }
         if (splitting) {
-          marker.on("click", () => toggleSplitCut(p.id));
+          marker.on("click", () => pointClick(p.id, () => toggleSplitCutUndoable(p.id)));
           return;
         }
+        marker.on("dblclick", (e) => {
+          L.DomEvent.stop(e);
+          openPointInfo(p.id);
+        });
 
         marker.bindPopup(trackpointPopupHtml(p.id), { className: "gpx-popup" });
         marker.on("popupopen", () => bindTrackpointPopupEvents(p.id));
@@ -1071,6 +1078,132 @@
       dl.appendChild(dd);
     });
     el("selection-stats-dialog").showModal();
+  }
+
+  // ---------- Info om ét punkt (dobbeltklik) ----------
+  function pointTime(x) {
+    const t = x.p.time ? Date.parse(x.p.time) : NaN;
+    return Number.isNaN(t) ? null : t / 1000;
+  }
+
+  // Hastigheden ved punktet i: over mindst SPEED_WINDOW_SECONDS bagud i samme
+  // segment (som maks. hastighed i markeringens statistik), ellers fremad.
+  function pointSpeed(flat, cum, i) {
+    const ti = pointTime(flat[i]);
+    if (ti === null) return null;
+    const seg = flat[i].segIndex;
+    for (const dir of [-1, 1]) {
+      for (let j = i + dir; j >= 0 && j < flat.length && flat[j].segIndex === seg; j += dir) {
+        const tj = pointTime(flat[j]);
+        if (tj === null) continue;
+        const dt = Math.abs(ti - tj);
+        if (dt >= SPEED_WINDOW_SECONDS) return Math.abs(cum[i] - cum[j]) / dt;
+      }
+    }
+    return null;
+  }
+
+  function pointInfo(id) {
+    const flat = flatPoints();
+    const i = flat.findIndex((x) => x.p.id === id);
+    if (i === -1) return [];
+    const x = flat[i];
+    const cum = selectionDistances(flat);
+    const rows = [["Punkt", `${(i + 1).toLocaleString("da-DK")} af ${flat.length.toLocaleString("da-DK")}`]];
+    if (groupMode && x.stage >= 0) {
+      rows.push(["Etape", `${x.stage + 1}. ${groupMode.stages[x.stage].meta.title}`]);
+    }
+    const segCount = state.segments.filter((seg) => seg.length).length;
+    if (segCount > 1) {
+      const segNo = state.segments.slice(0, x.segIndex + 1).filter((seg) => seg.length).length;
+      rows.push(["Segment", `${segNo} af ${segCount}`]);
+    }
+    rows.push(["Afstand fra start", formatKm(cum[i])]);
+    rows.push(["Afstand til slut", formatKm(cum[cum.length - 1] - cum[i])]);
+
+    const ele = x.p.ele === null || x.p.ele === "" ? NaN : parseFloat(x.p.ele);
+    if (!Number.isNaN(ele)) rows.push(["Højde", Math.round(ele).toLocaleString("da-DK") + " m"]);
+
+    const t = pointTime(x);
+    if (t !== null) {
+      rows.push(["Tidspunkt", new Date(t * 1000).toLocaleString("da-DK", { dateStyle: "short", timeStyle: "medium" })]);
+      const first = flat.find((y) => pointTime(y) !== null);
+      if (first && first !== x) rows.push(["Tid fra start", formatDuration(t - pointTime(first))]);
+      const speed = pointSpeed(flat, cum, i);
+      if (speed !== null) rows.push(["Hastighed", formatSpeed(speed)]);
+    }
+
+    [
+      ["Puls", ["hr", "heartrate"], "slag/min"],
+      ["Kadence", ["cad", "cadence"], "o/min"],
+      ["Watt", ["power"], "W"]
+    ].forEach(([label, names, unit]) => {
+      const v = extensionNumber(x.p.node, names);
+      if (v !== null) rows.push([label, Math.round(v) + " " + unit]);
+    });
+
+    rows.push(["Koordinater", `${x.p.lat.toFixed(6)}, ${x.p.lon.toFixed(6)}`]);
+    return rows;
+  }
+
+  // Klik på et punkt i markerings- og opdel-tilstand. Kommer et klik mere på
+  // samme punkt inden for DOUBLE_CLICK_MS, er det et dobbeltklik: det første
+  // klik fortrydes, og info om punktet vises. apply() udfører klikket og
+  // svarer med en funktion, der fortryder det.
+  const DOUBLE_CLICK_MS = 400;
+  let lastPointClick = null;
+
+  function pointClick(id, apply) {
+    const now = Date.now();
+    if (lastPointClick && lastPointClick.id === id && now - lastPointClick.time < DOUBLE_CLICK_MS) {
+      lastPointClick.undo();
+      lastPointClick = null;
+      openPointInfo(id);
+      return;
+    }
+    lastPointClick = { id, time: now, undo: apply() };
+  }
+
+  function selectPointUndoable(id) {
+    const before = Object.assign({}, selection);
+    selectPoint(id);
+    return () => {
+      selection = before;
+      render._hasFitBounds = true;
+      render();
+      setStatus(selectionHint());
+    };
+  }
+
+  function toggleSplitCutUndoable(id) {
+    const cuts = new Map(splitCuts), undo = splitUndo.slice(), redo = splitRedo.slice();
+    toggleSplitCut(id);
+    return () => {
+      splitCuts = cuts;
+      splitUndo = undo;
+      splitRedo = redo;
+      updateUndoRedoButtons();
+      render._hasFitBounds = true;
+      render();
+      setStatus(splitHint());
+    };
+  }
+
+  function openPointInfo(id) {
+    const rows = pointInfo(id);
+    if (!rows.length) return;
+    map.closePopup();
+    const dl = el("point-info");
+    dl.innerHTML = "";
+    rows.forEach(([k, v]) => {
+      const dt = document.createElement("dt");
+      dt.textContent = k;
+      const dd = document.createElement("dd");
+      dd.textContent = v;
+      dl.appendChild(dt);
+      dl.appendChild(dd);
+    });
+    el("point-info-dialog").showModal();
   }
 
   // ---- Gem markeringen som et nyt spor ----
@@ -3162,6 +3295,11 @@
       render._hasFitBounds = true;
       render();
       setStatus(selectionHint());
+    });
+    const pointInfoDialog = el("point-info-dialog");
+    el("point-info-close").addEventListener("click", () => pointInfoDialog.close());
+    pointInfoDialog.addEventListener("click", (e) => {
+      if (e.target === pointInfoDialog) pointInfoDialog.close();
     });
     const statsDialog = el("selection-stats-dialog");
     el("selection-stats-close").addEventListener("click", () => statsDialog.close());
