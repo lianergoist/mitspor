@@ -15,7 +15,7 @@ require_once __DIR__ . '/csrf.php';
  */
 
 /**
- * @param array<int, array{id?: string, href?: string, form?: string, label: string, icon?: string}> $items
+ * @param array<int, array{id?: string, href?: string, form?: string, label: string}> $items
  *        Sidens egne punkter øverst (fx Hjælp). "Om MitSpor" kommer altid til sidst.
  * @param string $labelClass Klassen, der skjuler knapteksten på mobil
  *        (tb-label, eller btn-label på rutens side).
@@ -32,15 +32,14 @@ function topbar_menu(array $items, string $labelClass = 'tb-label'): string
         . '<span class="' . $h($labelClass) . '">Menu</span></button>'
         . '<div class="topbar-menu-list" id="topbar-menu-list" role="menu" hidden>';
     foreach ($items as $item) {
-        $icon = ($item['icon'] ?? '') === 'help' ? '<span class="help-icon" aria-hidden="true">?</span> ' : '';
         if (isset($item['form'])) {
             $html .= '<form method="post" action="' . $h($item['form']) . '">'
                 . '<input type="hidden" name="csrf_token" value="' . $h(csrf_token()) . '">'
-                . '<button type="submit" role="menuitem">' . $icon . $h($item['label']) . '</button></form>';
+                . '<button type="submit" role="menuitem">' . $h($item['label']) . '</button></form>';
         } elseif (isset($item['href'])) {
-            $html .= '<a role="menuitem" href="' . $h($item['href']) . '">' . $icon . $h($item['label']) . '</a>';
+            $html .= '<a role="menuitem" href="' . $h($item['href']) . '">' . $h($item['label']) . '</a>';
         } else {
-            $html .= '<button type="button" role="menuitem" id="' . $h($item['id'] ?? '') . '">' . $icon . $h($item['label']) . '</button>';
+            $html .= '<button type="button" role="menuitem" id="' . $h($item['id'] ?? '') . '">' . $h($item['label']) . '</button>';
         }
     }
 

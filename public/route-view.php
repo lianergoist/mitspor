@@ -462,7 +462,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             if ($canDownload) {
                 $menuItems[] = ['href' => gpx_download_url($route['public_id'], $hasValidShareToken ? $shareToken : ''), 'label' => 'Download GPX'];
             }
-            $menuItems[] = ['id' => 'btn-open-route-help', 'label' => 'Hjælp', 'icon' => 'help'];
+            $menuItems[] = ['id' => 'btn-open-route-help', 'label' => 'Hjælp'];
             ?>
             <?= topbar_menu($menuItems, 'btn-label') ?>
         </div>

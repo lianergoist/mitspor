@@ -1136,9 +1136,6 @@ a { color: var(--primary); }
 .topbar-menu-list > form > button:focus-visible {
     background: #f1f5f9;
 }
-.topbar-menu-list .help-icon {
-    color: var(--primary);
-}
 
 .icon-btn {
     width: 38px;

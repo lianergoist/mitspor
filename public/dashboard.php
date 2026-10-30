@@ -89,7 +89,7 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
         <?= topbar_menu([
             ['form' => '/logout.php', 'label' => 'Log ud'],
             ['id' => 'btn-open-profile', 'label' => 'Profil og konto'],
-            ['id' => 'btn-open-dashboard-help', 'label' => 'Hjælp', 'icon' => 'help'],
+            ['id' => 'btn-open-dashboard-help', 'label' => 'Hjælp'],
         ]) ?>
     </div>
 </div>
