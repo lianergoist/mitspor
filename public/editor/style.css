@@ -330,7 +330,8 @@ html {
 }
 
 #help-dialog,
-#meta-help-dialog {
+#meta-help-dialog,
+#about-dialog {
   max-width: 600px;
   width: 90%;
   max-height: 85vh; /* Sørger for, at boksen ikke bliver højere end skærmen */
@@ -345,7 +346,8 @@ html {
 
 /* Mørk baggrund bag dialogboksen */
 #help-dialog::backdrop,
-#meta-help-dialog::backdrop {
+#meta-help-dialog::backdrop,
+#about-dialog::backdrop {
   background: rgba(0, 0, 0, 0.5);
 }
 
@@ -510,7 +512,15 @@ html {
 .editor-menu[hidden] {
   display: none;
 }
-#toolbar .editor-menu button {
+#toolbar .editor-menu button,
+#toolbar .editor-menu a {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-sizing: border-box;
+  color: #1e293b;
+  font-weight: normal;
+  text-decoration: none;
   width: 100%;
   min-height: 44px;
   padding: 10px 12px;
@@ -522,7 +532,9 @@ html {
   white-space: nowrap;
 }
 #toolbar .editor-menu button:hover:not(:disabled),
-#toolbar .editor-menu button:focus-visible {
+#toolbar .editor-menu button:focus-visible,
+#toolbar .editor-menu a:hover,
+#toolbar .editor-menu a:focus-visible {
   background: #f1f5f9;
 }
 .editor-menu-sep {

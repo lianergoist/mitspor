@@ -7,6 +7,7 @@ require_once __DIR__ . '/../../app/db.php';
 require_once __DIR__ . '/../../app/csrf.php';
 require_once __DIR__ . '/../../app/auth.php';
 require_once __DIR__ . '/../../app/videoer.php';
+require_once __DIR__ . '/../../app/topbar_menu.php';
 
 $userId = require_login();
 $user = current_user($userId);
@@ -55,7 +56,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <title>GPX-editor</title>
 
 <link rel="stylesheet" href="../vendor/leaflet/leaflet.css" />
-<link rel="stylesheet" href="style.css?v=46" />
+<link rel="stylesheet" href="style.css?v=47" />
 <link rel="stylesheet" href="../assets/videoer.css?v=1">
 </head>
 <body data-image-prefix="<?= htmlspecialchars(IMAGE_PUBLIC_URL_BASE . '/' . $userId . '/', ENT_QUOTES, 'UTF-8') ?>">
@@ -88,6 +89,8 @@ if ($initialRouteId === '' && !$isNewRoute) {
         <button type="button" role="menuitem" data-menu="thin">Udtynd punkter</button>
         <div class="editor-menu-sep" role="separator"></div>
         <button type="button" role="menuitem" data-menu="help"><span class="help-icon" aria-hidden="true">?</span> Hjælp</button>
+        <button type="button" role="menuitem" data-menu="about">Om MitSpor</button>
+        <a role="menuitem" href="/privatlivspolitik.php" id="menu-privacy">Privatlivspolitik</a>
       </div>
     </div>
   </div>
@@ -301,6 +304,8 @@ if ($initialRouteId === '' && !$isNewRoute) {
   <p class="image-picker-manage"><a href="/manage-images.php" id="link-manage-images">Administrér mine billeder</a> (se og slet uploadede billeder)</p>
 </dialog>
 
+<?= about_dialog() ?>
+
 <dialog id="help-dialog">
   <div class="dialog-header">
     <h2>Hjælp &amp; Vejledning</h2>
@@ -360,7 +365,7 @@ if ($initialRouteId === '' && !$isNewRoute) {
 <script src="../assets/route-meta-dialog.js?v=2"></script>
 <script src="../assets/gpx-field-labels.js?v=4"></script>
 <script src="../assets/gpx-tools.js?v=3"></script>
-<script src="app.js?v=46"></script>
+<script src="app.js?v=47"></script>
 <script src="../assets/videoer.js?v=1"></script>
 </body>
 </html>

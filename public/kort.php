@@ -10,6 +10,7 @@ require_once __DIR__ . '/../app/auth_dialogs.php';
 require_once __DIR__ . '/../app/app_login.php';
 require_once __DIR__ . '/../app/app_tilbage.php';
 require_once __DIR__ . '/../app/videoer.php';
+require_once __DIR__ . '/../app/topbar_menu.php';
 
 $loggedIn = !empty($_SESSION['user_id']);
 $displayName = null;
@@ -71,7 +72,7 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
 <?php endif; ?>
 
     <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="/assets/style.css?v=36">
+    <link rel="stylesheet" href="/assets/style.css?v=37">
     <link rel="stylesheet" href="/assets/videoer.css?v=1">
     <style>
         html, body { height: 100%; margin: 0; }
@@ -117,27 +118,11 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
                 <button type="button" id="btn-open-register" class="btn" title="Opret konto" aria-label="Opret konto"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M19 8v6"/><path d="M16 11h6"/></svg><span class="tb-label">Opret konto</span></button>
                 <button type="button" id="btn-open-login" class="btn" title="Log ind" aria-label="Log ind"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M22 11h-6"/><path d="M19 8l-3 3 3 3"/></svg><span class="tb-label">Log ind</span></button>
             <?php endif; ?>
-            <button type="button" id="btn-open-about" class="btn" title="Hjælp" aria-label="Hjælp"><span class="help-icon" aria-hidden="true">?</span><span class="tb-label">Hjælp</span></button>
+            <?= topbar_menu([]) ?>
         </div>
     </div>
 
-    <dialog id="about-dialog">
-        <div class="dialog-header">
-            <h2>Om MitSpor</h2>
-            <button type="button" id="about-dialog-close" class="close-btn" aria-label="Luk">&times;</button>
-        </div>
-        <div class="dialog-content">
-            <p>Formålet med MitSpor er at dele spor og ruter. Man kan uploade sine spor (eller tegne en rute) og få den vist på et kort man kan linke til og dele med andre. Man kan også redigere spor og ruter: i den indbyggede GPX-editor kan man flytte punkter og indsætte kommentarer og billeder, og i kontrolpanelet kan man fx udtynde punkter, hente højdedata og vælge, hvad rutens side viser.</p>
-            <p>Man kan markere spor og ruter som offentlige eller private.</p>
-            <ul>
-                <li><strong>Offentlig</strong> betyder, at alle kan se ruten. Man kan søge i titel og beskrivelse, og få vist alle de offentlige spor og ruter der matcher.</li>
-                <li><strong>Privat</strong> betyder, at det kun er dig, der kan se sporet/ruten — med mindre du laver et del-link, der giver adgang til netop den rute.</li>
-            </ul>
-            <p>MitSpor er gratis at bruge. Alt det kræver er en emailadresse, og så er du i gang. Du kan downloade dine data og slette din profil som det passer dig. Ingen tracking, ingen sporings- eller reklamecookies, ingen deling af dine data med andre. Ægte gratis.</p>
-            <p>Har du spørgsmål eller kommentarer, er du velkommen til at skrive til <a href="mailto:info@mitspor.dk">info@mitspor.dk</a>.</p>
-            <p>Læs <a href="/privatlivspolitik.php">privatlivspolitikken</a>.</p>
-        </div>
-    </dialog>
+    <?= about_dialog() ?>
 
     <?php if ($mine && !$publicRoutes): ?>
         <div class="map-overlay-panel" style="top: calc(var(--topbar-height, 58px) + 8px); left: 12px; right: 12px; max-width: 420px; margin: 0 auto;">
@@ -584,21 +569,8 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
     });
 })();
 
-(function () {
-    "use strict";
-    var aboutDialog = document.getElementById('about-dialog');
-    document.getElementById('btn-open-about').addEventListener('click', function () {
-        aboutDialog.showModal();
-    });
-    document.getElementById('about-dialog-close').addEventListener('click', function () {
-        aboutDialog.close();
-    });
-    aboutDialog.addEventListener('click', function (ev) {
-        if (ev.target === aboutDialog) aboutDialog.close();
-    });
-})();
-
 </script>
+<script src="/assets/topbar-menu.js?v=1"></script>
 <?php if (!$loggedIn): ?>
 <script src="/assets/genindlaes.js?v=1"></script>
 <script src="/assets/auth-dialogs.js?v=4"></script>

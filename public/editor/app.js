@@ -2200,8 +2200,22 @@
       strip: openStripDialog,
       ele: openEleDialog,
       thin: openThinTool,
-      help: () => helpDialog.showModal()
+      help: () => helpDialog.showModal(),
+      about: () => aboutDialog.showModal()
     };
+    const aboutDialog = el("about-dialog");
+    el("about-dialog-close").addEventListener("click", () => aboutDialog.close());
+    aboutDialog.addEventListener("click", (e) => {
+      if (e.target === aboutDialog) aboutDialog.close();
+    });
+    // Privatlivspolitikken forlader editoren; ugemte ændringer går så tabt.
+    // 'beforeunload' advarer ikke altid i appens WebView, så linket spørger selv.
+    el("menu-privacy").addEventListener("click", (e) => {
+      setMenuOpen(false);
+      if (isAnyDirty() && !window.confirm("Du har ugemte ændringer, som går tabt, hvis du forlader editoren. Vil du fortsætte?")) {
+        e.preventDefault();
+      }
+    });
     menu.querySelectorAll("[data-menu]").forEach((item) => {
       item.addEventListener("click", () => {
         setMenuOpen(false);

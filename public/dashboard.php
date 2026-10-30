@@ -16,6 +16,7 @@ require_once __DIR__ . '/../app/app_hent.php';
 require_once __DIR__ . '/../app/videoer.php';
 require_once __DIR__ . '/../app/markers.php';
 require_once __DIR__ . '/../app/live.php';
+require_once __DIR__ . '/../app/topbar_menu.php';
 
 $userId = require_login();
 $user = current_user($userId);
@@ -66,7 +67,7 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mit kontrolpanel</title>
-    <link rel="stylesheet" href="assets/style.css?v=36">
+    <link rel="stylesheet" href="assets/style.css?v=37">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
     <link rel="stylesheet" href="assets/dashboard.css?v=31">
     <link rel="stylesheet" href="assets/videoer.css?v=1">
@@ -90,9 +91,11 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
             <button type="submit" class="btn" title="Log ud" aria-label="Log ud"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M16 11h6"/><path d="M19 8l3 3-3 3"/></svg><span class="tb-label">Log ud</span></button>
         </form>
-        <button type="button" id="btn-open-dashboard-help" class="btn" title="Hjælp" aria-label="Hjælp"><span class="help-icon" aria-hidden="true">?</span><span class="tb-label">Hjælp</span></button>
+        <?= topbar_menu([['id' => 'btn-open-dashboard-help', 'label' => 'Hjælp', 'icon' => 'help']]) ?>
     </div>
 </div>
+
+<?= about_dialog() ?>
 
 <dialog id="dashboard-help-dialog">
     <div class="dialog-header">
@@ -1008,6 +1011,7 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
 <script src="assets/route-meta-dialog.js?v=2"></script>
 <script src="assets/gpx-field-labels.js?v=4"></script>
 <script src="assets/gpx-tools.js?v=3"></script>
+<script src="assets/topbar-menu.js?v=1"></script>
 <script src="assets/genindlaes.js?v=1"></script>
 <script src="assets/dashboard.js?v=28"></script>
 <script src="assets/dashboard-tools.js?v=9"></script>
