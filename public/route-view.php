@@ -12,6 +12,7 @@ require_once __DIR__ . '/../app/auth_dialogs.php';
 require_once __DIR__ . '/../app/app_hent.php';
 require_once __DIR__ . '/../app/videoer.php';
 require_once __DIR__ . '/../app/markers.php';
+require_once __DIR__ . '/../app/topbar_menu.php';
 
 $publicId = (string) ($_GET['id'] ?? '');
 
@@ -208,7 +209,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
     <meta name="twitter:image" content="<?= htmlspecialchars($ogImageUrl, ENT_QUOTES, 'UTF-8') ?>">
 
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/style.css?v=36">
+    <link rel="stylesheet" href="assets/style.css?v=37">
     <link rel="stylesheet" href="assets/videoer.css?v=1">
     <style>
         html, body { height: 100%; margin: 0; }
@@ -458,7 +459,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
                 <button type="button" id="btn-open-register" class="btn" title="Opret konto" aria-label="Opret konto"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M19 8v6"/><path d="M16 11h6"/></svg><span class="btn-label">Opret konto</span></button>
                 <button type="button" id="btn-open-login" class="btn" title="Log ind" aria-label="Log ind"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M22 11h-6"/><path d="M19 8l-3 3 3 3"/></svg><span class="btn-label">Log ind</span></button>
             <?php endif; ?>
-            <button type="button" id="btn-open-route-help" class="btn" title="Hjælp og vejledning" aria-label="Hjælp"><span class="help-icon" aria-hidden="true">?</span><span class="btn-label">Hjælp</span></button>
+            <?= topbar_menu([['id' => 'btn-open-route-help', 'label' => 'Hjælp', 'icon' => 'help']], 'btn-label') ?>
         </div>
     </div>
 
@@ -555,6 +556,8 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             <?php endif; ?>
         </div>
     </dialog>
+
+    <?= about_dialog() ?>
 
     <div id="map"></div>
 
@@ -1770,6 +1773,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
 })();
 </script>
 
+<script src="assets/topbar-menu.js?v=1"></script>
 <?php if (!$loggedIn): ?>
 <?php render_auth_dialogs(); ?>
 <script src="assets/genindlaes.js?v=1"></script>
