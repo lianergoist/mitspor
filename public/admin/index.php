@@ -59,6 +59,8 @@ $warned = $pdo->query(
 </head>
 <body>
 
+<p><a href="/admin/statistik.php">Statistik</a></p>
+
 <h1>Åbne rapporter (<?= count($reports) ?>)</h1>
 
 <?php if (empty($reports)): ?>
