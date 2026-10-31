@@ -103,6 +103,7 @@
         <section>
             <h2>Puls</h2>
             <p>Har du en pulsmåler med Bluetooth, fx et pulsbælte, kan du vælge den under "Pulsmåler" i optagerens menu (☰). Telefonen husker den, og pulsen vises og gemmes i turen, mens du optager. Tag bæltet på, før du trykker "Start optagelse".</p>
+            <p>På samme måde kan du under "Kadence og watt" vælge en wattmåler, en kadencesensor til cyklen eller en skridtmåler til løb. Over "Start optagelse" vælger du, om målingerne skal gemmes i turen.</p>
         </section>
 
         <section>
@@ -157,6 +158,7 @@
                 <div class="menu" id="optag-menu" role="menu" hidden>
                     <button type="button" role="menuitem" data-optag-menu="ture">Gemte ture<span id="optag-menu-antal"></span></button>
                     <button type="button" role="menuitem" data-optag-menu="puls">Pulsmåler</button>
+                    <button type="button" role="menuitem" data-optag-menu="kraft">Kadence og watt</button>
                 </div>
             </div>
         </header>
@@ -179,6 +181,8 @@
                 <div><span class="optag-vaerdi" id="optag-afstand">0,00 km</span><span class="optag-label">Afstand</span></div>
                 <div><span class="optag-vaerdi" id="optag-punkter">0</span><span class="optag-label">Punkter</span></div>
                 <div id="optag-puls-boks" hidden><span class="optag-vaerdi" id="optag-puls">–</span><span class="optag-label">Puls</span></div>
+                <div id="optag-kadence-boks" hidden><span class="optag-vaerdi" id="optag-kadence">–</span><span class="optag-label">Kadence</span></div>
+                <div id="optag-watt-boks" hidden><span class="optag-vaerdi" id="optag-watt">–</span><span class="optag-label">Watt</span></div>
             </div>
             <div class="optag-gps" id="optag-gps">–</div>
         </section>
@@ -196,6 +200,18 @@
                     <option value="">Nej</option>
                 </select>
             </div>
+        </div>
+
+        <!-- Hvilke målinger der gemmes i turen (www/optager.js). -->
+        <div class="optag-sensorer" id="optag-sensorer" hidden>
+            <label class="optag-tjek" id="brug-puls-linje">
+                <input type="checkbox" id="brug-puls">
+                <span id="brug-puls-tekst">Gem puls</span>
+            </label>
+            <label class="optag-tjek" id="brug-kraft-linje">
+                <input type="checkbox" id="brug-kraft">
+                <span id="brug-kraft-tekst">Gem kadence og watt</span>
+            </label>
         </div>
 
         <nav class="start-actions">
@@ -224,15 +240,18 @@
         <ul class="ture-liste" id="optag-liste"></ul>
     </dialog>
 
-    <!-- Pulsmåler over Bluetooth (åbnes fra optagerens menu, www/puls.js). -->
-    <dialog class="wpt-dialog" id="puls-dialog" aria-labelledby="puls-titel">
+    <!-- Pulsmåler eller kadence-/wattmåler over Bluetooth (åbnes fra
+         optagerens menu, www/sensorer.js). Appen søger selv, og målerne
+         vises med en radioknap; OK vælger den markerede. -->
+    <dialog class="wpt-dialog" id="sensor-dialog" aria-labelledby="sensor-titel">
         <form class="formular" method="dialog">
-            <h2 id="puls-titel">Pulsmåler</h2>
-            <p id="puls-status"></p>
-            <button type="button" class="btn btn-primary" id="puls-vaelg">Vælg pulsmåler</button>
-            <button type="button" class="btn btn-secondary" id="puls-glem" hidden>Glem pulsmåleren</button>
-            <p class="start-note">Pulsbælter og andre pulsmålere med Bluetooth kan bruges. Pulsen gemmes i turens GPX-fil sammen med sporet. På mitspor.dk kan du skjule pulsen under "Visning af datafelter" eller fjerne den i editoren.</p>
-            <button type="submit" class="btn btn-secondary">Luk</button>
+            <h2 id="sensor-titel">Pulsmåler</h2>
+            <p id="sensor-status" role="status"></p>
+            <fieldset class="sensor-liste" id="sensor-liste" aria-labelledby="sensor-titel" hidden></fieldset>
+            <button type="button" class="btn btn-secondary" id="sensor-soeg" hidden>Søg igen</button>
+            <p class="start-note" id="sensor-note"></p>
+            <button type="submit" class="btn btn-primary" value="ok">OK</button>
+            <button type="button" class="link-btn sensor-glem" id="sensor-glem" hidden>Glem måleren</button>
         </form>
     </dialog>
 
@@ -319,7 +338,7 @@
     <script src="spor.js"></script>
     <script src="lager.js"></script>
     <script src="kamera.js"></script>
-    <script src="puls.js"></script>
+    <script src="sensorer.js"></script>
     <script src="konto.js"></script>
     <script src="hent.js"></script>
     <script src="upload.js"></script>

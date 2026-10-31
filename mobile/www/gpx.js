@@ -1,8 +1,10 @@
 // GPX og afstande for optageren.
 //
 // Et punkt er et array: [bredde, længde, højde|null, tid (ms), nøjagtighed (m), segment].
-// En pulsmåling er [tid (ms), puls (bpm)]; trackpunktet får målingen
-// nærmest i tid (højst PULS_MAKS_MS væk) som <gpxtpx:hr>.
+// Målinger fra sensorer er [tid (ms), værdi] pr. type: hr (puls), cad
+// (kadence) og power (watt). Trackpunktet får målingen nærmest i tid (højst
+// MAALING_MAKS_MS væk) som <gpxtpx:hr>, <gpxtpx:cad> og <power> (som hos
+// Strava og Wahoo; Garmins TrackPointExtension har ingen watt).
 // Arrays fylder mindre end objekter, både i hukommelsen og i punkter.jsonl.
 // Et waypoint er et objekt: { lat, lon, ele|null, tid (ms), titel, tekst, billeder }.
 // Et billede er { id, fil, type, url|null, fejl|null }; url sættes, når det er
@@ -11,7 +13,7 @@
     'use strict';
 
     var JORDRADIUS_M = 6371008.8;
-    var PULS_MAKS_MS = 10 * 1000;
+    var MAALING_MAKS_MS = 10 * 1000;
     var GPXTPX = 'http://www.garmin.com/xmlschemas/TrackPointExtension/v1';
 
     function rad(grader) {
@@ -35,30 +37,40 @@
             .replace(/"/g, '&quot;');
     }
 
-    function trkpt(p, hr) {
+    // v: { hr, cad, power } for punktet (null, hvor der ingen måling er).
+    function trkpt(p, v) {
         var linje = '      <trkpt lat="' + p[0].toFixed(7) + '" lon="' + p[1].toFixed(7) + '">';
         if (p[2] !== null && isFinite(p[2])) {
             linje += '<ele>' + p[2].toFixed(1) + '</ele>';
         }
         linje += '<time>' + new Date(p[3]).toISOString() + '</time>';
-        if (hr) {
-            linje += '<extensions><gpxtpx:TrackPointExtension><gpxtpx:hr>' + hr +
-                '</gpxtpx:hr></gpxtpx:TrackPointExtension></extensions>';
+        var ext = '';
+        if (v.power !== null) {
+            ext += '<power>' + v.power + '</power>';
+        }
+        if (v.hr !== null || v.cad !== null) {
+            ext += '<gpxtpx:TrackPointExtension>' +
+                (v.hr !== null ? '<gpxtpx:hr>' + v.hr + '</gpxtpx:hr>' : '') +
+                (v.cad !== null ? '<gpxtpx:cad>' + v.cad + '</gpxtpx:cad>' : '') +
+                '</gpxtpx:TrackPointExtension>';
+        }
+        if (ext) {
+            linje += '<extensions>' + ext + '</extensions>';
         }
         return linje + '</trkpt>\n';
     }
 
-    // Pulsen for hvert punkt (eller null). Både punkter og målinger er
-    // sorteret efter tid, så én gennemgang er nok.
-    function pulsTilPunkter(punkter, puls) {
+    // Målingen nærmest hvert punkt i tid (eller null). Både punkter og
+    // målinger er sorteret efter tid, så én gennemgang er nok.
+    function tilPunkter(punkter, maalinger) {
         var j = 0;
         return punkter.map(function (p) {
             var t = p[3];
-            while (j + 1 < puls.length && Math.abs(puls[j + 1][0] - t) <= Math.abs(puls[j][0] - t)) {
+            while (j + 1 < maalinger.length && Math.abs(maalinger[j + 1][0] - t) <= Math.abs(maalinger[j][0] - t)) {
                 j++;
             }
-            var m = puls[j];
-            return m && Math.abs(m[0] - t) <= PULS_MAKS_MS ? m[1] : null;
+            var m = maalinger[j];
+            return m && Math.abs(m[0] - t) <= MAALING_MAKS_MS ? m[1] : null;
         });
     }
 
@@ -97,14 +109,20 @@
 
     // Laver hele GPX-filen. Et nyt segment (fx efter genoptagelse) giver en ny <trkseg>.
     // Waypoints skal stå før <trk> (GPX-skemaets rækkefølge).
-    // puls: pulsmålinger sorteret efter tid (kan udelades).
-    function lav(navn, startTid, punkter, waypoints, puls) {
-        var hr = puls && puls.length ? pulsTilPunkter(punkter, puls) : null;
-        var medPuls = !!hr && hr.some(function (v) { return v !== null; });
+    // maalinger: { hr, cad, power }, hver sorteret efter tid (kan udelades).
+    function lav(navn, startTid, punkter, waypoints, maalinger) {
+        var typer = ['hr', 'cad', 'power'];
+        var pr = {};
+        typer.forEach(function (type) {
+            var liste = maalinger && maalinger[type];
+            var vaerdier = liste && liste.length ? tilPunkter(punkter, liste) : null;
+            pr[type] = vaerdier && vaerdier.some(function (v) { return v !== null; }) ? vaerdier : null;
+        });
+        var medTpx = !!(pr.hr || pr.cad);
         var dele = [
             '<?xml version="1.0" encoding="UTF-8"?>\n',
             '<gpx version="1.1" creator="MitSpor-app" xmlns="http://www.topografix.com/GPX/1/1"' +
-                (medPuls ? ' xmlns:gpxtpx="' + GPXTPX + '"' : '') + '>\n',
+                (medTpx ? ' xmlns:gpxtpx="' + GPXTPX + '"' : '') + '>\n',
             '  <metadata><name>' + xml(navn) + '</name><time>' + new Date(startTid).toISOString() + '</time></metadata>\n'
         ];
         dele.push(wptListe(waypoints));
@@ -119,7 +137,11 @@
                 dele.push('    <trkseg>\n');
                 segment = p[5];
             }
-            dele.push(trkpt(p, medPuls ? hr[i] : null));
+            dele.push(trkpt(p, {
+                hr: pr.hr ? pr.hr[i] : null,
+                cad: pr.cad ? pr.cad[i] : null,
+                power: pr.power ? pr.power[i] : null
+            }));
         });
         if (segment !== null) {
             dele.push('    </trkseg>\n');

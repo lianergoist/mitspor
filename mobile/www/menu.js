@@ -1,5 +1,5 @@
 // Menuerne: på startsiden (Hjælp og "Om MitSpor" med appens
-// versionsnummer) og i optageren (Gemte ture og Pulsmåler).
+// versionsnummer) og i optageren (Gemte ture, Pulsmåler og Kadence og watt).
 (function () {
     'use strict';
 
@@ -7,7 +7,7 @@
     var omDialog = document.getElementById('om-dialog');
     var omVersion = document.getElementById('om-version');
     var tureDialog = document.getElementById('ture-dialog');
-    var pulsDialog = document.getElementById('puls-dialog');
+    var sensorDialog = document.getElementById('sensor-dialog');
 
     // En menu: knappen åbner og lukker listen; et tryk på et punkt kører
     // punktets handling (attributten attr), og et tryk udenfor lukker den.
@@ -62,17 +62,20 @@
         }
     });
 
+    // optager.js udfylder dialogen og søger efter målere.
+    function aabnSensor(slags) {
+        sensorDialog.showModal();
+        sensorDialog.dispatchEvent(new CustomEvent('mitspor:aabn', { detail: slags }));
+    }
+
     var optagMenu = menu('optag-menu-knap', 'optag-menu', 'data-optag-menu', {
         ture: function () { tureDialog.showModal(); },
-        puls: function () {
-            // optager.js udfylder dialogen.
-            pulsDialog.dispatchEvent(new CustomEvent('mitspor:aabn'));
-            pulsDialog.showModal();
-        }
+        puls: function () { aabnSensor('puls'); },
+        kraft: function () { aabnSensor('kraft'); }
     });
 
     // Et tryk på baggrunden uden for en dialog lukker den også.
-    [omDialog, tureDialog, pulsDialog].forEach(function (dialog) {
+    [omDialog, tureDialog, sensorDialog].forEach(function (dialog) {
         dialog.addEventListener('click', function (event) {
             if (event.target === dialog) {
                 dialog.close();
@@ -95,8 +98,8 @@
                 omDialog.close();
             } else if (tureDialog.open) {
                 tureDialog.close();
-            } else if (pulsDialog.open) {
-                pulsDialog.close();
+            } else if (sensorDialog.open) {
+                sensorDialog.close();
             } else if (startMenu.aaben()) {
                 startMenu.luk();
             } else if (optagMenu.aaben()) {
