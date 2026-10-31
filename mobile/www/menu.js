@@ -1,5 +1,6 @@
 // Menuerne: på startsiden (Hjælp og "Om MitSpor" med appens
-// versionsnummer) og i optageren (Gemte ture, Pulsmåler og Kadence og watt).
+// versionsnummer) og i optageren (Gemte ture, Pulsmåler, Kadence og watt,
+// Hjælp og Om MitSpor).
 (function () {
     'use strict';
 
@@ -54,12 +55,27 @@
             });
     }
 
+    // Hjælpesiden kan åbnes fra startsiden og fra optageren; "‹ Tilbage"
+    // går til den side, den blev åbnet fra.
+    var hjaelpFra = 'view-start';
+
+    function visHjaelp() {
+        hjaelpFra = window.MitSporApp.aktivSide() || 'view-start';
+        window.MitSporApp.visSide('view-hjaelp');
+    }
+
+    function lukHjaelp() {
+        window.MitSporApp.visSide(hjaelpFra);
+    }
+
+    function visOm() {
+        visVersion();
+        omDialog.showModal();
+    }
+
     var startMenu = menu('menu-knap', 'menu', 'data-menu', {
-        hjaelp: function () { window.MitSporApp.visSide('view-hjaelp'); },
-        om: function () {
-            visVersion();
-            omDialog.showModal();
-        }
+        hjaelp: visHjaelp,
+        om: visOm
     });
 
     // optager.js udfylder dialogen og søger efter målere.
@@ -71,7 +87,9 @@
     var optagMenu = menu('optag-menu-knap', 'optag-menu', 'data-optag-menu', {
         ture: function () { tureDialog.showModal(); },
         puls: function () { aabnSensor('puls'); },
-        kraft: function () { aabnSensor('kraft'); }
+        kraft: function () { aabnSensor('kraft'); },
+        hjaelp: visHjaelp,
+        om: visOm
     });
 
     // Et tryk på baggrunden uden for en dialog lukker den også.
@@ -86,9 +104,7 @@
         tureDialog.close();
     });
 
-    document.getElementById('hjaelp-tilbage').addEventListener('click', function () {
-        window.MitSporApp.visSide('view-start');
-    });
+    document.getElementById('hjaelp-tilbage').addEventListener('click', lukHjaelp);
 
     // Android-tilbageknappen (kaldes fra optager.js): true, hvis en menu,
     // en af dialogerne eller hjælpesiden tog sig af trykket.
@@ -105,7 +121,7 @@
             } else if (optagMenu.aaben()) {
                 optagMenu.luk();
             } else if (window.MitSporApp.aktivSide() === 'view-hjaelp') {
-                window.MitSporApp.visSide('view-start');
+                lukHjaelp();
             } else {
                 return false;
             }
