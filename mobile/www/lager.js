@@ -4,6 +4,8 @@
 // optagelser/<id>/meta.json      oplysninger om turen (id er client_upload_id)
 // optagelser/<id>/punkter.jsonl  ét punkt pr. linje, tilføjes løbende
 // optagelser/<id>/puls.jsonl     pulsmålinger [tid, bpm] (findes kun med pulsmåler)
+// optagelser/<id>/kadence.jsonl  kadence [tid, o/min] (kun med kadence-/wattmåler)
+// optagelser/<id>/watt.jsonl     effekt [tid, watt] (kun med wattmåler)
 // optagelser/<id>/waypoints.json waypoints, brugeren har indsat (findes kun, hvis der er nogen)
 // optagelser/<id>/billeder/      billeder til waypoints (<billed-id>.<endelse>)
 // optagelser/<id>/<navn>.gpx     skrives hvert minut og ved stop
@@ -115,19 +117,22 @@
         });
     }
 
-    // Pulsmålinger [tid, bpm] tilføjes i bidder (se optager.js).
-    function tilfoejPuls(id, maalinger) {
+    // Målinger fra sensorer, én fil pr. type. Hver måling er [tid, værdi].
+    var MAALE_FILER = { hr: 'puls.jsonl', cad: 'kadence.jsonl', power: 'watt.jsonl' };
+
+    // Målinger tilføjes i bidder (se optager.js).
+    function tilfoejMaalinger(id, type, maalinger) {
         return Filesystem.appendFile({
-            path: sti(id, 'puls.jsonl'),
+            path: sti(id, MAALE_FILER[type]),
             data: maalinger.map(function (m) { return JSON.stringify(m) + '\n'; }).join(''),
             directory: DIR,
             encoding: UTF8
         });
     }
 
-    // Ingen fil betyder ingen puls. En halvt skrevet linje springes over.
-    function hentPuls(id) {
-        return laes(sti(id, 'puls.jsonl'))
+    // Ingen fil betyder ingen målinger. En halvt skrevet linje springes over.
+    function hentMaalingerAfType(id, type) {
+        return laes(sti(id, MAALE_FILER[type]))
             .then(function (tekst) {
                 var liste = [];
                 tekst.split('\n').forEach(function (linje) {
@@ -143,6 +148,16 @@
                 return liste;
             })
             .catch(function () { return []; });
+    }
+
+    // Alle typer: { hr: [...], cad: [...], power: [...] }.
+    function hentMaalinger(id) {
+        var typer = Object.keys(MAALE_FILER);
+        return Promise.all(typer.map(function (t) { return hentMaalingerAfType(id, t); })).then(function (svar) {
+            var alle = {};
+            typer.forEach(function (t, i) { alle[t] = svar[i]; });
+            return alle;
+        });
     }
 
     function gemWaypoints(id, waypoints) {
@@ -272,8 +287,8 @@
         gemMeta: gemMeta,
         tilfoejPunkt: tilfoejPunkt,
         hentPunkter: hentPunkter,
-        tilfoejPuls: tilfoejPuls,
-        hentPuls: hentPuls,
+        tilfoejMaalinger: tilfoejMaalinger,
+        hentMaalinger: hentMaalinger,
         gemWaypoints: gemWaypoints,
         hentWaypoints: hentWaypoints,
         gemBillede: gemBillede,

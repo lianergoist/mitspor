@@ -19,7 +19,7 @@
     var UploadVisning = window.MitSporUploadVisning;
     var Live = window.MitSporLive;
     var Kamera = window.MitSporKamera;
-    var Puls = window.MitSporPuls;
+    var Sensorer = window.MitSporSensorer;
 
     // Smart-mode: alle brugbare GPS-punkter gemmes i punkter.jsonl, og
     // GPX-filen laves af det rensede spor (spor.js).
@@ -37,9 +37,14 @@
     // Er der stadig ikke et præcist signal efter så lang tid, vises en
     // forklaring (indendørs, eller en tablet uden GPS).
     var GPS_HJAELP_MS = 60 * 1000;
-    // Pulsmålinger: højst én pr. sekund, skrives til puls.jsonl i bidder.
-    var PULS_MIN_MS = 1000;
-    var PULS_GEM_MS = 15 * 1000;
+    // Målinger fra sensorer (puls, kadence, watt): højst én pr. sekund pr.
+    // type, skrives til turens filer i bidder.
+    var MAALING_MIN_MS = 1000;
+    var MAALING_GEM_MS = 15 * 1000;
+    var TYPER = ['hr', 'cad', 'power'];
+    // Hvilken måler (slags i sensorer.js) hver type kommer fra.
+    var TYPE_SLAGS = { hr: 'puls', cad: 'kraft', power: 'kraft' };
+    var BRUG_NOEGLE = 'mitspor.brug-sensorer';
 
     var aabnKnap = document.getElementById('open-recorder');
     var tilbageKnap = document.getElementById('optag-tilbage');
@@ -52,10 +57,30 @@
     var punkterFelt = document.getElementById('optag-punkter');
     var pulsBoks = document.getElementById('optag-puls-boks');
     var pulsFelt = document.getElementById('optag-puls');
-    var pulsDialog = document.getElementById('puls-dialog');
-    var pulsStatus = document.getElementById('puls-status');
-    var pulsVaelgKnap = document.getElementById('puls-vaelg');
-    var pulsGlemKnap = document.getElementById('puls-glem');
+    var kadenceBoks = document.getElementById('optag-kadence-boks');
+    var kadenceFelt = document.getElementById('optag-kadence');
+    var wattBoks = document.getElementById('optag-watt-boks');
+    var wattFelt = document.getElementById('optag-watt');
+    var sensorValg = document.getElementById('optag-sensorer');
+    var brugTjek = {
+        puls: document.getElementById('brug-puls'),
+        kraft: document.getElementById('brug-kraft')
+    };
+    var brugLinje = {
+        puls: document.getElementById('brug-puls-linje'),
+        kraft: document.getElementById('brug-kraft-linje')
+    };
+    var brugTekst = {
+        puls: document.getElementById('brug-puls-tekst'),
+        kraft: document.getElementById('brug-kraft-tekst')
+    };
+    var sensorDialog = document.getElementById('sensor-dialog');
+    var sensorTitel = document.getElementById('sensor-titel');
+    var sensorStatus = document.getElementById('sensor-status');
+    var sensorListe = document.getElementById('sensor-liste');
+    var sensorSoegKnap = document.getElementById('sensor-soeg');
+    var sensorNote = document.getElementById('sensor-note');
+    var sensorGlemKnap = document.getElementById('sensor-glem');
     var gpsFelt = document.getElementById('optag-gps');
     var gpsHjaelp = document.getElementById('optag-gps-hjaelp');
     var fejlFelt = document.getElementById('optag-fejl');
@@ -96,9 +121,11 @@
     // (fx når man står stille). Bruges til waypoints.
     var sidstPos = null;
     var waypoints = [];
-    var pulsListe = [];   // turens pulsmålinger [tid, bpm]
-    var pulsUgemt = [];   // målinger, der endnu ikke er skrevet til puls.jsonl
-    var sidstPulsGem = 0;
+    var maal = tomMaal();  // turens målinger pr. type: [[tid, værdi], ...]
+    var ugemt = tomMaal(); // målinger, der endnu ikke er skrevet til filerne
+    var sidstMaalGem = 0;
+    var brugValg = hentBrug(); // tjekboksene: { puls, kraft }
+    var dialogSlags = null;    // den slags måler, sensor-dialogen viser
     var wptPos = null;    // placeringen til waypointet i dialogen
     var valgteBilleder = []; // billederne i dialogen (kamera.js), endnu ikke gemt
     var segment = 0;
@@ -168,7 +195,7 @@
         tidFelt.textContent = meta ? ur(koretid(meta, Date.now())) : '0:00:00';
         afstandFelt.textContent = km(meta ? meta.afstandM : 0);
         punkterFelt.textContent = String(meta ? meta.antalPunkter : 0);
-        visPuls();
+        visSensorer();
         liveStatus.textContent = meta ? Live.status(meta.live) : '';
         liveStatus.hidden = !liveStatus.textContent;
         wptAntal.textContent = waypoints.length === 1 ? '1 waypoint indsat' : waypoints.length + ' waypoints indsat';
@@ -196,6 +223,7 @@
         // Vises også uden livesendinger, så man kan oprette en ("Ny livesending").
         liveValg.hidden = aktiv || !!afbrudt || !logget;
         liveLabel.textContent = liveSelect.value ? 'Send live til' : 'Send live';
+        visSensorer();
         if (afbrudt) {
             afbrudtTekst.textContent = afbrudt.navn + ' blev ikke afsluttet. Vil du fortsætte optagelsen eller afslutte og gemme den?';
         }
@@ -465,8 +493,8 @@
     function gemGpx() {
         var m = meta;
         rensNu();
-        gemPuls();
-        var gpx = Gpx.lav(m.navn, m.start, renset, waypoints, pulsListe);
+        gemMaalinger();
+        var gpx = Gpx.lav(m.navn, m.start, renset, waypoints, maal);
         if (gpx.length > MAX_GPX_BYTES) {
             stop().then(function () {
                 window.alert('Turen er nu så lang, at GPX-filen nærmer sig grænsen på 10 MB. Optagelsen er stoppet og gemt. Start en ny optagelse for at fortsætte.');
@@ -502,9 +530,11 @@
                 sidst = null;
                 sidstPos = null;
                 waypoints = [];
-                pulsListe = [];
-                pulsUgemt = [];
-                sidstPulsGem = Date.now();
+                maal = tomMaal();
+                ugemt = tomMaal();
+                sidstMaalGem = Date.now();
+                // Valget gælder hele turen, også hvis den genoptages.
+                meta.brug = { puls: brugt('puls'), kraft: brugt('kraft') };
                 segment = 0;
                 sidstGpx = Date.now();
                 sidstRens = 0;
@@ -514,13 +544,13 @@
                 opdaterTal();
                 opdaterKnapper();
                 startUr();
+                var kopi = Object.assign({}, meta);
+                iKoe(function () { return Lager.gemMeta(kopi); });
                 if (meta.live) {
-                    // Gem valget, før der sendes noget, og start etapen på sitet.
-                    var kopi = Object.assign({}, meta);
-                    iKoe(function () { return Lager.gemMeta(kopi); });
+                    // Valget er gemt ovenfor, før der sendes noget. Start etapen på sitet.
                     Live.send(meta, punkter, true);
                 }
-                startPuls();
+                startSensorer();
                 return startGps();
             })
             .catch(function (fejl) {
@@ -535,12 +565,12 @@
     // Henter en optagelse, der ikke blev afsluttet, ind som den aktive.
     // Sporet fortsætter, hvor det slap (samme segment).
     function indlaes(m) {
-        return Promise.all([Lager.hentPunkter(m.id), Lager.hentWaypoints(m.id), Lager.hentPuls(m.id)]).then(function (svar) {
+        return Promise.all([Lager.hentPunkter(m.id), Lager.hentWaypoints(m.id), Lager.hentMaalinger(m.id)]).then(function (svar) {
             var gemte = svar[0];
             waypoints = svar[1];
-            pulsListe = svar[2];
-            pulsUgemt = [];
-            sidstPulsGem = Date.now();
+            maal = svar[2];
+            ugemt = tomMaal();
+            sidstMaalGem = Date.now();
             meta = m;
             meta.pauseMs = meta.pauseMs || 0;
             meta.pauseStart = meta.pauseStart || null;
@@ -574,7 +604,7 @@
                 opdaterTal();
                 opdaterKnapper();
                 startUr();
-                startPuls();
+                startSensorer();
                 return startGps();
             })
             .catch(function (fejl) {
@@ -596,7 +626,7 @@
         opdaterKnapper();
         opdaterTal();
         BG.stop().catch(function () {});
-        stopPuls();
+        stopSensorer();
         gemGpx();
         if (meta.live) {
             Live.send(meta, punkter, true);
@@ -615,7 +645,7 @@
         opdaterKnapper();
         var kopi = Object.assign({}, meta);
         iKoe(function () { return Lager.gemMeta(kopi); });
-        startPuls();
+        startSensorer();
         startGps();
     }
 
@@ -626,7 +656,7 @@
         clearInterval(urTimer);
         skjulGpsHjaelp();
         var bgStop = BG.stop().catch(function () {});
-        stopPuls();
+        stopSensorer();
         if (!aktiv || !meta) {
             aktiv = false;
             pauset = false;
@@ -644,10 +674,10 @@
 
         var liste = punkter;
         var wpts = waypoints;
-        gemPuls();
-        var puls = pulsListe;
+        gemMaalinger();
+        var alleMaal = maal;
         return bgStop
-            .then(function () { return afslut(m, liste, wpts, stille, puls); })
+            .then(function () { return afslut(m, liste, wpts, stille, alleMaal); })
             .then(function () { return afslutLive(m, liste, !!sidsteEtape); })
             .then(function () {
                 meta = null;
@@ -655,14 +685,14 @@
                 sidst = null;
                 sidstPos = null;
                 waypoints = [];
-                pulsListe = [];
+                maal = tomMaal();
                 opdaterTal();
                 return visListe();
             });
     }
 
     // Gemmer en optagelse som afsluttet. Uden punkter slettes den.
-    function afslut(m, liste, wpts, stille, puls) {
+    function afslut(m, liste, wpts, stille, alleMaal) {
         if (!liste.length) {
             return iKoe(function () { return Lager.slet(m.id); }).then(function () {
                 if (!stille) {
@@ -671,7 +701,7 @@
             });
         }
         var ren = Spor.rens(liste);
-        var gpx = Gpx.lav(m.navn, m.start, ren, wpts, puls);
+        var gpx = Gpx.lav(m.navn, m.start, ren, wpts, alleMaal);
         m.afstandM = samletAfstand(ren);
         m.antalPunkter = ren.length;
         return iKoe(function () {
@@ -720,7 +750,7 @@
         if (!m) {
             return;
         }
-        Promise.all([Lager.hentPunkter(m.id), Lager.hentWaypoints(m.id), Lager.hentPuls(m.id)])
+        Promise.all([Lager.hentPunkter(m.id), Lager.hentWaypoints(m.id), Lager.hentMaalinger(m.id)])
             .then(function (svar) {
                 var gemte = svar[0];
                 m.status = 'afsluttet';
@@ -735,100 +765,280 @@
             });
     }
 
-    // ---------- Puls ----------
+    // ---------- Sensorer (puls, kadence og watt) ----------
 
-    // Under optagelse holdes pulsmåleren forbundet (forbindelsen genoprettes,
-    // hvis den ryger). Uden valgt pulsmåler sker der intet.
-    function startPuls() {
-        if (!Puls.maaler()) {
-            return;
-        }
-        Puls.hold(true);
-        Puls.forbind().catch(function () {});
+    function tomMaal() {
+        return { hr: [], cad: [], power: [] };
     }
 
-    function stopPuls() {
-        Puls.hold(false);
-        Puls.afbryd();
-    }
-
-    function modtagPuls(bpm, tid) {
-        if (!aktiv || pauset || !meta) {
-            return;
-        }
-        var forrige = pulsListe[pulsListe.length - 1];
-        if (forrige && tid - forrige[0] < PULS_MIN_MS) {
-            return;
-        }
-        var maaling = [tid, bpm];
-        pulsListe.push(maaling);
-        pulsUgemt.push(maaling);
-        if (tid - sidstPulsGem >= PULS_GEM_MS) {
-            gemPuls();
+    // Tjekboksene huskes på enheden. Som standard er de slået til.
+    function hentBrug() {
+        try {
+            var b = JSON.parse(window.localStorage.getItem(BRUG_NOEGLE) || 'null') || {};
+            return { puls: b.puls !== false, kraft: b.kraft !== false };
+        } catch (e) {
+            return { puls: true, kraft: true };
         }
     }
 
-    // Skriver de målinger, der ikke er gemt endnu, til puls.jsonl.
-    function gemPuls() {
-        sidstPulsGem = Date.now();
-        if (!meta || !pulsUgemt.length) {
+    function gemBrug() {
+        window.localStorage.setItem(BRUG_NOEGLE, JSON.stringify(brugValg));
+    }
+
+    // Skal målingerne fra denne slags måler bruges? Under en optagelse
+    // gælder valget, der blev truffet ved start.
+    function brugt(slags) {
+        if (aktiv && meta) {
+            // Ture startet før valget fandtes: brug det, der er valgt.
+            return !!(meta.brug ? meta.brug[slags] : Sensorer.maaler(slags));
+        }
+        return !!Sensorer.maaler(slags) && brugValg[slags];
+    }
+
+    function brugteSlags() {
+        return ['puls', 'kraft'].filter(brugt);
+    }
+
+    // Uden optagelse: forbind de målere, der er slået til, så værdierne
+    // kan ses, mens optageren er åben.
+    function forbindValgte() {
+        if (aktiv) {
+            return;
+        }
+        if (window.MitSporApp.aktivSide() === 'view-optag') {
+            Sensorer.brug(brugteSlags()).catch(function () {});
+        } else {
+            Sensorer.afbryd();
+        }
+    }
+
+    // Under optagelse holdes målerne forbundet (forbindelsen genoprettes,
+    // hvis den ryger). Uden valgte målere sker der intet.
+    function startSensorer() {
+        var slags = brugteSlags();
+        Sensorer.hold(slags.length > 0);
+        Sensorer.brug(slags).catch(function () {});
+    }
+
+    function stopSensorer() {
+        Sensorer.hold(false);
+        Sensorer.afbryd();
+    }
+
+    function modtagMaaling(type, vaerdi, tid) {
+        if (!aktiv || pauset || !meta || !brugt(TYPE_SLAGS[type])) {
+            return;
+        }
+        var liste = maal[type];
+        var forrige = liste[liste.length - 1];
+        if (forrige && tid - forrige[0] < MAALING_MIN_MS) {
+            return;
+        }
+        var maaling = [tid, vaerdi];
+        liste.push(maaling);
+        ugemt[type].push(maaling);
+        if (tid - sidstMaalGem >= MAALING_GEM_MS) {
+            gemMaalinger();
+        }
+    }
+
+    // Skriver de målinger, der ikke er gemt endnu, til turens filer.
+    function gemMaalinger() {
+        sidstMaalGem = Date.now();
+        if (!meta) {
             return;
         }
         var id = meta.id;
-        var bid = pulsUgemt;
-        pulsUgemt = [];
-        iKoe(function () { return Lager.tilfoejPuls(id, bid); });
+        TYPER.forEach(function (type) {
+            var bid = ugemt[type];
+            if (bid.length) {
+                ugemt[type] = [];
+                iKoe(function () { return Lager.tilfoejMaalinger(id, type, bid); });
+            }
+        });
     }
 
-    function visPuls() {
-        var m = Puls.maaler();
-        pulsBoks.hidden = !m;
-        if (!m) {
+    function visVaerdi(boks, felt, vis, type, slags) {
+        boks.hidden = !vis;
+        if (vis) {
+            var v = Sensorer.nu(type);
+            felt.textContent = v !== null ? String(v) : (Sensorer.forbinder(slags) ? '…' : '–');
+        }
+    }
+
+    function visSensorer() {
+        var kraft = Sensorer.maaler('kraft');
+        visVaerdi(pulsBoks, pulsFelt, brugt('puls'), 'hr', 'puls');
+        visVaerdi(kadenceBoks, kadenceFelt, brugt('kraft'), 'cad', 'kraft');
+        visVaerdi(wattBoks, wattFelt, brugt('kraft') && !!kraft && kraft.watt, 'power', 'kraft');
+
+        // Tjekboksene vises kun før start. Uden valgt måler er linjen nedtonet.
+        sensorValg.hidden = aktiv || !!afbrudt;
+        ['puls', 'kraft'].forEach(function (slags) {
+            var m = Sensorer.maaler(slags);
+            var hvad = slags === 'puls' ? 'Gem puls' : (m && !m.watt ? 'Gem kadence' : 'Gem kadence og watt');
+            brugTjek[slags].disabled = !m;
+            brugTjek[slags].checked = !!m && brugValg[slags];
+            brugLinje[slags].classList.toggle('optag-tjek--slukket', !m);
+            brugTekst[slags].textContent = m ? hvad + ' fra ' + m.navn :
+                hvad + (slags === 'puls' ? ' (ingen pulsmåler valgt)' : ' (ingen måler valgt)');
+        });
+    }
+
+    // ---------- Søgedialogen ----------
+
+    var DIALOG_TEKST = {
+        puls: {
+            titel: 'Pulsmåler',
+            soeger: 'Søger efter pulsmålere …',
+            ingen: 'Ingen pulsmåler fundet. Tænd den (tag pulsbæltet på), og tryk "Søg igen".',
+            note: 'Pulsbælter og andre pulsmålere med Bluetooth kan bruges. Pulsen gemmes i turens GPX-fil sammen med sporet. På mitspor.dk kan du skjule pulsen under "Visning af datafelter" eller fjerne den i editoren.',
+            glem: 'Glem pulsmåleren'
+        },
+        kraft: {
+            titel: 'Kadence og watt',
+            soeger: 'Søger efter målere …',
+            ingen: 'Ingen måler fundet. Tænd den (træd et par tag i pedalerne), og tryk "Søg igen".',
+            note: 'Wattmålere, kadencesensorer til cyklen og skridtmålere til løb med Bluetooth kan bruges. Kadence og watt gemmes i turens GPX-fil sammen med sporet. Løbekadence gemmes som skridt pr. minut for ét ben, som hos Garmin.',
+            glem: 'Glem måleren'
+        }
+    };
+
+    var fundne = [];  // målerne i dialogen: { id, navn, watt }
+    var soegStarter = false; // søgningen er bedt om, men ikke begyndt endnu
+
+    function valgtRadio() {
+        var r = sensorListe.querySelector('input:checked');
+        return r ? fundne[Number(r.value)] : null;
+    }
+
+    function tilfoejRadio(enhed, valgtNu) {
+        if (fundne.some(function (f) { return f.id === enhed.id; })) {
             return;
         }
-        var bpm = Puls.nu();
-        pulsFelt.textContent = bpm !== null ? String(bpm) : (Puls.forbinder() ? '…' : '–');
-    }
-
-    function visPulsDialog() {
-        var m = Puls.maaler();
-        if (!m) {
-            pulsStatus.textContent = 'Ingen pulsmåler valgt.';
-        } else if (Puls.forbundet()) {
-            var bpm = Puls.nu();
-            pulsStatus.textContent = m.navn + ': forbundet' + (bpm !== null ? ', puls ' + bpm : '') + '.';
-        } else if (Puls.forbinder()) {
-            pulsStatus.textContent = m.navn + ': forbinder …';
-        } else {
-            pulsStatus.textContent = m.navn + ': ikke forbundet. Tænd pulsmåleren (tag et pulsbælte på), så forbinder appen, når optagelsen starter.';
+        var nr = fundne.length;
+        fundne.push(enhed);
+        var label = document.createElement('label');
+        label.className = 'sensor-valg';
+        var radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = 'sensor';
+        radio.value = String(nr);
+        var tekst = document.createElement('span');
+        tekst.textContent = enhed.navn;
+        if (valgtNu) {
+            var lille = document.createElement('small');
+            lille.textContent = 'Valgt nu';
+            tekst.appendChild(lille);
         }
-        pulsVaelgKnap.textContent = m ? 'Vælg en anden pulsmåler' : 'Vælg pulsmåler';
-        pulsGlemKnap.hidden = !m;
+        label.appendChild(radio);
+        label.appendChild(tekst);
+        sensorListe.appendChild(label);
+        sensorListe.hidden = false;
+        // Den første måler (eller den, der er valgt nu) markeres.
+        if (!valgtRadio()) {
+            radio.checked = true;
+        }
     }
 
-    function vaelgPuls() {
-        pulsVaelgKnap.disabled = true;
-        Puls.vaelg()
+    function visSensorStatus() {
+        var t = DIALOG_TEKST[dialogSlags];
+        var m = Sensorer.maaler(dialogSlags);
+        var tekst;
+        if (Sensorer.soeger() || soegStarter) {
+            tekst = t.soeger;
+        } else if (fundne.length) {
+            tekst = fundne.length === 1 ? 'Marker måleren, og tryk OK.' : 'Vælg den måler, du vil bruge, og tryk OK.';
+            if (m && Sensorer.forbundet(dialogSlags)) {
+                tekst = m.navn + ' er forbundet. ' + tekst;
+            }
+        } else {
+            tekst = t.ingen;
+        }
+        sensorStatus.textContent = tekst;
+        sensorSoegKnap.hidden = Sensorer.soeger() || soegStarter;
+        sensorGlemKnap.hidden = !m;
+    }
+
+    function soegSensorer() {
+        var slags = dialogSlags;
+        soegStarter = true;
+        Sensorer.soeg(slags, function (enhed) {
+            soegStarter = false;
+            if (dialogSlags === slags && sensorDialog.open) {
+                tilfoejRadio(enhed, false);
+                visSensorStatus();
+            }
+        })
+            .then(function () {
+                soegStarter = false;
+                if (sensorDialog.open) {
+                    visSensorStatus();
+                }
+            })
             .catch(function (fejl) {
-                var tekst = fejl && fejl.message ? fejl.message : String(fejl);
-                // Brugeren lukkede listen uden at vælge.
-                if (/cancel/i.test(tekst)) {
+                soegStarter = false;
+                if (!sensorDialog.open) {
                     return;
                 }
-                window.alert('Pulsmåleren kunne ikke forbindes: ' + tekst + '\n\nTjek, at Bluetooth er slået til, og at MitSpor må bruge enheder i nærheden.');
-            })
-            .finally(function () {
-                pulsVaelgKnap.disabled = false;
-                // Uden optagelse forbindes der kun, mens optageren er åben.
-                if (!aktiv && window.MitSporApp.aktivSide() !== 'view-optag') {
-                    Puls.afbryd();
-                }
+                sensorStatus.textContent = fejl && fejl.slukket ?
+                    'Bluetooth er slået fra. Slå det til, og tryk "Søg igen".' :
+                    'Der kunne ikke søges: ' + (fejl && fejl.message ? fejl.message : fejl) +
+                    '. Tjek, at Bluetooth er slået til, og at MitSpor må bruge enheder i nærheden.';
+                sensorSoegKnap.hidden = false;
             });
+        visSensorStatus();
     }
 
-    function glemPuls() {
-        if (window.confirm('Glem pulsmåleren "' + Puls.maaler().navn + '"?')) {
-            Puls.glem();
+    // Kaldes fra menuen (menu.js) med slags 'puls' eller 'kraft'.
+    function aabnSensorDialog(slags) {
+        dialogSlags = slags;
+        var t = DIALOG_TEKST[slags];
+        sensorTitel.textContent = t.titel;
+        sensorNote.textContent = t.note;
+        sensorGlemKnap.textContent = t.glem;
+        sensorDialog.returnValue = '';
+        fundne = [];
+        sensorListe.textContent = '';
+        sensorListe.hidden = true;
+        // En forbundet måler sender ikke og bliver ikke fundet, så den
+        // valgte står altid øverst.
+        var m = Sensorer.maaler(slags);
+        if (m) {
+            tilfoejRadio(m, true);
+        }
+        soegSensorer();
+    }
+
+    function lukSensorDialog() {
+        Sensorer.stopSoeg();
+        var slags = dialogSlags;
+        var enhed = valgtRadio();
+        var m = Sensorer.maaler(slags);
+        if (sensorDialog.returnValue === 'ok' && enhed && (!m || m.id !== enhed.id)) {
+            // En ny måler slås til i tjekboksen.
+            brugValg[slags] = true;
+            gemBrug();
+            Sensorer.vaelg(slags, enhed)
+                .catch(function (fejl) {
+                    window.alert('Måleren kunne ikke forbindes: ' + (fejl && fejl.message ? fejl.message : fejl) +
+                        '\n\nTjek, at den er tændt, og at Bluetooth er slået til.');
+                });
+        }
+        if (aktiv) {
+            startSensorer();
+        } else {
+            forbindValgte();
+        }
+        visSensorer();
+    }
+
+    function glemSensor() {
+        var slags = dialogSlags;
+        var m = Sensorer.maaler(slags);
+        if (m && window.confirm('Glem "' + m.navn + '"?')) {
+            Sensorer.glem(slags);
+            sensorDialog.close();
         }
     }
 
@@ -1042,14 +1252,14 @@
         visListe();
         if (!aktiv) {
             hentLivesendinger();
-            // Så pulsen kan ses, før optagelsen starter.
-            Puls.forbind().catch(function () {});
+            // Så målingerne kan ses, før optagelsen starter.
+            forbindValgte();
         }
     });
     tilbageKnap.addEventListener('click', function () {
         visView(false);
         if (!aktiv) {
-            Puls.afbryd();
+            Sensorer.afbryd();
         }
     });
     startKnap.addEventListener('click', start);
@@ -1076,14 +1286,23 @@
         wptPos = null;
         valgteBilleder = [];
     });
-    pulsVaelgKnap.addEventListener('click', vaelgPuls);
-    pulsGlemKnap.addEventListener('click', glemPuls);
-    pulsDialog.addEventListener('mitspor:aabn', visPulsDialog);
-    Puls.onMaaling(modtagPuls);
-    Puls.onSkift(function () {
-        visPuls();
-        if (pulsDialog.open) {
-            visPulsDialog();
+    sensorDialog.addEventListener('mitspor:aabn', function (ev) { aabnSensorDialog(ev.detail); });
+    sensorDialog.addEventListener('close', lukSensorDialog);
+    sensorSoegKnap.addEventListener('click', soegSensorer);
+    sensorGlemKnap.addEventListener('click', glemSensor);
+    Object.keys(brugTjek).forEach(function (slags) {
+        brugTjek[slags].addEventListener('change', function () {
+            brugValg[slags] = brugTjek[slags].checked;
+            gemBrug();
+            forbindValgte();
+            visSensorer();
+        });
+    });
+    Sensorer.onMaaling(modtagMaaling);
+    Sensorer.onSkift(function () {
+        visSensorer();
+        if (sensorDialog.open) {
+            visSensorStatus();
         }
     });
     fortsaetKnap.addEventListener('click', fortsaet);
@@ -1106,7 +1325,7 @@
         } else if (side === 'view-optag' || side === 'view-intro') {
             visView(false);
             if (!aktiv) {
-                Puls.afbryd();
+                Sensorer.afbryd();
             }
         } else if (aktiv) {
             App.minimizeApp();
