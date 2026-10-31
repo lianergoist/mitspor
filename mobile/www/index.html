@@ -101,6 +101,11 @@
         </section>
 
         <section>
+            <h2>Puls</h2>
+            <p>Har du en pulsmåler med Bluetooth, fx et pulsbælte, kan du vælge den under "Pulsmåler" i optagerens menu (☰). Telefonen husker den, og pulsen vises og gemmes i turen, mens du optager. Tag bæltet på, før du trykker "Start optagelse".</p>
+        </section>
+
+        <section>
             <h2>Gem og upload</h2>
             <p>"Stop og gem" gemmer turen på telefonen under "Gemte ture" i optagerens menu (☰). Tryk på "Upload", og giv turen en titel og en aktivitet. Turen bliver privat på din profil. Er du ikke på nettet, sendes den, når du er det igen.</p>
             <p>"Del GPX" sender GPX-filen til en anden app, fx en mail.</p>
@@ -151,6 +156,7 @@
                 </button>
                 <div class="menu" id="optag-menu" role="menu" hidden>
                     <button type="button" role="menuitem" data-optag-menu="ture">Gemte ture<span id="optag-menu-antal"></span></button>
+                    <button type="button" role="menuitem" data-optag-menu="puls">Pulsmåler</button>
                 </div>
             </div>
         </header>
@@ -172,6 +178,7 @@
             <div class="optag-raekke">
                 <div><span class="optag-vaerdi" id="optag-afstand">0,00 km</span><span class="optag-label">Afstand</span></div>
                 <div><span class="optag-vaerdi" id="optag-punkter">0</span><span class="optag-label">Punkter</span></div>
+                <div id="optag-puls-boks" hidden><span class="optag-vaerdi" id="optag-puls">–</span><span class="optag-label">Puls</span></div>
             </div>
             <div class="optag-gps" id="optag-gps">–</div>
         </section>
@@ -215,6 +222,18 @@
         </p>
         <p class="start-note" id="optag-tom">Ingen gemte ture endnu.</p>
         <ul class="ture-liste" id="optag-liste"></ul>
+    </dialog>
+
+    <!-- Pulsmåler over Bluetooth (åbnes fra optagerens menu, www/puls.js). -->
+    <dialog class="wpt-dialog" id="puls-dialog" aria-labelledby="puls-titel">
+        <form class="formular" method="dialog">
+            <h2 id="puls-titel">Pulsmåler</h2>
+            <p id="puls-status"></p>
+            <button type="button" class="btn btn-primary" id="puls-vaelg">Vælg pulsmåler</button>
+            <button type="button" class="btn btn-secondary" id="puls-glem" hidden>Glem pulsmåleren</button>
+            <p class="start-note">Pulsbælter og andre pulsmålere med Bluetooth kan bruges. Pulsen gemmes i turens GPX-fil sammen med sporet. På mitspor.dk kan du skjule pulsen under "Visning af datafelter" eller fjerne den i editoren.</p>
+            <button type="submit" class="btn btn-secondary">Luk</button>
+        </form>
     </dialog>
 
     <!-- Waypoint under optagelse: placeringen tages, når der trykkes på knappen. -->
@@ -291,6 +310,7 @@
     <script src="vendor/filesystem.js"></script>
     <script src="vendor/background-geolocation.js"></script>
     <script src="vendor/secure-storage.js"></script>
+    <script src="vendor/bluetooth-le.js"></script>
     <script src="config.js"></script>
     <script src="app.js"></script>
     <script src="intro.js"></script>
@@ -299,6 +319,7 @@
     <script src="spor.js"></script>
     <script src="lager.js"></script>
     <script src="kamera.js"></script>
+    <script src="puls.js"></script>
     <script src="konto.js"></script>
     <script src="hent.js"></script>
     <script src="upload.js"></script>

@@ -45,6 +45,8 @@
 	</dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>MitSpor bruger Bluetooth til at hente pulsen fra din pulsmåler (fx et pulsbælte), når du selv har valgt den i optageren.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>MitSpor bruger kameraet, når du selv tager et billede til en tur, et waypoint eller dine billeder.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
@@ -58,6 +60,7 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>
+		<string>bluetooth-central</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>

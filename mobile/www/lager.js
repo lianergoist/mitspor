@@ -3,6 +3,7 @@
 //
 // optagelser/<id>/meta.json      oplysninger om turen (id er client_upload_id)
 // optagelser/<id>/punkter.jsonl  ét punkt pr. linje, tilføjes løbende
+// optagelser/<id>/puls.jsonl     pulsmålinger [tid, bpm] (findes kun med pulsmåler)
 // optagelser/<id>/waypoints.json waypoints, brugeren har indsat (findes kun, hvis der er nogen)
 // optagelser/<id>/billeder/      billeder til waypoints (<billed-id>.<endelse>)
 // optagelser/<id>/<navn>.gpx     skrives hvert minut og ved stop
@@ -112,6 +113,36 @@
             });
             return punkter;
         });
+    }
+
+    // Pulsmålinger [tid, bpm] tilføjes i bidder (se optager.js).
+    function tilfoejPuls(id, maalinger) {
+        return Filesystem.appendFile({
+            path: sti(id, 'puls.jsonl'),
+            data: maalinger.map(function (m) { return JSON.stringify(m) + '\n'; }).join(''),
+            directory: DIR,
+            encoding: UTF8
+        });
+    }
+
+    // Ingen fil betyder ingen puls. En halvt skrevet linje springes over.
+    function hentPuls(id) {
+        return laes(sti(id, 'puls.jsonl'))
+            .then(function (tekst) {
+                var liste = [];
+                tekst.split('\n').forEach(function (linje) {
+                    try {
+                        var m = linje && JSON.parse(linje);
+                        if (Array.isArray(m) && m.length === 2) {
+                            liste.push(m);
+                        }
+                    } catch (e) {
+                        // Ufuldstændig linje: ignoreres.
+                    }
+                });
+                return liste;
+            })
+            .catch(function () { return []; });
     }
 
     function gemWaypoints(id, waypoints) {
@@ -241,6 +272,8 @@
         gemMeta: gemMeta,
         tilfoejPunkt: tilfoejPunkt,
         hentPunkter: hentPunkter,
+        tilfoejPuls: tilfoejPuls,
+        hentPuls: hentPuls,
         gemWaypoints: gemWaypoints,
         hentWaypoints: hentWaypoints,
         gemBillede: gemBillede,

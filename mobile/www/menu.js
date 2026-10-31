@@ -1,5 +1,5 @@
 // Menuerne: på startsiden (Hjælp og "Om MitSpor" med appens
-// versionsnummer) og i optageren (Gemte ture).
+// versionsnummer) og i optageren (Gemte ture og Pulsmåler).
 (function () {
     'use strict';
 
@@ -7,6 +7,7 @@
     var omDialog = document.getElementById('om-dialog');
     var omVersion = document.getElementById('om-version');
     var tureDialog = document.getElementById('ture-dialog');
+    var pulsDialog = document.getElementById('puls-dialog');
 
     // En menu: knappen åbner og lukker listen; et tryk på et punkt kører
     // punktets handling (attributten attr), og et tryk udenfor lukker den.
@@ -62,11 +63,16 @@
     });
 
     var optagMenu = menu('optag-menu-knap', 'optag-menu', 'data-optag-menu', {
-        ture: function () { tureDialog.showModal(); }
+        ture: function () { tureDialog.showModal(); },
+        puls: function () {
+            // optager.js udfylder dialogen.
+            pulsDialog.dispatchEvent(new CustomEvent('mitspor:aabn'));
+            pulsDialog.showModal();
+        }
     });
 
     // Et tryk på baggrunden uden for en dialog lukker den også.
-    [omDialog, tureDialog].forEach(function (dialog) {
+    [omDialog, tureDialog, pulsDialog].forEach(function (dialog) {
         dialog.addEventListener('click', function (event) {
             if (event.target === dialog) {
                 dialog.close();
@@ -89,6 +95,8 @@
                 omDialog.close();
             } else if (tureDialog.open) {
                 tureDialog.close();
+            } else if (pulsDialog.open) {
+                pulsDialog.close();
             } else if (startMenu.aaben()) {
                 startMenu.luk();
             } else if (optagMenu.aaben()) {

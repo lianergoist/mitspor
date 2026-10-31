@@ -20,6 +20,7 @@ const files = {
     'camera.js': ['@capacitor/camera/dist/plugin.js'],
     'background-geolocation.js': ['@capgo/background-geolocation/dist/plugin.js'],
     'secure-storage.js': ['capacitor-secure-storage-plugin/dist/plugin.js'],
+    'bluetooth-le.js': ['@capacitor-community/bluetooth-le/dist/plugin.js'],
     // Filesystem bruger hjælpebiblioteket synapse via den globale variabel
     // "synapse", men synapse.js lægger sig i "outsystemsSynapse".
     'filesystem.js': [
