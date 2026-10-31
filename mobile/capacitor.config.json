@@ -5,5 +5,15 @@
   "android": {
     "allowMixedContent": false,
     "useLegacyBridge": true
+  },
+  "plugins": {
+    "BluetoothLe": {
+      "displayStrings": {
+        "scanning": "Søger efter pulsmålere …",
+        "cancel": "Annuller",
+        "availableDevices": "Pulsmålere i nærheden",
+        "noDeviceFound": "Ingen pulsmåler fundet"
+      }
+    }
   }
 }
