@@ -635,10 +635,45 @@ body {
 
 /* Tjekboksene over "Start optagelse". Nedtonet, når der ikke er valgt en måler. */
 .optag-sensorer {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
     margin: 0 0 12px;
+}
+
+/* "Vis sensorer" / "Skjul sensorer": overskriften, der folder linjerne ud. */
+.optag-sensorer-titel {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--primary);
+    cursor: pointer;
+    list-style: none;
+}
+
+.optag-sensorer-titel::-webkit-details-marker {
+    display: none;
+}
+
+/* Pil, der peger ned, når linjerne er vist. */
+.optag-sensorer-titel::before {
+    content: "▸";
+    display: inline-block;
+    width: 1em;
+    transition: transform 0.15s;
+}
+
+.optag-sensorer[open] > .optag-sensorer-titel::before {
+    transform: rotate(90deg);
+}
+
+.optag-sensorer-skjul,
+.optag-sensorer[open] .optag-sensorer-vis {
+    display: none;
+}
+
+.optag-sensorer[open] .optag-sensorer-skjul {
+    display: inline;
 }
 
 .optag-tjek {
