@@ -9,6 +9,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         // Appens egne plugins skal registreres, før broen startes.
         registerPlugin(DelArkPlugin.class);
+        registerPlugin(SkridtPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

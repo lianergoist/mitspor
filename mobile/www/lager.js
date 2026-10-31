@@ -6,6 +6,7 @@
 // optagelser/<id>/puls.jsonl     pulsmålinger [tid, bpm] (findes kun med pulsmåler)
 // optagelser/<id>/kadence.jsonl  kadence [tid, o/min] (kun med kadence-/wattmåler)
 // optagelser/<id>/watt.jsonl     effekt [tid, watt] (kun med wattmåler)
+// optagelser/<id>/skridt.jsonl   skridt [tid, skridt siden start] (kun med telefonens skridttæller)
 // optagelser/<id>/waypoints.json waypoints, brugeren har indsat (findes kun, hvis der er nogen)
 // optagelser/<id>/billeder/      billeder til waypoints (<billed-id>.<endelse>)
 // optagelser/<id>/<navn>.gpx     skrives hvert minut og ved stop
@@ -118,7 +119,8 @@
     }
 
     // Målinger fra sensorer, én fil pr. type. Hver måling er [tid, værdi].
-    var MAALE_FILER = { hr: 'puls.jsonl', cad: 'kadence.jsonl', power: 'watt.jsonl' };
+    // skridt er telefonens skridttæller: [tid, skridt siden turens start].
+    var MAALE_FILER = { hr: 'puls.jsonl', cad: 'kadence.jsonl', power: 'watt.jsonl', skridt: 'skridt.jsonl' };
 
     // Målinger tilføjes i bidder (se optager.js).
     function tilfoejMaalinger(id, type, maalinger) {
@@ -150,7 +152,7 @@
             .catch(function () { return []; });
     }
 
-    // Alle typer: { hr: [...], cad: [...], power: [...] }.
+    // Alle typer: { hr: [...], cad: [...], power: [...], skridt: [...] }.
     function hentMaalinger(id) {
         var typer = Object.keys(MAALE_FILER);
         return Promise.all(typer.map(function (t) { return hentMaalingerAfType(id, t); })).then(function (svar) {

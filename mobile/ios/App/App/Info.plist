@@ -47,6 +47,8 @@
 	<false/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>MitSpor bruger Bluetooth til at hente pulsen fra din pulsmåler (fx et pulsbælte), når du selv har valgt den i optageren.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>MitSpor bruger telefonens skridttæller til at gemme kadencen (skridt pr. minut) i din tur, når du selv har slået det til i optageren.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>MitSpor bruger kameraet, når du selv tager et billede til en tur, et waypoint eller dine billeder.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

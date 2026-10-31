@@ -5,6 +5,9 @@
 // (kadence) og power (watt). Trackpunktet får målingen nærmest i tid (højst
 // MAALING_MAKS_MS væk) som <gpxtpx:hr>, <gpxtpx:cad> og <power> (som hos
 // Strava og Wahoo; Garmins TrackPointExtension har ingen watt).
+// Uden kadence fra en sensor regnes kadencen ud fra telefonens skridttæller
+// (skridt: [tid, skridt siden start]). GPX har ingen standard for antal
+// skridt; som hos Garmin er løbe- og gåkadence skridt/min for ét ben.
 // Arrays fylder mindre end objekter, både i hukommelsen og i punkter.jsonl.
 // Et waypoint er et objekt: { lat, lon, ele|null, tid (ms), titel, tekst, billeder }.
 // Et billede er { id, fil, type, url|null, fejl|null }; url sættes, når det er
@@ -14,6 +17,8 @@
 
     var JORDRADIUS_M = 6371008.8;
     var MAALING_MAKS_MS = 10 * 1000;
+    var KADENCE_VINDUE_MS = 60 * 1000;
+    var KADENCE_MIN_MS = 20 * 1000;
     var GPXTPX = 'http://www.garmin.com/xmlschemas/TrackPointExtension/v1';
 
     function rad(grader) {
@@ -74,6 +79,44 @@
         });
     }
 
+    // Skridt talt til og med tidspunktet t (sidste måling, der ikke er senere).
+    function skridtVed(skridt, t) {
+        var lav = 0;
+        var hoej = skridt.length - 1;
+        var svar = 0;
+        while (lav <= hoej) {
+            var midt = (lav + hoej) >> 1;
+            if (skridt[midt][0] <= t) {
+                svar = skridt[midt][1];
+                lav = midt + 1;
+            } else {
+                hoej = midt - 1;
+            }
+        }
+        return svar;
+    }
+
+    // Kadence ved hvert punkt: skridtene i et vindue på et minut omkring
+    // punktet (kortere ved turens start og slut), halveret som hos Garmin.
+    function kadenceFraSkridt(punkter, skridt) {
+        if (!punkter.length || !skridt.length) {
+            return [];
+        }
+        var foerst = punkter[0][3];
+        var sidst = punkter[punkter.length - 1][3];
+        var liste = [];
+        punkter.forEach(function (p) {
+            var a = Math.max(p[3] - KADENCE_VINDUE_MS / 2, foerst);
+            var b = Math.min(p[3] + KADENCE_VINDUE_MS / 2, sidst);
+            if (b - a < KADENCE_MIN_MS) {
+                return;
+            }
+            var spm = (skridtVed(skridt, b) - skridtVed(skridt, a)) / ((b - a) / 60000);
+            liste.push([p[3], Math.min(250, Math.round(spm / 2))]);
+        });
+        return liste;
+    }
+
     function wpt(w) {
         var linje = '  <wpt lat="' + w.lat.toFixed(7) + '" lon="' + w.lon.toFixed(7) + '">';
         if (w.ele !== null && isFinite(w.ele)) {
@@ -109,12 +152,16 @@
 
     // Laver hele GPX-filen. Et nyt segment (fx efter genoptagelse) giver en ny <trkseg>.
     // Waypoints skal stå før <trk> (GPX-skemaets rækkefølge).
-    // maalinger: { hr, cad, power }, hver sorteret efter tid (kan udelades).
+    // maalinger: { hr, cad, power, skridt }, hver sorteret efter tid (kan udelades).
     function lav(navn, startTid, punkter, waypoints, maalinger) {
         var typer = ['hr', 'cad', 'power'];
         var pr = {};
+        var kilder = Object.assign({}, maalinger || {});
+        if ((!kilder.cad || !kilder.cad.length) && kilder.skridt && kilder.skridt.length) {
+            kilder.cad = kadenceFraSkridt(punkter, kilder.skridt);
+        }
         typer.forEach(function (type) {
-            var liste = maalinger && maalinger[type];
+            var liste = kilder[type];
             var vaerdier = liste && liste.length ? tilPunkter(punkter, liste) : null;
             pr[type] = vaerdier && vaerdier.some(function (v) { return v !== null; }) ? vaerdier : null;
         });

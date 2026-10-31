@@ -17,6 +17,7 @@ dependencies {
     implementation project(':capacitor-network')
     implementation project(':capacitor-share')
     implementation project(':capgo-background-geolocation')
+    implementation project(':capgo-capacitor-pedometer')
     implementation project(':capacitor-secure-storage-plugin')
 
 }

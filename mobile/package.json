@@ -21,6 +21,7 @@
     "@capacitor/network": "^8.0.1",
     "@capacitor/share": "^8.0.3",
     "@capgo/background-geolocation": "^8.4.8",
+    "@capgo/capacitor-pedometer": "^8.0.52",
     "capacitor-secure-storage-plugin": "^0.13.0"
   },
   "devDependencies": {
