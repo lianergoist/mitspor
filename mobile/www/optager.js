@@ -44,8 +44,10 @@
     var MAALING_GEM_MS = 15 * 1000;
     var TYPER = ['hr', 'cad', 'power', 'skridt'];
     // Hvilken måler hver type kommer fra ('skridt' er telefonens skridttæller).
-    var TYPE_SLAGS = { hr: 'puls', cad: 'kraft', power: 'kraft', skridt: 'skridt' };
-    var SLAGS = ['puls', 'kraft', 'skridt'];
+    // Tjekboksene over "Start optagelse": én pr. type. Watt og kadence kommer
+    // fra samme Bluetooth-måler ('kraft' i sensorer.js).
+    var TYPE_SLAGS = { hr: 'puls', cad: 'kadence', power: 'watt', skridt: 'skridt' };
+    var SLAGS = ['puls', 'watt', 'kadence', 'skridt'];
     var BRUG_NOEGLE = 'mitspor.brug-sensorer';
 
     var aabnKnap = document.getElementById('open-recorder');
@@ -68,17 +70,20 @@
     var sensorValg = document.getElementById('optag-sensorer');
     var brugTjek = {
         puls: document.getElementById('brug-puls'),
-        kraft: document.getElementById('brug-kraft'),
+        watt: document.getElementById('brug-watt'),
+        kadence: document.getElementById('brug-kadence'),
         skridt: document.getElementById('brug-skridt')
     };
     var brugLinje = {
         puls: document.getElementById('brug-puls-linje'),
-        kraft: document.getElementById('brug-kraft-linje'),
+        watt: document.getElementById('brug-watt-linje'),
+        kadence: document.getElementById('brug-kadence-linje'),
         skridt: document.getElementById('brug-skridt-linje')
     };
     var brugTekst = {
         puls: document.getElementById('brug-puls-tekst'),
-        kraft: document.getElementById('brug-kraft-tekst'),
+        watt: document.getElementById('brug-watt-tekst'),
+        kadence: document.getElementById('brug-kadence-tekst'),
         skridt: document.getElementById('brug-skridt-tekst')
     };
     var sensorDialog = document.getElementById('sensor-dialog');
@@ -131,7 +136,7 @@
     var maal = tomMaal();  // turens målinger pr. type: [[tid, værdi], ...]
     var ugemt = tomMaal(); // målinger, der endnu ikke er skrevet til filerne
     var sidstMaalGem = 0;
-    var brugValg = hentBrug(); // tjekboksene: { puls, kraft, skridt }
+    var brugValg = hentBrug(); // tjekboksene: { puls, watt, kadence, skridt }
     var harSkridt = false;     // har telefonen en skridttæller?
     var skridtStart = 0;       // turens skridt, da skridttælleren sidst startede
     var dialogSlags = null;    // den slags måler, sensor-dialogen viser
@@ -543,7 +548,7 @@
                 ugemt = tomMaal();
                 sidstMaalGem = Date.now();
                 // Valget gælder hele turen, også hvis den genoptages.
-                meta.brug = { puls: brugt('puls'), kraft: brugt('kraft'), skridt: brugt('skridt') };
+                meta.brug = { puls: brugt('puls'), watt: brugt('watt'), kadence: brugt('kadence'), skridt: brugt('skridt') };
                 segment = 0;
                 sidstGpx = Date.now();
                 sidstRens = 0;
@@ -785,14 +790,33 @@
     function hentBrug() {
         try {
             var b = JSON.parse(window.localStorage.getItem(BRUG_NOEGLE) || 'null') || {};
-            return { puls: b.puls !== false, kraft: b.kraft !== false, skridt: b.skridt === true };
+            // Før watt og kadence fik hver sin tjekboks, hed de tilsammen "kraft".
+            var kraft = b.kraft !== false;
+            return {
+                puls: b.puls !== false,
+                watt: b.watt === undefined ? kraft : b.watt !== false,
+                kadence: b.kadence === undefined ? kraft : b.kadence !== false,
+                skridt: b.skridt === true
+            };
         } catch (e) {
-            return { puls: true, kraft: true, skridt: false };
+            return { puls: true, watt: true, kadence: true, skridt: false };
         }
     }
 
     function findes(slags) {
-        return slags === 'skridt' ? harSkridt : !!Sensorer.maaler(slags);
+        var kraft = Sensorer.maaler('kraft');
+        if (slags === 'watt') {
+            return !!kraft && !!kraft.watt;
+        }
+        if (slags === 'kadence') {
+            // null: ikke undersøgt endnu (før første forbindelse).
+            return !!kraft && kraft.kadence !== false;
+        }
+        if (slags === 'skridt') {
+            // Kadence fra en Bluetooth-måler går forud for telefonens skridttæller.
+            return harSkridt && !brugt('kadence');
+        }
+        return !!Sensorer.maaler(slags);
     }
 
     function gemBrug() {
@@ -803,15 +827,27 @@
     // gælder valget, der blev truffet ved start.
     function brugt(slags) {
         if (aktiv && meta) {
-            // Ture startet før valget fandtes: kun pulsmåleren.
-            return !!(meta.brug ? meta.brug[slags] : slags === 'puls' && Sensorer.maaler(slags));
+            var b = meta.brug;
+            if (!b) {
+                // Ture startet før valget fandtes: kun pulsmåleren.
+                return slags === 'puls' && !!Sensorer.maaler(slags);
+            }
+            // Ture startet, mens watt og kadence havde én fælles tjekboks.
+            if (b[slags] === undefined && (slags === 'watt' || slags === 'kadence')) {
+                return !!b.kraft;
+            }
+            return !!b[slags];
         }
         return findes(slags) && brugValg[slags];
     }
 
-    // Bluetooth-målerne, der skal bruges.
+    // Bluetooth-målerne (slags i sensorer.js), der skal forbindes.
     function brugteSlags() {
-        return ['puls', 'kraft'].filter(brugt);
+        var liste = brugt('puls') ? ['puls'] : [];
+        if (brugt('watt') || brugt('kadence')) {
+            liste.push('kraft');
+        }
+        return liste;
     }
 
     // Uden optagelse: forbind de målere, der er slået til, så værdierne
@@ -905,24 +941,36 @@
     function visSensorer() {
         var kraft = Sensorer.maaler('kraft');
         visVaerdi(pulsBoks, pulsFelt, brugt('puls'), 'hr', 'puls');
-        visVaerdi(kadenceBoks, kadenceFelt, brugt('kraft'), 'cad', 'kraft');
-        visVaerdi(wattBoks, wattFelt, brugt('kraft') && !!kraft && kraft.watt, 'power', 'kraft');
+        visVaerdi(kadenceBoks, kadenceFelt, brugt('kadence'), 'cad', 'kraft');
+        visVaerdi(wattBoks, wattFelt, brugt('watt'), 'power', 'kraft');
         skridtBoks.hidden = !aktiv || !brugt('skridt');
         var skridt = maal.skridt;
         skridtFelt.textContent = String(skridt.length ? skridt[skridt.length - 1][1] : 0);
 
         // Tjekboksene vises kun før start. Uden måler er linjen nedtonet.
         sensorValg.hidden = aktiv || !!afbrudt;
+        var puls = Sensorer.maaler('puls');
         SLAGS.forEach(function (slags) {
-            var m = Sensorer.maaler(slags);
             var har = findes(slags);
             var tekst;
-            if (slags === 'skridt') {
-                tekst = 'Gem kadence fra telefonens skridttæller' + (har ? '' : ' (findes ikke på denne telefon)');
+            if (slags === 'puls') {
+                tekst = puls ? 'Gem puls fra ' + puls.navn : 'Gem puls (ingen pulsmåler valgt)';
+            } else if (slags === 'skridt') {
+                tekst = 'Gem kadence fra telefonens skridttæller';
+                if (!harSkridt) {
+                    tekst += ' (findes ikke på denne telefon)';
+                } else if (!har) {
+                    tekst += ' (kadencen tages fra ' + kraft.navn + ')';
+                }
             } else {
-                var hvad = slags === 'puls' ? 'Gem puls' : (m && !m.watt ? 'Gem kadence' : 'Gem kadence og watt');
-                tekst = m ? hvad + ' fra ' + m.navn :
-                    hvad + (slags === 'puls' ? ' (ingen pulsmåler valgt)' : ' (ingen måler valgt)');
+                var hvad = slags === 'watt' ? 'Gem watt' : 'Gem kadence';
+                if (har) {
+                    tekst = hvad + ' fra ' + kraft.navn;
+                } else if (kraft) {
+                    tekst = hvad + ' (' + kraft.navn + ' måler ikke ' + slags + ')';
+                } else {
+                    tekst = hvad + (slags === 'watt' ? ' (ingen wattmåler valgt)' : ' (ingen kadencemåler valgt)');
+                }
             }
             brugTjek[slags].disabled = !har;
             brugTjek[slags].checked = har && brugValg[slags];
@@ -1077,8 +1125,13 @@
         var enhed = valgtRadio();
         var m = Sensorer.maaler(slags);
         if (sensorDialog.returnValue === 'ok' && enhed && (!m || m.id !== enhed.id)) {
-            // En ny måler slås til i tjekboksen.
-            brugValg[slags] = true;
+            // En ny måler slås til i tjekboksene.
+            if (slags === 'puls') {
+                brugValg.puls = true;
+            } else {
+                brugValg.watt = true;
+                brugValg.kadence = true;
+            }
             gemBrug();
             Sensorer.vaelg(slags, enhed)
                 .catch(function (fejl) {

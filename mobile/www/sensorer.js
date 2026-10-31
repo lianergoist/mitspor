@@ -7,8 +7,8 @@
 //             skridtmåler til løb (Running Speed and Cadence, 0x1814).
 //
 // Brugeren vælger måleren i optagerens menu, hvor appen selv søger efter
-// målere i nærheden (soeg). Den valgte huskes på enheden (kun id, navn og
-// om den kan måle watt). Der forbindes, når optageren åbnes, og når en
+// målere i nærheden (soeg). Den valgte huskes på enheden (kun id, navn, og
+// om den kan måle watt og kadence; null er "ved ikke endnu"). Der forbindes, når optageren åbnes, og når en
 // optagelse starter. Ryger forbindelsen (fx uden for rækkevidde), forsøges
 // der igen, så længe der optages. Under optagelsen samler optager.js
 // målingerne og gemmer dem i turen.
@@ -28,8 +28,9 @@
     }
 
     var HR = { service: uuid('180d'), maaling: uuid('2a37') };
-    var CPS = { service: uuid('1818'), maaling: uuid('2a63') };
-    var CSC = { service: uuid('1816'), maaling: uuid('2a5b') };
+    // evner: "Feature"-værdien, der fortæller, om måleren sender krankdata (kadence).
+    var CPS = { service: uuid('1818'), maaling: uuid('2a63'), evner: uuid('2a65') };
+    var CSC = { service: uuid('1816'), maaling: uuid('2a5b'), evner: uuid('2a5c') };
     var RSC = { service: uuid('1814'), maaling: uuid('2a53') };
 
     var SLAGS = {
@@ -231,23 +232,55 @@
             if (slags.indexOf('puls') >= 0) {
                 lyt(HR, laesPuls);
             }
-            if (slags.indexOf('kraft') >= 0) {
-                // Annoncerede måleren ikke wattmåling, men har den, så husk det.
-                if (har[CPS.service] && valgt.kraft && valgt.kraft.id === id && !valgt.kraft.watt) {
-                    valgt.kraft.watt = true;
+            var kraft = slags.indexOf('kraft') >= 0 ? laesEvner(id, har) : Promise.resolve(null);
+            return kraft.then(function (evner) {
+                if (evner) {
+                    lyt(CPS, function (d) { laesWatt(id, d); });
+                    // Kadence fra CSC/RSC kun, hvis wattmåleren ikke selv giver den.
+                    if (!evner.cpsKrank) {
+                        lyt(CSC, function (d) { laesCsc(id, d); });
+                        lyt(RSC, laesRsc);
+                    }
+                }
+                if (!opg.length) {
+                    throw new Error('Måleren sender ikke de forventede data.');
+                }
+                return Promise.all(opg);
+            });
+        });
+    }
+
+    // Læser en "Feature"-værdi og svarer, om bitten er sat (null, hvis den
+    // ikke kunne læses).
+    function harBit(id, tj, bit) {
+        return Ble.read(id, tj.service, tj.evner)
+            .then(function (d) { return d.byteLength > 0 && !!(d.getUint8(0) & (1 << bit)); })
+            .catch(function () { return null; });
+    }
+
+    // Finder ud af, om kadence-/wattmåleren kan måle watt og kadence, og
+    // husker det, så tjekboksene over "Start optagelse" passer.
+    // Wattmåler: bit 3 = krankdata. Kadencesensor: bit 1 = krankdata (en
+    // ren fartsensor har den ikke). Skridtmåler til løb: altid kadence.
+    function laesEvner(id, har) {
+        var cps = har[CPS.service] ? harBit(id, CPS, 3) : Promise.resolve(false);
+        var csc = har[CSC.service] ? harBit(id, CSC, 1) : Promise.resolve(false);
+        return Promise.all([cps, csc]).then(function (svar) {
+            var evner = { cpsKrank: svar[0] === true };
+            var m = valgt.kraft;
+            if (m && m.id === id) {
+                var kadence = svar[0] === true || svar[1] === true || !!har[RSC.service];
+                // Kunne en værdi ikke læses, gættes der ikke på "nej".
+                if (!kadence && (svar[0] === null || svar[1] === null)) {
+                    kadence = null;
+                }
+                if (m.watt !== !!har[CPS.service] || m.kadence !== kadence) {
+                    m.watt = !!har[CPS.service];
+                    m.kadence = kadence;
                     gemValgt('kraft');
                 }
-                lyt(CPS, function (d) { laesWatt(id, d); });
-                // Kadence fra CSC kun, hvis wattmåleren ikke selv giver den.
-                if (!har[CPS.service]) {
-                    lyt(CSC, function (d) { laesCsc(id, d); });
-                    lyt(RSC, laesRsc);
-                }
             }
-            if (!opg.length) {
-                throw new Error('Måleren sender ikke de forventede data.');
-            }
-            return Promise.all(opg);
+            return evner;
         });
     }
 
@@ -347,7 +380,7 @@
     }
 
     // Søger efter målere af en slags i nærheden. fundet(enhed) kaldes for
-    // hver ny: { id, navn, watt }. Svaret kommer, når søgningen er slut
+    // hver ny: { id, navn, watt, kadence }. Svaret kommer, når søgningen er slut
     // (efter SOEG_MS, eller når stopSoeg() kaldes). En måler, der allerede
     // er forbundet, sender ikke og bliver ikke fundet.
     function soeg(slags, fundet) {
@@ -376,7 +409,10 @@
                         fundet({
                             id: id,
                             navn: r.localName || r.device.name || 'Ukendt måler',
-                            watt: uuids.indexOf(CPS.service) >= 0
+                            watt: uuids.indexOf(CPS.service) >= 0,
+                            // Skridtmålere giver altid kadence; ellers ved vi det
+                            // først, når måleren er forbundet.
+                            kadence: uuids.indexOf(RSC.service) >= 0 ? true : null
                         });
                     }).then(function () {
                         soegTimer = setTimeout(stopSoeg, SOEG_MS);
@@ -394,7 +430,8 @@
     // slagsen er aktiv.
     function vaelg(slags, enhed) {
         var gammel = valgt[slags];
-        valgt[slags] = { id: enhed.id, navn: enhed.navn, watt: !!enhed.watt };
+        valgt[slags] = { id: enhed.id, navn: enhed.navn, watt: !!enhed.watt,
+            kadence: enhed.kadence === undefined ? null : enhed.kadence };
         gemValgt(slags);
         var opg = gammel && gammel.id !== enhed.id ? ryd() : Promise.resolve();
         return opg.then(function () {
