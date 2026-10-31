@@ -20,6 +20,7 @@
     var Live = window.MitSporLive;
     var Kamera = window.MitSporKamera;
     var Sensorer = window.MitSporSensorer;
+    var Skridt = window.MitSporSkridt;
 
     // Smart-mode: alle brugbare GPS-punkter gemmes i punkter.jsonl, og
     // GPX-filen laves af det rensede spor (spor.js).
@@ -41,9 +42,10 @@
     // type, skrives til turens filer i bidder.
     var MAALING_MIN_MS = 1000;
     var MAALING_GEM_MS = 15 * 1000;
-    var TYPER = ['hr', 'cad', 'power'];
-    // Hvilken måler (slags i sensorer.js) hver type kommer fra.
-    var TYPE_SLAGS = { hr: 'puls', cad: 'kraft', power: 'kraft' };
+    var TYPER = ['hr', 'cad', 'power', 'skridt'];
+    // Hvilken måler hver type kommer fra ('skridt' er telefonens skridttæller).
+    var TYPE_SLAGS = { hr: 'puls', cad: 'kraft', power: 'kraft', skridt: 'skridt' };
+    var SLAGS = ['puls', 'kraft', 'skridt'];
     var BRUG_NOEGLE = 'mitspor.brug-sensorer';
 
     var aabnKnap = document.getElementById('open-recorder');
@@ -60,19 +62,24 @@
     var kadenceBoks = document.getElementById('optag-kadence-boks');
     var kadenceFelt = document.getElementById('optag-kadence');
     var wattBoks = document.getElementById('optag-watt-boks');
+    var skridtBoks = document.getElementById('optag-skridt-boks');
+    var skridtFelt = document.getElementById('optag-skridt');
     var wattFelt = document.getElementById('optag-watt');
     var sensorValg = document.getElementById('optag-sensorer');
     var brugTjek = {
         puls: document.getElementById('brug-puls'),
-        kraft: document.getElementById('brug-kraft')
+        kraft: document.getElementById('brug-kraft'),
+        skridt: document.getElementById('brug-skridt')
     };
     var brugLinje = {
         puls: document.getElementById('brug-puls-linje'),
-        kraft: document.getElementById('brug-kraft-linje')
+        kraft: document.getElementById('brug-kraft-linje'),
+        skridt: document.getElementById('brug-skridt-linje')
     };
     var brugTekst = {
         puls: document.getElementById('brug-puls-tekst'),
-        kraft: document.getElementById('brug-kraft-tekst')
+        kraft: document.getElementById('brug-kraft-tekst'),
+        skridt: document.getElementById('brug-skridt-tekst')
     };
     var sensorDialog = document.getElementById('sensor-dialog');
     var sensorTitel = document.getElementById('sensor-titel');
@@ -124,7 +131,9 @@
     var maal = tomMaal();  // turens målinger pr. type: [[tid, værdi], ...]
     var ugemt = tomMaal(); // målinger, der endnu ikke er skrevet til filerne
     var sidstMaalGem = 0;
-    var brugValg = hentBrug(); // tjekboksene: { puls, kraft }
+    var brugValg = hentBrug(); // tjekboksene: { puls, kraft, skridt }
+    var harSkridt = false;     // har telefonen en skridttæller?
+    var skridtStart = 0;       // turens skridt, da skridttælleren sidst startede
     var dialogSlags = null;    // den slags måler, sensor-dialogen viser
     var wptPos = null;    // placeringen til waypointet i dialogen
     var valgteBilleder = []; // billederne i dialogen (kamera.js), endnu ikke gemt
@@ -534,7 +543,7 @@
                 ugemt = tomMaal();
                 sidstMaalGem = Date.now();
                 // Valget gælder hele turen, også hvis den genoptages.
-                meta.brug = { puls: brugt('puls'), kraft: brugt('kraft') };
+                meta.brug = { puls: brugt('puls'), kraft: brugt('kraft'), skridt: brugt('skridt') };
                 segment = 0;
                 sidstGpx = Date.now();
                 sidstRens = 0;
@@ -768,17 +777,22 @@
     // ---------- Sensorer (puls, kadence og watt) ----------
 
     function tomMaal() {
-        return { hr: [], cad: [], power: [] };
+        return { hr: [], cad: [], power: [], skridt: [] };
     }
 
-    // Tjekboksene huskes på enheden. Som standard er de slået til.
+    // Tjekboksene huskes på enheden. Målerne er som standard slået til;
+    // skridttælleren er slået fra, da den kræver en tilladelse.
     function hentBrug() {
         try {
             var b = JSON.parse(window.localStorage.getItem(BRUG_NOEGLE) || 'null') || {};
-            return { puls: b.puls !== false, kraft: b.kraft !== false };
+            return { puls: b.puls !== false, kraft: b.kraft !== false, skridt: b.skridt === true };
         } catch (e) {
-            return { puls: true, kraft: true };
+            return { puls: true, kraft: true, skridt: false };
         }
+    }
+
+    function findes(slags) {
+        return slags === 'skridt' ? harSkridt : !!Sensorer.maaler(slags);
     }
 
     function gemBrug() {
@@ -789,12 +803,13 @@
     // gælder valget, der blev truffet ved start.
     function brugt(slags) {
         if (aktiv && meta) {
-            // Ture startet før valget fandtes: brug det, der er valgt.
-            return !!(meta.brug ? meta.brug[slags] : Sensorer.maaler(slags));
+            // Ture startet før valget fandtes: kun pulsmåleren.
+            return !!(meta.brug ? meta.brug[slags] : slags === 'puls' && Sensorer.maaler(slags));
         }
-        return !!Sensorer.maaler(slags) && brugValg[slags];
+        return findes(slags) && brugValg[slags];
     }
 
+    // Bluetooth-målerne, der skal bruges.
     function brugteSlags() {
         return ['puls', 'kraft'].filter(brugt);
     }
@@ -818,11 +833,25 @@
         var slags = brugteSlags();
         Sensorer.hold(slags.length > 0);
         Sensorer.brug(slags).catch(function () {});
+        if (brugt('skridt')) {
+            // Skridttælleren starter forfra; turens skridt fortsætter.
+            var liste = maal.skridt;
+            skridtStart = liste.length ? liste[liste.length - 1][1] : 0;
+            Skridt.start().catch(function (fejl) {
+                visFejl('Skridttælleren kunne ikke starte: ' + (fejl && fejl.message ? fejl.message : fejl));
+            });
+        }
     }
 
     function stopSensorer() {
         Sensorer.hold(false);
         Sensorer.afbryd();
+        Skridt.stop();
+    }
+
+    function modtagSkridt(tid, skridt) {
+        modtagMaaling('skridt', skridtStart + skridt, tid);
+        visSensorer();
     }
 
     function modtagMaaling(type, vaerdi, tid) {
@@ -831,7 +860,14 @@
         }
         var liste = maal[type];
         var forrige = liste[liste.length - 1];
+        if (forrige && type === 'skridt' && vaerdi < forrige[1]) {
+            return;
+        }
         if (forrige && tid - forrige[0] < MAALING_MIN_MS) {
+            // Skridt tæller op: den seneste værdi skal med.
+            if (type === 'skridt') {
+                forrige[1] = vaerdi;
+            }
             return;
         }
         var maaling = [tid, vaerdi];
@@ -871,18 +907,43 @@
         visVaerdi(pulsBoks, pulsFelt, brugt('puls'), 'hr', 'puls');
         visVaerdi(kadenceBoks, kadenceFelt, brugt('kraft'), 'cad', 'kraft');
         visVaerdi(wattBoks, wattFelt, brugt('kraft') && !!kraft && kraft.watt, 'power', 'kraft');
+        skridtBoks.hidden = !aktiv || !brugt('skridt');
+        var skridt = maal.skridt;
+        skridtFelt.textContent = String(skridt.length ? skridt[skridt.length - 1][1] : 0);
 
-        // Tjekboksene vises kun før start. Uden valgt måler er linjen nedtonet.
+        // Tjekboksene vises kun før start. Uden måler er linjen nedtonet.
         sensorValg.hidden = aktiv || !!afbrudt;
-        ['puls', 'kraft'].forEach(function (slags) {
+        SLAGS.forEach(function (slags) {
             var m = Sensorer.maaler(slags);
-            var hvad = slags === 'puls' ? 'Gem puls' : (m && !m.watt ? 'Gem kadence' : 'Gem kadence og watt');
-            brugTjek[slags].disabled = !m;
-            brugTjek[slags].checked = !!m && brugValg[slags];
-            brugLinje[slags].classList.toggle('optag-tjek--slukket', !m);
-            brugTekst[slags].textContent = m ? hvad + ' fra ' + m.navn :
-                hvad + (slags === 'puls' ? ' (ingen pulsmåler valgt)' : ' (ingen måler valgt)');
+            var har = findes(slags);
+            var tekst;
+            if (slags === 'skridt') {
+                tekst = 'Gem kadence fra telefonens skridttæller' + (har ? '' : ' (findes ikke på denne telefon)');
+            } else {
+                var hvad = slags === 'puls' ? 'Gem puls' : (m && !m.watt ? 'Gem kadence' : 'Gem kadence og watt');
+                tekst = m ? hvad + ' fra ' + m.navn :
+                    hvad + (slags === 'puls' ? ' (ingen pulsmåler valgt)' : ' (ingen måler valgt)');
+            }
+            brugTjek[slags].disabled = !har;
+            brugTjek[slags].checked = har && brugValg[slags];
+            brugLinje[slags].classList.toggle('optag-tjek--slukket', !har);
+            brugTekst[slags].textContent = tekst;
         });
+    }
+
+    // Skridttælleren kræver adgang til fysisk aktivitet. Den bedes der om,
+    // når brugeren slår tjekboksen til.
+    function slaaSkridtTil() {
+        Skridt.bedOmTilladelse()
+            .catch(function () { return false; })
+            .then(function (tilladt) {
+                if (!tilladt) {
+                    brugValg.skridt = false;
+                    gemBrug();
+                    visSensorer();
+                    window.alert('MitSpor har ikke adgang til telefonens skridttæller. Du kan give adgang under MitSpor i telefonens indstillinger ("Fysisk aktivitet" på Android, "Bevægelse og fitness" på iPhone).');
+                }
+            });
     }
 
     // ---------- Søgedialogen ----------
@@ -1294,11 +1355,22 @@
         brugTjek[slags].addEventListener('change', function () {
             brugValg[slags] = brugTjek[slags].checked;
             gemBrug();
-            forbindValgte();
+            if (slags === 'skridt') {
+                if (brugValg.skridt) {
+                    slaaSkridtTil();
+                }
+            } else {
+                forbindValgte();
+            }
             visSensorer();
         });
     });
     Sensorer.onMaaling(modtagMaaling);
+    Skridt.onMaaling(modtagSkridt);
+    Skridt.findes().then(function (ja) {
+        harSkridt = ja;
+        visSensorer();
+    });
     Sensorer.onSkift(function () {
         visSensorer();
         if (sensorDialog.open) {
