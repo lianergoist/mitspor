@@ -103,8 +103,8 @@
         <section>
             <h2>Puls</h2>
             <p>Har du en pulsmåler med Bluetooth, fx et pulsbælte, kan du vælge den under "Pulsmåler" i optagerens menu (☰). Telefonen husker den, og pulsen vises og gemmes i turen, mens du optager. Tag bæltet på, før du trykker "Start optagelse".</p>
-            <p>På samme måde kan du under "Kadence og watt" vælge en wattmåler, en kadencesensor til cyklen eller en skridtmåler til løb. Over "Start optagelse" vælger du, om målingerne skal gemmes i turen.</p>
-            <p>Telefonens egen skridttæller kan også give kadencen (skridt pr. minut). Slå "Gem kadence fra telefonens skridttæller" til over "Start optagelse". Antallet af skridt vises under optagelsen.</p>
+            <p>På samme måde kan du under "Kadence og watt" vælge en wattmåler, en kadencesensor til cyklen eller en skridtmåler til løb. Under "Vis sensorer" over "Start optagelse" vælger du, om målingerne skal gemmes i turen.</p>
+            <p>Telefonens egen skridttæller kan også give kadencen (skridt pr. minut). Slå "Gem kadence fra telefonens skridttæller" til under "Vis sensorer". Antallet af skridt vises under optagelsen.</p>
         </section>
 
         <section>
@@ -206,8 +206,13 @@
             </div>
         </div>
 
-        <!-- Hvilke målinger der gemmes i turen (www/optager.js). -->
-        <div class="optag-sensorer" id="optag-sensorer" hidden>
+        <!-- Hvilke målinger der gemmes i turen (www/optager.js). Foldet sammen
+             under "Vis sensorer"; teksten skifter til "Skjul sensorer", når den er åben. -->
+        <details class="optag-sensorer" id="optag-sensorer" hidden>
+            <summary class="optag-sensorer-titel">
+                <span class="optag-sensorer-vis">Vis sensorer</span>
+                <span class="optag-sensorer-skjul">Skjul sensorer</span>
+            </summary>
             <label class="optag-tjek" id="brug-puls-linje">
                 <input type="checkbox" id="brug-puls">
                 <span id="brug-puls-tekst">Gem puls</span>
@@ -224,7 +229,7 @@
                 <input type="checkbox" id="brug-skridt">
                 <span id="brug-skridt-tekst">Gem kadence fra telefonens skridttæller</span>
             </label>
-        </div>
+        </details>
 
         <nav class="start-actions">
             <button type="button" class="btn btn-primary" id="optag-start">Start optagelse</button>
