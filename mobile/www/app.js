@@ -132,14 +132,21 @@
     }
 
     // Har brugeren logget ind på sitet i WebView'et, får appen et token for
-    // hemmeligheden. Indtil da svarer sitet 401. Spørges efter hver side.
+    // hemmeligheden. Indtil da svarer sitet 401. Spørges efter hver side, men
+    // kun mens appen ikke er logget ind: er den det, er sitet logget ind med
+    // samme konto (via kode), og der er intet at veksle. Ellers gav hver
+    // sidevisning et 401 i sitets log.
     function proevVeksling() {
         var hemmelighed = parHemmelighed;
         if (!hemmelighed || veksler) {
             return Promise.resolve();
         }
         veksler = true;
-        return window.MitSporKonto.vekslKode(hemmelighed)
+        var Konto = window.MitSporKonto;
+        return Konto.hent()
+            .then(function (nu) {
+                return nu ? null : Konto.vekslKode(hemmelighed);
+            })
             .catch(function () {})
             .finally(function () { veksler = false; });
     }
