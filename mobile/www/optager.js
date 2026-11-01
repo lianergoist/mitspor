@@ -56,6 +56,7 @@
     var stopKnap = document.getElementById('optag-stop');
     var pauseKnap = document.getElementById('optag-pause');
     var genoptagKnap = document.getElementById('optag-genoptag');
+    var styrRaekke = document.getElementById('optag-styr');
     var tidFelt = document.getElementById('optag-tid');
     var afstandFelt = document.getElementById('optag-afstand');
     var punkterFelt = document.getElementById('optag-punkter');
@@ -229,6 +230,7 @@
         genoptagKnap.hidden = !aktiv || !pauset;
         stopKnap.hidden = !aktiv;
         wptKnap.hidden = !aktiv;
+        styrRaekke.hidden = !aktiv;
         startKnap.disabled = !!afbrudt;
         aabnKnap.textContent = !aktiv ? 'Optag tur' : (pauset ? 'Optagelse på pause' : 'Optagelse i gang');
         afbrudtBoks.hidden = !afbrudt || aktiv;

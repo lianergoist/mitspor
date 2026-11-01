@@ -886,3 +886,39 @@ body {
 .om-dialog .btn {
     margin-top: 8px;
 }
+
+/* ---------- Knapperne under optagelsen ---------- */
+
+/* "Indsæt waypoint" er 50 % højere end en almindelig knap. */
+#optag-wpt {
+    min-height: 78px;
+}
+
+/* Pause/Fortsæt og Stop og gem står ved siden af hinanden, er dobbelt så
+   høje og har lidt mere luft op til "Indsæt waypoint". */
+.optag-styr {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.optag-styr .btn {
+    flex: 1 1 0;
+    min-height: 104px;
+}
+
+/* ---------- Tablet: topbaren bruger hele skærmens bredde ---------- */
+
+/* Indholdet er højst 480 px bredt og centreret. På bredere skærme trækkes
+   topbaren ud til kanterne, så "‹ Tilbage" står til venstre og menuen til
+   højre. (50vw − 240px) er afstanden fra kolonnen ud til skærmkanten. */
+@media (min-width: 481px) {
+    .optag-header {
+        margin-left: calc(240px - 50vw);
+        margin-right: calc(240px - 50vw);
+    }
+
+    .start-topbar {
+        right: calc(240px - 50vw + env(safe-area-inset-right) + 10px);
+    }
+}
