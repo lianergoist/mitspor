@@ -926,29 +926,29 @@ body {
     min-height: 104px;
 }
 
-/* Optagerens overskrift står i midten, med "‹ Tilbage" til venstre og
-   menuen til højre. Kolonnerne er faste, så overskriften bliver stående,
-   når "‹ Tilbage" er skjult under livesending. */
-#view-optag .optag-header {
+/* Overskriften i topbaren står i midten, med "‹ Tilbage" til venstre og
+   (i optageren) menuen til højre. Kolonnerne er faste, så overskriften
+   bliver stående, når "‹ Tilbage" er skjult under livesending. */
+.optag-header {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
 }
 
-#view-optag .optag-header > * {
+.optag-header > * {
     grid-row: 1;
 }
 
-#optag-tilbage {
+.optag-header > .link-btn {
     grid-column: 1;
     justify-self: start;
 }
 
-#view-optag .optag-header h1 {
+.optag-header h1 {
     grid-column: 2;
     text-align: center;
 }
 
-#view-optag .optag-menu {
+.optag-header .optag-menu {
     grid-column: 3;
     justify-self: end;
     margin-left: 0;
