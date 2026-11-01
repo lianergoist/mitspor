@@ -170,8 +170,16 @@ $routeCanonicalUrl = APP_BASE_URL . '/route-view.php?id=' . urlencode($route['pu
 // og:url skal give adgang til siden. Facebook og Messenger åbner og:url, når
 // et link deles, så et del-link til en privat rute skal beholde share-nøglen
 // (ellers svarer siden 403).
-$routeOgUrl = $routeCanonicalUrl
-    . ($hasValidShareToken ? '&share=' . urlencode($shareToken) : '');
+// En igangværende live-etape har ingen rute-id; dens adresse er
+// ?live=…&etape=… og, ved en ikke-offentlig livesending, nøglen k.
+if ($liveEvent !== null) {
+    $routeOgUrl = APP_BASE_URL . '/route-view.php?live=' . urlencode($liveEvent['public_id'])
+        . '&etape=' . (int) $liveStage['position']
+        . ($liveKey !== '' ? '&k=' . urlencode($liveKey) : '');
+} else {
+    $routeOgUrl = $routeCanonicalUrl
+        . ($hasValidShareToken ? '&share=' . urlencode($shareToken) : '');
+}
 
 // Delingsbillede: offentlige ruter får et automatisk genereret kortbillede
 // (public/og-image.php). Private ruter — også via delelink — får det
