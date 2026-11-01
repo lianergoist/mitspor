@@ -10,12 +10,16 @@
 </head>
 <body>
     <main class="start" id="view-start">
-        <!-- Menuen øverst til højre (www/menu.js). -->
+        <!-- Øverst til højre: "Opret konto" og "Log ind", når man ikke er
+             logget ind, og menuen (www/menu.js). -->
         <div class="start-topbar">
+            <button type="button" class="btn btn-secondary btn-small" id="start-opret" hidden>Opret konto</button>
+            <button type="button" class="btn btn-primary btn-small" id="start-login" hidden>Log ind</button>
             <button type="button" class="menu-knap" id="menu-knap" aria-label="Menu" aria-haspopup="menu" aria-expanded="false" aria-controls="menu">
                 <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
             <div class="menu" id="menu" role="menu" hidden>
+                <button type="button" role="menuitem" data-menu="logud" data-logget-ind hidden>Log ud</button>
                 <button type="button" role="menuitem" data-menu="hjaelp">Hjælp</button>
                 <button type="button" role="menuitem" data-menu="om">Om MitSpor</button>
             </div>
@@ -160,6 +164,7 @@
                     <button type="button" role="menuitem" data-optag-menu="ture">Gemte ture<span id="optag-menu-antal"></span></button>
                     <button type="button" role="menuitem" data-optag-menu="puls">Pulsmåler</button>
                     <button type="button" role="menuitem" data-optag-menu="kraft">Kadence og watt</button>
+                    <button type="button" role="menuitem" data-optag-menu="logud" data-logget-ind hidden>Log ud</button>
                     <button type="button" role="menuitem" data-optag-menu="hjaelp">Hjælp</button>
                     <button type="button" role="menuitem" data-optag-menu="om">Om MitSpor</button>
                 </div>

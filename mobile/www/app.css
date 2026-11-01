@@ -756,6 +756,20 @@ body {
     top: calc(env(safe-area-inset-top) + 6px);
     right: calc(env(safe-area-inset-right) + 10px);
     z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Plads til knapperne øverst, så de ikke rører logoet. */
+#view-start {
+    padding-top: calc(env(safe-area-inset-top) + 64px);
+}
+
+/* "Opret konto" og "Log ind" ved siden af menuen, når man ikke er logget ind. */
+.start-topbar .btn-small {
+    min-height: 44px;
+    white-space: nowrap;
 }
 
 .menu-knap {
