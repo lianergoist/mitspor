@@ -15,7 +15,7 @@ function share_link_dialog(): string
     return <<<HTML
 <dialog id="share-link-dialog" class="modal-dialog" data-csrf="{$csrf}">
     <button type="button" id="share-link-close" class="modal-close" aria-label="Luk">&times;</button>
-    <h2>Del-link</h2>
+    <h2>Del link</h2>
 
     <div id="share-link-errors" class="modal-errors" hidden></div>
 
