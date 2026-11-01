@@ -17,6 +17,7 @@ require_once __DIR__ . '/../app/videoer.php';
 require_once __DIR__ . '/../app/markers.php';
 require_once __DIR__ . '/../app/live.php';
 require_once __DIR__ . '/../app/topbar_menu.php';
+require_once __DIR__ . '/../app/share_link_dialog.php';
 
 $userId = require_login();
 $user = current_user($userId);
@@ -761,28 +762,7 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
     </form>
 </dialog>
 
-<dialog id="share-link-dialog" class="modal-dialog">
-    <button type="button" id="share-link-close" class="modal-close" aria-label="Luk">&times;</button>
-    <h2>Del-link</h2>
-
-    <div id="share-link-errors" class="modal-errors" hidden></div>
-
-    <p>
-        <strong id="share-link-route-title"></strong> er privat, men et delbart link giver adgang
-        til denne ene rute uden login.
-    </p>
-
-    <div id="share-link-active">
-        <label>
-            Link
-            <input type="text" id="share-link-url" readonly>
-        </label>
-        <div class="inline-edit-actions" style="margin-top: 8px;">
-            <button type="button" id="share-link-copy-btn" class="btn">Kopiér</button>
-            <button type="button" id="share-link-revoke-btn" class="btn btn-danger">Slet link</button>
-        </div>
-    </div>
-</dialog>
+<?= share_link_dialog() ?>
 
 <dialog id="group-create-dialog" class="modal-dialog">
     <button type="button" id="group-create-close" class="modal-close" aria-label="Luk">&times;</button>
@@ -1013,7 +993,8 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
 <script src="assets/gpx-tools.js?v=3"></script>
 <script src="assets/topbar-menu.js?v=1"></script>
 <script src="assets/genindlaes.js?v=1"></script>
-<script src="assets/dashboard.js?v=28"></script>
+<script src="assets/dashboard.js?v=29"></script>
+<script src="assets/del-link.js?v=1"></script>
 <script src="assets/dashboard-tools.js?v=9"></script>
 <script src="assets/activity-marker.js?v=3"></script>
 <script src="assets/dashboard-map.js?v=7"></script>

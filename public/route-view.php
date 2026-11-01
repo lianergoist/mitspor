@@ -13,6 +13,7 @@ require_once __DIR__ . '/../app/app_hent.php';
 require_once __DIR__ . '/../app/videoer.php';
 require_once __DIR__ . '/../app/markers.php';
 require_once __DIR__ . '/../app/topbar_menu.php';
+require_once __DIR__ . '/../app/share_link_dialog.php';
 
 $publicId = (string) ($_GET['id'] ?? '');
 
@@ -150,6 +151,8 @@ $groupContext = $route['group_id'] !== null
 $gpxUrl = 'route-file.php?id=' . urlencode($route['public_id']) . '&mode=view'
     . ($hasValidShareToken ? '&share=' . urlencode($shareToken) : '');
 $canDownload = $isOwner || $route['allow_download'];
+// Del-link findes kun til private ruter (offentlige kan deles med det almindelige link).
+$canShareLink = $isOwner && $liveEvent === null && $route['visibility'] === 'private';
 $liveUrl = null;
 if ($liveEvent !== null) {
     $liveQuery = '?id=' . urlencode($liveEvent['public_id']) . ($liveKey !== '' ? '&k=' . urlencode($liveKey) : '');
@@ -454,10 +457,14 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
                 <button type="button" id="btn-open-login" class="btn" title="Log ind" aria-label="Log ind"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M22 11h-6"/><path d="M19 8l-3 3 3 3"/></svg><span class="btn-label">Log ind</span></button>
             <?php endif; ?>
             <?php
-            // Menuen: Åbn i editor (ejeren), Download GPX (når det er tilladt), Hjælp.
+            // Menuen: Åbn i editor og Del link (ejeren; Del link kun ved private
+            // ruter), Download GPX (når det er tilladt), Hjælp.
             $menuItems = [];
             if ($isOwner && $liveEvent === null) {
                 $menuItems[] = ['href' => 'editor/?route=' . $route['public_id'], 'label' => 'Åbn i editor'];
+            }
+            if ($canShareLink) {
+                $menuItems[] = ['id' => 'btn-open-share-link', 'label' => 'Del link'];
             }
             if ($canDownload) {
                 $menuItems[] = ['href' => gpx_download_url($route['public_id'], $hasValidShareToken ? $shareToken : ''), 'label' => 'Download GPX'];
@@ -563,6 +570,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
     </dialog>
 
     <?= about_dialog() ?>
+    <?= $canShareLink ? share_link_dialog() : '' ?>
 
     <div id="map"></div>
 
@@ -1779,6 +1787,14 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
 </script>
 
 <script src="assets/topbar-menu.js?v=1"></script>
+<?php if ($canShareLink): ?>
+<script src="assets/del-link.js?v=1"></script>
+<script>
+    document.getElementById('btn-open-share-link').addEventListener('click', function () {
+        MitSporDelLink.aabn(<?= json_encode($route['public_id']) ?>, <?= json_encode($route['title'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?>);
+    });
+</script>
+<?php endif; ?>
 <?php if (!$loggedIn): ?>
 <?php render_auth_dialogs(); ?>
 <script src="assets/genindlaes.js?v=1"></script>
