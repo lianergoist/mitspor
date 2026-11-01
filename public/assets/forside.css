@@ -276,9 +276,12 @@ body.forside {
     .forside-main h1 {
         font-size: 2.2rem;
     }
+    /* Toppen bruger hele bredden, så overskriften kan stå på én linje. */
     .forside-hero {
         padding: 12px 0 32px;
-        max-width: 720px;
+    }
+    .forside-hero h1 {
+        text-wrap: balance; /* knækker linjerne jævnt, hvis der ikke er plads */
     }
     .forside-lead {
         font-size: 1.15rem;
@@ -286,19 +289,35 @@ body.forside {
     .forside-video {
         margin: 0 0 36px;
     }
+    /* Overskriften flugter med venstre kant af videoboksen. */
     .forside-video h2 {
+        width: var(--boks-bredde);
+        max-width: 100%;
+        margin-left: auto;
+        margin-right: auto;
         padding: 0;
     }
-    /* Videoen er i højformat: rammen følger videoens bredde. */
+    /* Videoen er i højformat (9:16): den står midt i en boks i videoens egen
+       baggrundsfarve. Boksen er 2,5 gange så bred som videoen. */
+    .forside-video {
+        --video-hoejde: min(70vh, 600px);
+        --boks-bredde: calc(var(--video-hoejde) * 9 / 16 * 2.5);
+    }
     .forside-video-ramme {
-        width: fit-content;
+        width: var(--boks-bredde);
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 24px 0;
+        background: #104057;
         border-radius: 12px;
         overflow: hidden;
         box-shadow: 0 6px 24px rgba(15, 23, 42, 0.15);
     }
     .forside-video-ramme video {
         width: auto;
-        height: min(80vh, 760px);
+        height: var(--video-hoejde);
+        margin: 0 auto;
+        background: #104057;
     }
     .forside-sektion {
         margin-bottom: 36px;
