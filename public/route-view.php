@@ -164,6 +164,11 @@ if (!empty($route['description'])) {
     $seoDescription .= ' — ' . trim(mb_substr($route['description'], 0, 150));
 }
 $routeCanonicalUrl = APP_BASE_URL . '/route-view.php?id=' . urlencode($route['public_id']);
+// og:url skal give adgang til siden. Facebook og Messenger åbner og:url, når
+// et link deles, så et del-link til en privat rute skal beholde share-nøglen
+// (ellers svarer siden 403).
+$routeOgUrl = $routeCanonicalUrl
+    . ($hasValidShareToken ? '&share=' . urlencode($shareToken) : '');
 
 // Delingsbillede: offentlige ruter får et automatisk genereret kortbillede
 // (public/og-image.php). Private ruter — også via delelink — får det
@@ -199,7 +204,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
     <meta property="og:site_name" content="MitSpor">
     <meta property="og:title" content="<?= htmlspecialchars($route['title'], ENT_QUOTES, 'UTF-8') ?>">
     <meta property="og:description" content="<?= htmlspecialchars($seoDescription, ENT_QUOTES, 'UTF-8') ?>">
-    <meta property="og:url" content="<?= htmlspecialchars($routeCanonicalUrl, ENT_QUOTES, 'UTF-8') ?>">
+    <meta property="og:url" content="<?= htmlspecialchars($routeOgUrl, ENT_QUOTES, 'UTF-8') ?>">
     <meta property="og:image" content="<?= htmlspecialchars($ogImageUrl, ENT_QUOTES, 'UTF-8') ?>">
     <meta property="og:image:type" content="<?= $ogImageType ?>">
     <meta property="og:image:width" content="1200">
