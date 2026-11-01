@@ -109,7 +109,7 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
 
         <p><strong>Rute eller Spor?</strong> Vælg "Spor", hvis filen er optaget med en GPS-enhed og indeholder tidsstempler — så vises tid og hastighed på rutens side. Vælg "Rute", hvis det er en planlagt/tegnet rute — den viser ikke tid, selv hvis filen skulle indeholde tidsstempler.</p>
 
-        <p><strong>Offentlig eller privat?</strong> Offentlige ruter kan findes af alle via søgning og oversigten på forsiden. Private ruter kan kun du se — med mindre du opretter et <strong>del-link</strong> til den enkelte rute (knappen "Del-link" blandt rutens værktøjer).</p>
+        <p><strong>Offentlig eller privat?</strong> Offentlige ruter kan findes af alle via søgning og oversigten på forsiden. Private ruter kan kun du se — med mindre du opretter et <strong>del-link</strong> til den enkelte rute (knappen "Del link" blandt rutens værktøjer).</p>
 
         <p><strong>Rutens værktøjer:</strong></p>
         <ul>
@@ -117,7 +117,7 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
             <li><strong>Rediger i GPX-editor</strong> åbner editoren, hvor du flytter punkter og indsætter waypoints med billeder og kommentarer. I editorens menu (☰) finder du også Rediger metadata (titel, beskrivelse, aktivitet, synlighed m.m.), Slet datafelter, Rediger højdedata og Udtynd punkter.</li>
             <li><strong>Visning af datafelter</strong> vælger, hvad rutens side viser (fx højdeprofil, hastighed og puls).</li>
             <li><strong>Vælg markør</strong> vælger det billede, der viser ruten på kortet.</li>
-            <li><strong>Del-link</strong> (kun private ruter).</li>
+            <li><strong>Del link</strong> (kun private ruter).</li>
             <li><strong>Gendan original fil</strong> vises kun, hvis ruten er blevet udtyndet — den henter den oprindelige, fulde fil tilbage og kasserer ændringer, du har lavet siden.</li>
             <li><strong>Download GPX-fil</strong> og <strong>Slet</strong>.</li>
         </ul>
@@ -334,8 +334,8 @@ function render_route_detail(array $route): void
             </div>
             <?php if ($route['visibility'] === 'private'): ?>
                 <div class="tool-row">
-                    <button type="button" class="tool" data-share-link="<?= dash_h($id) ?>" data-route-title="<?= dash_h($title) ?>" data-has-token="<?= $route['share_token'] !== null ? '1' : '0' ?>">Del-link</button>
-                    <?= dash_help_btn('share', 'Del-link') ?>
+                    <button type="button" class="tool" data-share-link="<?= dash_h($id) ?>" data-route-title="<?= dash_h($title) ?>" data-has-token="<?= $route['share_token'] !== null ? '1' : '0' ?>">Del link</button>
+                    <?= dash_help_btn('share', 'Del link') ?>
                 </div>
             <?php endif; ?>
             <?php if ($route['original_gpx_file_path'] !== null): ?>

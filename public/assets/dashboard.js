@@ -1440,7 +1440,7 @@ function markerDefaultPreview(select, box) {
             ]
         },
         share: {
-            title: 'Del-link',
+            title: 'Del link',
             text: [
                 'Opretter et link, så alle, der har det, kan se din private rute uden at logge ind.',
                 'Du kan oprette et nyt link, og så holder det gamle op med at virke. Knappen findes kun for private ruter.'
