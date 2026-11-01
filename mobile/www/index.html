@@ -235,9 +235,12 @@
             <button type="button" class="btn btn-primary" id="optag-start">Start optagelse</button>
             <button type="button" class="btn btn-secondary" id="optag-wpt" hidden>Indsæt waypoint</button>
             <p class="start-note optag-wpt-antal" id="optag-wpt-antal" hidden></p>
-            <button type="button" class="btn btn-secondary" id="optag-pause" hidden>Pause</button>
-            <button type="button" class="btn btn-primary" id="optag-genoptag" hidden>Fortsæt</button>
-            <button type="button" class="btn btn-danger" id="optag-stop" hidden>Stop og gem</button>
+            <!-- Pause/Fortsæt og Stop og gem står ved siden af hinanden. -->
+            <div class="optag-styr" id="optag-styr" hidden>
+                <button type="button" class="btn btn-secondary" id="optag-pause" hidden>Pause</button>
+                <button type="button" class="btn btn-primary" id="optag-genoptag" hidden>Fortsæt</button>
+                <button type="button" class="btn btn-danger" id="optag-stop" hidden>Stop og gem</button>
+            </div>
             <p class="start-note">Optagelsen fortsætter, når skærmen er slukket. Så længe den kører, vises en notifikation.</p>
         </nav>
     </main>
