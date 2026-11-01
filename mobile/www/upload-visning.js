@@ -1,6 +1,7 @@
 // Skærmene til login og upload: log ind, vælg titel og aktivitet for en
 // tur og sæt den i kø (upload.js sender den). Linjen "Logget ind som …"
-// i optageren styres også herfra.
+// i optageren, "Opret konto" og "Log ind" øverst på startsiden og
+// "Log ud" i menuerne styres også herfra.
 (function () {
     'use strict';
 
@@ -22,8 +23,14 @@
     var kontoTekst = document.getElementById('optag-konto-tekst');
     var kontoKnap = document.getElementById('optag-konto-knap');
 
+    var opretKnap = document.getElementById('start-opret');
+    var startLoginKnap = document.getElementById('start-login');
+
     var tur = null;   // turen, der skal uploades (også mens der logges ind)
     var login = null;
+    // Siden, login blev åbnet fra (startsiden eller optageren). Efter login
+    // og ved "‹ Tilbage" går appen dertil.
+    var loginFra = 'view-optag';
 
     function visFejl(felt, tekst) {
         felt.textContent = tekst || '';
@@ -32,7 +39,8 @@
 
     // ---------- Login ----------
 
-    function visLogin() {
+    function visLogin(fra) {
+        loginFra = fra || 'view-optag';
         visFejl(loginFejl, '');
         MitSporApp.visSide('view-login');
     }
@@ -52,7 +60,7 @@
                 if (tur) {
                     return visUpload(tur);
                 }
-                MitSporApp.visSide('view-optag');
+                MitSporApp.visSide(loginFra);
             })
             .catch(function (fejl) {
                 visFejl(loginFejl, fejl.message);
@@ -145,6 +153,11 @@
 
     function visKonto(nu) {
         login = nu;
+        opretKnap.hidden = !!nu;
+        startLoginKnap.hidden = !!nu;
+        Array.prototype.forEach.call(document.querySelectorAll('[data-logget-ind]'), function (punkt) {
+            punkt.hidden = !nu;
+        });
         if (nu) {
             kontoTekst.textContent = 'Logget ind som ' + (nu.navn || 'dig') + '.';
             kontoKnap.textContent = 'Log ud';
@@ -160,20 +173,34 @@
             visLogin();
             return;
         }
+        logUd();
+    });
+
+    function logUd() {
         if (window.confirm('Log ud af appen?\n\nTure, der venter på upload, bliver sendt, når du logger ind igen.')) {
             Konto.logUd();
         }
-    });
+    }
+
+    // Login, der blev åbnet fra startsiden, går tilbage dertil.
+    function lukLogin() {
+        tur = null;
+        MitSporApp.visSide(loginFra);
+    }
 
     loginForm.addEventListener('submit', logInd);
     uploadForm.addEventListener('submit', saetIKoe);
-    document.getElementById('login-tilbage').addEventListener('click', function () {
-        tur = null;
-        MitSporApp.visSide('view-optag');
-    });
+    document.getElementById('login-tilbage').addEventListener('click', lukLogin);
     document.getElementById('upload-tilbage').addEventListener('click', function () {
         tur = null;
         MitSporApp.visSide('view-optag');
+    });
+    opretKnap.addEventListener('click', function () {
+        MitSporApp.aabnSite('/register.php');
+    });
+    startLoginKnap.addEventListener('click', function () {
+        tur = null;
+        visLogin('view-start');
     });
     document.getElementById('login-opret').addEventListener('click', function (event) {
         event.preventDefault();
@@ -188,6 +215,16 @@
     Konto.hent().then(visKonto);
 
     window.MitSporUploadVisning = {
-        aabn: aabn
+        aabn: aabn,
+        logUd: logUd,
+        // Android-tilbage (fra menu.js): true, hvis login blev åbnet fra
+        // startsiden og nu er lukket; ellers klarer optager.js det.
+        tilbage: function () {
+            if (MitSporApp.aktivSide() !== 'view-login' || loginFra !== 'view-start') {
+                return false;
+            }
+            lukLogin();
+            return true;
+        }
     };
 })();

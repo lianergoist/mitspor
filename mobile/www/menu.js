@@ -1,6 +1,7 @@
-// Menuerne: på startsiden (Hjælp og "Om MitSpor" med appens
+// Menuerne: på startsiden (Log ud, Hjælp og "Om MitSpor" med appens
 // versionsnummer) og i optageren (Gemte ture, Pulsmåler, Kadence og watt,
-// Hjælp og Om MitSpor).
+// Log ud, Hjælp og Om MitSpor). "Log ud" vises kun, når man er logget ind;
+// ellers står "Opret konto" og "Log ind" øverst på startsiden.
 (function () {
     'use strict';
 
@@ -73,7 +74,13 @@
         omDialog.showModal();
     }
 
+    // upload-visning.js indlæses efter denne fil, så den slås op ved trykket.
+    function logUd() {
+        window.MitSporUploadVisning.logUd();
+    }
+
     var startMenu = menu('menu-knap', 'menu', 'data-menu', {
+        logud: logUd,
         hjaelp: visHjaelp,
         om: visOm
     });
@@ -88,6 +95,7 @@
         ture: function () { tureDialog.showModal(); },
         puls: function () { aabnSensor('puls'); },
         kraft: function () { aabnSensor('kraft'); },
+        logud: logUd,
         hjaelp: visHjaelp,
         om: visOm
     });
@@ -107,7 +115,7 @@
     document.getElementById('hjaelp-tilbage').addEventListener('click', lukHjaelp);
 
     // Android-tilbageknappen (kaldes fra optager.js): true, hvis en menu,
-    // en af dialogerne eller hjælpesiden tog sig af trykket.
+    // en af dialogerne, hjælpesiden eller login fra startsiden tog sig af trykket.
     window.MitSporMenu = {
         tilbage: function () {
             if (omDialog.open) {
@@ -122,7 +130,8 @@
                 optagMenu.luk();
             } else if (window.MitSporApp.aktivSide() === 'view-hjaelp') {
                 lukHjaelp();
-            } else {
+            } else if (!window.MitSporUploadVisning.tilbage()) {
+                // tilbage() lukker et login, der blev åbnet fra startsiden.
                 return false;
             }
             return true;
