@@ -916,86 +916,6 @@ function markerDefaultPreview(select, box) {
 
 (function () {
     "use strict";
-    var csrfToken = document.getElementById('upload-csrf-token').value;
-
-    var dialog = document.getElementById('share-link-dialog');
-    var closeBtn = document.getElementById('share-link-close');
-    var errorsEl = document.getElementById('share-link-errors');
-    var titleEl = document.getElementById('share-link-route-title');
-    var urlInput = document.getElementById('share-link-url');
-
-    var currentRoutePublicId = null;
-
-    function buildUrl(publicId, token) {
-        return window.location.origin + '/route-view.php?id=' + encodeURIComponent(publicId) + '&share=' + encodeURIComponent(token);
-    }
-
-    document.querySelectorAll('[data-share-link]').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            errorsEl.hidden = true;
-            currentRoutePublicId = btn.getAttribute('data-share-link');
-            titleEl.textContent = btn.getAttribute('data-route-title');
-            urlInput.value = '';
-
-            // 'create' er idempotent — opretter kun et nyt link, hvis der
-            // ikke allerede findes ét, og returnerer ellers det eksisterende.
-            callShareApi('create');
-            dialog.showModal();
-        });
-    });
-
-    closeBtn.addEventListener('click', function () { dialog.close(); });
-    dialog.addEventListener('click', function (ev) {
-        if (ev.target === dialog) dialog.close();
-    });
-
-    function callShareApi(action) {
-        errorsEl.hidden = true;
-        return fetch('share-link.php', {
-            method: 'POST',
-            body: new URLSearchParams({ csrf_token: csrfToken, route_id: currentRoutePublicId, action: action })
-        })
-            .then(function (res) { return res.json(); })
-            .then(function (data) {
-                if (!data.success) {
-                    errorsEl.textContent = (data.errors && data.errors.join(' ')) || 'Der skete en fejl. Prøv igen.';
-                    errorsEl.hidden = false;
-                    return;
-                }
-
-                if (data.share_token) {
-                    urlInput.value = buildUrl(currentRoutePublicId, data.share_token);
-                } else {
-                    // Slettet — dialogen giver ikke mere mening at have åben.
-                    dialog.close();
-                }
-
-                // Opdater knappens data-attribut, så listen ikke skal
-                // genindlæses for at afspejle den nye tilstand.
-                var btn = document.querySelector('[data-share-link="' + currentRoutePublicId + '"]');
-                if (btn) btn.setAttribute('data-has-token', data.share_token ? '1' : '0');
-            })
-            .catch(function () {
-                errorsEl.textContent = 'Der skete en fejl. Prøv igen.';
-                errorsEl.hidden = false;
-            });
-    }
-
-    document.getElementById('share-link-revoke-btn').addEventListener('click', function () {
-        if (confirm('Slet del-linket? Det stopper med at virke med det samme.')) {
-            callShareApi('revoke');
-        }
-    });
-    document.getElementById('share-link-copy-btn').addEventListener('click', function () {
-        urlInput.select();
-        navigator.clipboard.writeText(urlInput.value).catch(function () {
-            document.execCommand('copy');
-        });
-    });
-})();
-
-(function () {
-    "use strict";
     var dialog = document.getElementById('dashboard-help-dialog');
     document.getElementById('btn-open-dashboard-help').addEventListener('click', function () {
         dialog.showModal();
@@ -1520,7 +1440,7 @@ function markerDefaultPreview(select, box) {
             ]
         },
         share: {
-            title: 'Del-link',
+            title: 'Del link',
             text: [
                 'Opretter et link, så alle, der har det, kan se din private rute uden at logge ind.',
                 'Du kan oprette et nyt link, og så holder det gamle op med at virke. Knappen findes kun for private ruter.'
