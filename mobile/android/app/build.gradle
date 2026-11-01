@@ -42,7 +42,7 @@ android {
 }
 
 // Dev-udgave til test og appvideoer (scripts/byg-dev-apk.sh): debug-bygning med
-// eget app-id, der bruger dev.mitspor.dk. Den rigtige app påvirkes ikke.
+// eget app-id (side: se scripts/byg-dev-apk.sh). Den rigtige app påvirkes ikke.
 if (project.hasProperty('mitsporDev')) {
     android.defaultConfig.applicationIdSuffix = '.dev'
     android.sourceSets.debug.res.srcDirs = ['src/mitsporDev/res']
