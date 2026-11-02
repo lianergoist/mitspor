@@ -1002,7 +1002,7 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
 <script src="assets/gpx-tools.js?v=3"></script>
 <script src="assets/topbar-menu.js?v=1"></script>
 <script src="assets/genindlaes.js?v=1"></script>
-<script src="assets/dashboard.js?v=29"></script>
+<script src="assets/dashboard.js?v=30"></script>
 <script src="assets/del-link.js?v=1"></script>
 <script src="assets/dashboard-tools.js?v=9"></script>
 <script src="assets/activity-marker.js?v=3"></script>
