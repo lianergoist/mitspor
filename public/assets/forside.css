@@ -93,6 +93,22 @@ body.forside {
     background: #0e3a5b;
 }
 
+/* Skærmbillede af en rute i stedet for introvideoen */
+.forside-billede {
+    margin: 4px 0 32px;
+}
+.forside-billede img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    border: 1px solid rgba(15, 40, 70, 0.12);
+    box-shadow:
+        0 2px 4px rgba(15, 40, 70, 0.08),
+        0 10px 24px rgba(15, 40, 70, 0.14),
+        0 24px 48px rgba(15, 40, 70, 0.10);
+}
+
 .forside-sektion {
     margin: 0 0 24px;
 }
