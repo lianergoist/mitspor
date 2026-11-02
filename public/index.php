@@ -42,8 +42,11 @@ if ($loggedIn) {
 }
 
 // Introvideoen vises på forsiden, når den ligger i public/grafik/intro.mp4.
+// Midlertidigt slået fra, mens det besluttes, hvor og hvordan videoen skal bruges.
+// Sæt $introVideoEnabled til true for at vise den igen.
+$introVideoEnabled = false;
 $introVideoFile = __DIR__ . '/grafik/intro.mp4';
-$showVideo = !$loggedIn && is_file($introVideoFile);
+$showVideo = $introVideoEnabled && !$loggedIn && is_file($introVideoFile);
 
 $h = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
 ?>
@@ -73,7 +76,7 @@ $h = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
 
     <link rel="stylesheet" href="/assets/style.css?v=39">
     <link rel="stylesheet" href="/assets/videoer.css?v=1">
-    <link rel="stylesheet" href="/assets/forside.css?v=12">
+    <link rel="stylesheet" href="/assets/forside.css?v=13">
 </head>
 <body class="forside">
 
@@ -137,11 +140,13 @@ $h = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
     <section class="forside-hero">
         <h1>Del dine ruter og spor, til vands og til lands</h1>
         <p class="forside-lead">Upload dine GPX-spor, tegn nye ruter på kortet, og del dem med andre.<br>MitSpor er gratis og uden reklamer. Og du bestemmer 100%.</p>
-        <div class="forside-knapper">
-            <button type="button" class="btn btn-primary" data-aabn="register">Opret gratis konto</button>
-            <a href="/kort.php" class="btn">Se offentlige ruter</a>
-        </div>
     </section>
+
+    <?php if (!$showVideo && is_file(__DIR__ . '/grafik/sup-rute1-web.jpg')): ?>
+    <figure class="forside-billede">
+        <img src="/grafik/sup-rute1-web.jpg?v=<?= (int) filemtime(__DIR__ . '/grafik/sup-rute1-web.jpg') ?>" width="1920" height="1060" alt="En SUP-tur på Peene vist på kortet i MitSpor med afstand, tid og hastighed" decoding="async">
+    </figure>
+    <?php endif; ?>
 
     <?php if ($showVideo): ?>
     <section class="forside-video" aria-labelledby="forside-video-titel">
