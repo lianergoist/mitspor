@@ -133,7 +133,7 @@ if ($initialRouteId === '' && $initialGroupId === '' && !$isNewRoute) {
       <textarea id="meta-description" placeholder="Valgfri beskrivelse"></textarea>
     </label>
 
-    <label>
+    <label id="meta-activity-field">
       Aktivitetstype
       <select id="meta-activity">
         <?php foreach ($activityTypes as $type): ?>
@@ -423,7 +423,7 @@ if ($initialRouteId === '' && $initialGroupId === '' && !$isNewRoute) {
 
     <h3>Gem</h3>
     <ul>
-      <li>Titel, beskrivelse, aktivitet, synlighed osv. ændres under <strong>Rediger metadata</strong> i menuen (☰). De gemmes med det samme, når du trykker Gem ændringer i dialogen.</li>
+      <li>Titel, beskrivelse, synlighed osv. ændres under <strong>Rediger metadata</strong> i menuen (☰). De gemmes med det samme, når du trykker Gem ændringer i dialogen.</li>
       <li>Værktøjslinjens <strong>Gem</strong>-knap gemmer rutens geometri (trackpoints/waypoints) på platformen — og opretter ruten første gang, hvis den er ny. Den er rød, når der er ugemte ændringer, og bliver grøn, når alt er gemt.</li>
     </ul>
 
@@ -479,12 +479,12 @@ if ($initialRouteId === '' && $initialGroupId === '' && !$isNewRoute) {
 
     <h3>Menuen (☰)</h3>
     <ul>
-      <li><strong>Rediger metadata:</strong> titel, beskrivelse, aktivitet, gruppe, rute/spor, synlighed og download-tilladelse. Findes, når ruten er gemt første gang.</li>
+      <li><strong>Rediger metadata:</strong> titel, beskrivelse, gruppe, rute/spor, synlighed og download-tilladelse. Findes, når ruten er gemt første gang.</li>
       <li><strong>Slet datafelter:</strong> fjerner et felts data helt fra filen, fx tidsstempler, puls eller højdedata. Visninger, der bygger på feltet, forsvinder fra rutens side.</li>
       <li><strong>Rediger højdedata:</strong> viser rutens højder og kan hente nye fra internettet eller slette dem.</li>
       <li><strong>Udtynd punkter:</strong> gør filen mindre og editoren hurtigere ved at beholde færre punkter.</li>
       <li>De tre værktøjer ændrer ruten her i editoren. Du kan fortryde dem, og de gemmes først, når du trykker <strong>Gem</strong>.</li>
-      <li>Hvad rutens side viser (<strong>Visning af datafelter</strong>) og rutens markør (<strong>Vælg markør</strong>) vælges i <strong>Kontrolpanelet</strong>.</li>
+      <li>Hvad rutens side viser (<strong>Visning af datafelter</strong>) og rutens aktivitetstype og markør (<strong>Vælg markør</strong>) vælges i <strong>Kontrolpanelet</strong>.</li>
     </ul>
   </div>
 </dialog>
@@ -495,7 +495,7 @@ if ($initialRouteId === '' && $initialGroupId === '' && !$isNewRoute) {
 <script src="../assets/route-meta-dialog.js?v=2"></script>
 <script src="../assets/gpx-field-labels.js?v=4"></script>
 <script src="../assets/gpx-tools.js?v=3"></script>
-<script src="app.js?v=51"></script>
+<script src="app.js?v=52"></script>
 <script src="../assets/videoer.js?v=1"></script>
 </body>
 </html>

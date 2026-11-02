@@ -204,8 +204,8 @@ function markerDefaultPreview(select, box) {
     });
 })();
 
-// "Vælg markør": rutens markør på kortet. Aktiviteten vælges i editorens
-// "Rediger metadata", så her vises kun dens markører og de neutrale.
+// "Vælg markør": rutens aktivitetstype og markør på kortet. Kun den valgte
+// aktivitets markører og de neutrale vises.
 (function () {
     "use strict";
     var dialog = document.getElementById('marker-dialog');
@@ -213,6 +213,11 @@ function markerDefaultPreview(select, box) {
     var form = document.getElementById('marker-form');
     var errors = document.getElementById('marker-dialog-errors');
     var submitBtn = form.querySelector('button[type="submit"]');
+    var activitySelect = document.getElementById('marker-activity');
+    var defaultBox = document.getElementById('marker-dialog-default');
+    activitySelect.addEventListener('change', function () {
+        markerDefaultPreview(activitySelect, defaultBox);
+    });
 
     document.querySelectorAll('[data-pick-marker]').forEach(function (btn) {
         btn.addEventListener('click', function () {
@@ -223,11 +228,17 @@ function markerDefaultPreview(select, box) {
             var radio = form.querySelector('input[name="marker_icon"][value="' + CSS.escape(btn.getAttribute('data-marker-current') || '') + '"]')
                 || form.querySelector('input[name="marker_icon"][value=""]');
             radio.checked = true;
-            markerPickerShow(
-                document.getElementById('marker-dialog-default'),
-                btn.getAttribute('data-marker-activity') || '',
-                btn.getAttribute('data-marker-url') || ''
-            );
+            activitySelect.value = btn.getAttribute('data-activity-id') || '';
+            if (activitySelect.selectedIndex >= 0) {
+                markerDefaultPreview(activitySelect, defaultBox);
+            } else {
+                // Aktiviteten er ikke længere aktiv: vis rutens egen standard.
+                markerPickerShow(
+                    defaultBox,
+                    btn.getAttribute('data-marker-activity') || '',
+                    btn.getAttribute('data-marker-url') || ''
+                );
+            }
             dialog.showModal();
         });
     });
@@ -1436,7 +1447,7 @@ function markerDefaultPreview(select, box) {
             title: 'Vælg markør',
             text: [
                 'Vælger det billede, der viser ruten på kortet. Standard er aktivitetens egen markør.',
-                'Du kan vælge mellem aktivitetens markører og dem, der passer til alle aktiviteter. Skifter du aktivitet i editoren, og passer markøren ikke til den nye aktivitet, bruges den nye aktivitets standardmarkør.'
+                'Her vælger du også rutens aktivitetstype. Du kan vælge mellem aktivitetens markører og dem, der passer til alle aktiviteter.'
             ]
         },
         share: {

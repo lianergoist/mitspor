@@ -2622,6 +2622,7 @@
     if (errors) errors.hidden = true;
     el("edit-meta-heading").textContent = "Gem ny rute";
     el("btn-save-meta-label").textContent = "Gem rute";
+    el("meta-activity-field").hidden = false;
     metaBehavior.refresh();
     if (dialog) dialog.showModal();
   }
@@ -2650,6 +2651,9 @@
     el("edit-meta-errors").hidden = true;
     el("edit-meta-heading").textContent = "Rediger metadata";
     el("btn-save-meta-label").textContent = "Gem ændringer";
+    // Aktiviteten vælges i kontrolpanelets "Vælg markør". Feltet skjules
+    // her, men udfyldes stadig, så den gemte aktivitet sendes uændret med.
+    el("meta-activity-field").hidden = true;
     el("meta-title").value = routeMeta.title;
     el("meta-description").value = routeMeta.description || "";
     el("meta-activity").value = String(routeMeta.activity_type_id);
