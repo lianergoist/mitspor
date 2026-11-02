@@ -140,10 +140,6 @@ $h = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
     <section class="forside-hero">
         <h1>Del dine ruter og spor, til vands og til lands</h1>
         <p class="forside-lead">Upload dine GPX-spor, tegn nye ruter på kortet, og del dem med andre.<br>MitSpor er gratis og uden reklamer. Og du bestemmer 100%.</p>
-        <div class="forside-knapper">
-            <button type="button" class="btn btn-primary" data-aabn="register">Opret gratis konto</button>
-            <a href="/kort.php" class="btn">Se offentlige ruter</a>
-        </div>
     </section>
 
     <?php if ($showVideo): ?>
