@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
 
-// Gemmer kun rutens markør ("Vælg markør" i kontrolpanelet). Titel,
-// aktivitet osv. ændres i editorens "Rediger metadata" (update-route-metadata.php).
+// Gemmer rutens aktivitetstype og markør ("Vælg markør" i kontrolpanelet).
+// Titel, synlighed osv. ændres i editorens "Rediger metadata" (update-route-metadata.php).
 
 session_start();
 
@@ -55,6 +55,18 @@ if ($internalRouteId === false) {
 $markerIcon = (string) ($_POST['marker_icon'] ?? '');
 if (!marker_is_valid($markerIcon)) {
     json_fail_marker(['Ukendt markør.']);
+}
+
+// Aktivitetstype: kun hvis formularen har feltet med.
+if (array_key_exists('activity_type_id', $_POST)) {
+    $activityTypeId = (int) $_POST['activity_type_id'];
+    $stmt = $pdo->prepare('SELECT id FROM activity_types WHERE id = :id AND is_active = 1');
+    $stmt->execute(['id' => $activityTypeId]);
+    if ($stmt->fetchColumn() === false) {
+        json_fail_marker(['Ugyldig aktivitetstype valgt.']);
+    }
+    $stmt = $pdo->prepare('UPDATE routes SET activity_type_id = :activity WHERE id = :id AND user_id = :user_id');
+    $stmt->execute(['activity' => $activityTypeId, 'id' => (int) $internalRouteId, 'user_id' => (int) $user['id']]);
 }
 
 marker_save($pdo, (int) $internalRouteId, (int) $user['id'], $markerIcon);

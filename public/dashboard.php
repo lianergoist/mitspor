@@ -38,7 +38,7 @@ $stmt = $pdo->prepare(
     "SELECT r.public_id, r.title, r.visibility, r.route_type, r.created_at, r.original_gpx_file_path, r.share_token,
             r.group_id, r.group_position, g.public_id AS group_public_id, g.title AS group_title,
             r.distance_meters, r.allow_download, r.has_time_data, a.name_da AS activity_name,
-            COALESCE(r.marker_icon, a.icon_filename) AS activity_icon, r.marker_icon, a.icon_filename AS activity_marker
+            COALESCE(r.marker_icon, a.icon_filename) AS activity_icon, r.marker_icon, a.icon_filename AS activity_marker, r.activity_type_id
      FROM routes r
      LEFT JOIN route_groups g ON g.id = r.group_id
      LEFT JOIN activity_types a ON a.id = r.activity_type_id
@@ -114,9 +114,9 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
         <p><strong>Rutens værktøjer:</strong></p>
         <ul>
             <li><strong>Vis rute på kort</strong> åbner rutens egen side — den, andre ser, hvis ruten er offentlig eller delt med et link.</li>
-            <li><strong>Rediger i GPX-editor</strong> åbner editoren, hvor du flytter punkter og indsætter waypoints med billeder og kommentarer. I editorens menu (☰) finder du også Rediger metadata (titel, beskrivelse, aktivitet, synlighed m.m.), Slet datafelter, Rediger højdedata og Udtynd punkter.</li>
+            <li><strong>Rediger i GPX-editor</strong> åbner editoren, hvor du flytter punkter og indsætter waypoints med billeder og kommentarer. I editorens menu (☰) finder du også Rediger metadata (titel, beskrivelse, synlighed m.m.), Slet datafelter, Rediger højdedata og Udtynd punkter.</li>
             <li><strong>Visning af datafelter</strong> vælger, hvad rutens side viser (fx højdeprofil, hastighed og puls).</li>
-            <li><strong>Vælg markør</strong> vælger det billede, der viser ruten på kortet.</li>
+            <li><strong>Vælg markør</strong> vælger rutens aktivitetstype og det billede, der viser ruten på kortet.</li>
             <li><strong>Del link</strong> (kun private ruter).</li>
             <li><strong>Gendan original fil</strong> vises kun, hvis ruten er blevet udtyndet — den henter den oprindelige, fulde fil tilbage og kasserer ændringer, du har lavet siden.</li>
             <li><strong>Download GPX-fil</strong> og <strong>Slet</strong>.</li>
@@ -329,7 +329,7 @@ function render_route_detail(array $route): void
                 <?= dash_help_btn('fields', 'Visning af datafelter') ?>
             </div>
             <div class="tool-row">
-                <button type="button" class="tool" data-pick-marker="<?= dash_h($id) ?>" data-route-title="<?= dash_h($title) ?>" data-marker-current="<?= dash_h($route['marker_icon']) ?>" data-marker-activity="<?= dash_h($route['activity_marker']) ?>" data-marker-url="<?= dash_h(marker_image_urls($route['activity_marker'] ?: null)['east'] ?? '') ?>">Vælg markør</button>
+                <button type="button" class="tool" data-pick-marker="<?= dash_h($id) ?>" data-route-title="<?= dash_h($title) ?>" data-activity-id="<?= (int) $route['activity_type_id'] ?>" data-marker-current="<?= dash_h($route['marker_icon']) ?>" data-marker-activity="<?= dash_h($route['activity_marker']) ?>" data-marker-url="<?= dash_h(marker_image_urls($route['activity_marker'] ?: null)['east'] ?? '') ?>">Vælg markør</button>
                 <?= dash_help_btn('marker', 'Vælg markør') ?>
             </div>
             <?php if ($route['visibility'] === 'private'): ?>
@@ -591,6 +591,15 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
     <form id="marker-form">
         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
         <input type="hidden" name="route_id" id="marker-route-id">
+
+        <label>
+            Aktivitetstype
+            <select name="activity_type_id" id="marker-activity" required>
+                <?php foreach ($activityTypes as $type): ?>
+                    <option value="<?= (int) $type['id'] ?>" data-marker-activity="<?= dash_h((string) $type['icon_filename']) ?>" data-marker-url="<?= dash_h(marker_image_urls((string) $type['icon_filename'])['east'] ?? '') ?>"><?= dash_h($type['name_da']) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </label>
 
         <?php render_marker_picker('marker-dialog-default'); ?>
 
