@@ -42,8 +42,11 @@ if ($loggedIn) {
 }
 
 // Introvideoen vises på forsiden, når den ligger i public/grafik/intro.mp4.
+// Midlertidigt slået fra, mens det besluttes, hvor og hvordan videoen skal bruges.
+// Sæt $introVideoEnabled til true for at vise den igen.
+$introVideoEnabled = false;
 $introVideoFile = __DIR__ . '/grafik/intro.mp4';
-$showVideo = !$loggedIn && is_file($introVideoFile);
+$showVideo = $introVideoEnabled && !$loggedIn && is_file($introVideoFile);
 
 $h = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
 ?>
