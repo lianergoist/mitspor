@@ -71,7 +71,7 @@ function vejledning_kapitler(): array
         'find-tur' => [
             'titel' => 'Find en ny tur',
             'kort'  => 'Kig på andres ture, og hent en til dit ur.',
-            'enhed' => 'begge', 'klar' => false,
+            'enhed' => 'begge', 'klar' => true,
         ],
         'puls' => [
             'titel' => 'Træning med pulsbælte',
