@@ -47,15 +47,12 @@ echo vj_overskrift('foelg-med');
     ', vj_billede('web-live-ny.webp', 'Dialogen Ny livesending med Kun personer med linket valgt og knappen Gem')) ?>
 
     <?= vj_trin('Send linket til familien', '
-        <p>Linket til livesiden finder du på mitspor.dk:</p>
-        <ol>
-            <li>Tryk på <strong class="knap">Åbn mitspor.dk</strong> på appens startside, og vælg <strong>Kontrolpanel</strong>.</li>
-            <li>Tryk på fanen <strong>Live</strong>, og vælg livesendingen.</li>
-            <li>Tryk på knappen ved siden af linket for at kopiere det.</li>
-        </ol>
-        <p>Sæt linket ind i en besked til familien, som du plejer. Du kan godt sende det allerede nu. Indtil du
-        starter, står der bare <strong>Ikke startet endnu</strong> på livesiden.</p>
-    ', vj_billede('web-live-link.webp', 'Livesendingen i kontrolpanelet med linket og kopiér-knappen fremhævet')) ?>
+        <p>Under <strong>Send live til</strong> står nu linket til livesiden. Tryk på
+        <strong>del-knappen</strong> til højre for det, og vælg, hvordan du vil sende linket, fx Messenger eller SMS.</p>
+        <p>Du kan godt sende linket allerede nu. Indtil du starter, står der bare <strong>Ikke startet endnu</strong>
+        på livesiden.</p>
+        <p>Linket findes også i kontrolpanelet på mitspor.dk under fanen <strong>Live</strong>.</p>
+    ', vj_billede('app-live-del.webp', 'Optageren med linket til livesiden og del-knappen fremhævet')) ?>
 
     </div>
 
@@ -67,7 +64,7 @@ echo vj_overskrift('foelg-med');
         <p>Åbn optageren. Ud for <strong>Send live til</strong> står din livesending allerede. Står der
         <strong>Nej</strong>, så tryk og vælg den.</p>
         <p>Tryk på <strong class="knap">Start optagelse</strong>, præcis som på en almindelig tur.</p>
-    ', vj_billede('app-live-valg.webp', 'Optageren med Send live til Kajaktur på Horsens Fjord valgt')) ?>
+    ', vj_billede('app-live-valg.webp', 'Optageren med Send live til Kajaktur på Horsens Fjord valgt og knappen Start optagelse fremhævet')) ?>
 
     <?= vj_trin('Pak telefonen væk', '
         <p>Under uret står der nu <strong>Sender live til …</strong> og hvornår appen sidst sendte din position.
