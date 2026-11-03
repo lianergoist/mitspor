@@ -46,7 +46,7 @@ function vejledning_kapitler(): array
         'foelg-med' => [
             'titel' => 'Lad familien følge med',
             'kort'  => 'Send turen live, så de derhjemme kan se, hvor du er.',
-            'enhed' => 'mobil', 'klar' => false,
+            'enhed' => 'mobil', 'klar' => true,
         ],
         'glemte-stop' => [
             'titel' => 'Du glemte at stoppe optagelsen',
