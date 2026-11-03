@@ -95,6 +95,7 @@ if ($initialRouteId === '' && $initialGroupId === '' && !$isNewRoute) {
         <button type="button" role="menuitem" data-menu="thin">Udtynd punkter</button>
         <div class="editor-menu-sep" role="separator"></div>
         <button type="button" role="menuitem" data-menu="help">Hjælp</button>
+        <a role="menuitem" id="menu-vejledning" href="/vejledning/">Vejledning</a>
         <button type="button" role="menuitem" data-menu="about">Om MitSpor</button>
       </div>
     </div>
@@ -501,7 +502,7 @@ if ($initialRouteId === '' && $initialGroupId === '' && !$isNewRoute) {
 <script src="../assets/route-meta-dialog.js?v=2"></script>
 <script src="../assets/gpx-field-labels.js?v=4"></script>
 <script src="../assets/gpx-tools.js?v=3"></script>
-<script src="app.js?v=54"></script>
+<script src="app.js?v=55"></script>
 <script src="../assets/videoer.js?v=1"></script>
 </body>
 </html>
