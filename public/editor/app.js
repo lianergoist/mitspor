@@ -3540,6 +3540,14 @@
     aboutDialog.addEventListener("click", (e) => {
       if (e.target === aboutDialog) aboutDialog.close();
     });
+    // Vejledningen forlader editoren; 'beforeunload' advarer ikke altid i
+    // appens WebView, så linket spørger selv, hvis der er ugemte ændringer.
+    el("menu-vejledning").addEventListener("click", (e) => {
+      setMenuOpen(false);
+      if (isAnyDirty() && !window.confirm("Du har ugemte ændringer i den rute, du redigerer. De går tabt, hvis du forlader editoren. Vil du fortsætte?")) {
+        e.preventDefault();
+      }
+    });
     menu.querySelectorAll("[data-menu]").forEach((item) => {
       item.addEventListener("click", () => {
         setMenuOpen(false);
