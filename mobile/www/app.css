@@ -626,9 +626,15 @@ body {
     margin: 0 0 16px;
     padding: 10px 12px;
     border-radius: var(--radius);
+    background: #dcfce7;
+    color: #166534;
+    font-size: 15px;
+}
+
+/* Fejl, eller afsendelsen er stoppet (optager.js). */
+.optag-live-status--fejl {
     background: #fee2e2;
     color: #991b1b;
-    font-size: 15px;
 }
 
 /* ---------- Sensorer (puls, kadence og watt) ---------- */

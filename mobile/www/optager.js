@@ -213,6 +213,8 @@
         visSensorer();
         liveStatus.textContent = meta ? Live.status(meta.live) : '';
         liveStatus.hidden = !liveStatus.textContent;
+        // Grøn, mens alt går godt; rød ved fejl, eller når afsendelsen er stoppet.
+        liveStatus.classList.toggle('optag-live-status--fejl', !!(meta && meta.live && (meta.live.fejl || meta.live.stoppet)));
         wptAntal.textContent = waypoints.length === 1 ? '1 waypoint indsat' : waypoints.length + ' waypoints indsat';
         wptAntal.hidden = !aktiv || !waypoints.length;
     }
