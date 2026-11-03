@@ -48,7 +48,7 @@ require_once __DIR__ . '/../app/config.php';
 <article id="privatlivspolitik">
 
     <h1>Privatlivspolitik</h1>
-    <p class="updated">Sidst opdateret: 31. oktober 2026</p>
+    <p class="updated">Sidst opdateret: 3. november 2026</p>
 
     <div class="summary">
         <p>Kort fortalt</p>
@@ -158,6 +158,7 @@ require_once __DIR__ . '/../app/config.php';
     <p>
         Vi bruger <strong>én teknisk cookie</strong> (en sessionscookie). Den er nødvendig for, at du kan logge ind og for at sikre formularerne mod misbrug.
         Den sættes også, hvis du blot besøger sitet uden at logge ind, og den forsvinder som udgangspunkt, når du lukker browseren eller logger ud.
+        Åbner du et "Del alle mine ruter"-link fra en anden bruger, husker cookien linket, så du kan åbne brugerens ruter uden at logge ind.
         Fordi den er strengt nødvendig, kræver den ikke samtykke.
         I appen bruges den samme cookie i det indbyggede browservindue. Den slettes, når du logger ud i appen.
     </p>
@@ -166,6 +167,7 @@ require_once __DIR__ . '/../app/config.php';
     <h2>4. Hvem kan se hvad?</h2>
     <ul>
         <li><strong>Private ruter</strong> kan kun ses af dig og af personer, der får et delingslink fra dig. Alle, der har linket, kan se ruten – del det kun med personer, du stoler på.</li>
+        <li><strong>Del alle mine ruter:</strong> Du kan lave ét link, der giver adgang til alle dine spor, ruter og grupper, også de private og dem, du opretter senere. Alle, der har linket, kan se dem og hente de GPX-filer, du har tilladt download af, uden at logge ind. Linket indeholder en hemmelig nøgle, og siden bliver ikke vist i søgemaskiner. Du kan lave et nyt link eller slette det i kontrolpanelet, og så holder det gamle op med at virke med det samme.</li>
         <li><strong>Offentlige ruter</strong> kan ses af alle på internettet og kan blive fundet af søgemaskiner. Vær opmærksom på, at start- og slutpunktet i en offentlig rute kan afsløre, hvor du bor. Derfor beder vi dig bekræfte, at du forstår det, første gang du gør en rute offentlig.</li>
         <li><strong>Dit navn</strong> vises som uploader af offentlige ruter, medmindre du vælger, at ruten skal være anonym.</li>
         <li><strong>Download:</strong> andre kan kun hente GPX-filen, hvis du har tilladt det. Filen indeholder de data, der ligger i den. Vil du ikke dele fx tid eller puls, kan du fjerne dem fra filen i editoren, før du tillader download.</li>
