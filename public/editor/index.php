@@ -381,6 +381,10 @@ if ($initialRouteId === '' && $initialGroupId === '' && !$isNewRoute) {
       Titel
       <input type="text" id="edit-images-waypoint-name" maxlength="200" placeholder="Navn på waypointet">
     </label>
+    <label>
+      Beskrivelse
+      <textarea id="edit-images-waypoint-desc" rows="3" placeholder="Valgfri beskrivelse"></textarea>
+    </label>
     <p class="images-dialog-hint">Træk i <strong>⠿</strong> for at ændre rækkefølgen — det er også den rækkefølge, billederne vises i på rutens side.</p>
     <ul id="edit-images-list" class="images-sortable-list"></ul>
     <div class="images-dialog-add-actions">
@@ -495,7 +499,7 @@ if ($initialRouteId === '' && $initialGroupId === '' && !$isNewRoute) {
 <script src="../assets/route-meta-dialog.js?v=2"></script>
 <script src="../assets/gpx-field-labels.js?v=4"></script>
 <script src="../assets/gpx-tools.js?v=3"></script>
-<script src="app.js?v=52"></script>
+<script src="app.js?v=53"></script>
 <script src="../assets/videoer.js?v=1"></script>
 </body>
 </html>
