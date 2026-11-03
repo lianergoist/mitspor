@@ -61,7 +61,7 @@ if ($initialRouteId === '' && $initialGroupId === '' && !$isNewRoute) {
 <title>GPX-editor</title>
 
 <link rel="stylesheet" href="../vendor/leaflet/leaflet.css" />
-<link rel="stylesheet" href="style.css?v=50" />
+<link rel="stylesheet" href="style.css?v=51" />
 <link rel="stylesheet" href="../assets/videoer.css?v=1">
 </head>
 <body data-image-prefix="<?= htmlspecialchars(IMAGE_PUBLIC_URL_BASE . '/' . $userId . '/', ENT_QUOTES, 'UTF-8') ?>">

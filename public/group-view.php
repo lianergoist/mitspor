@@ -141,7 +141,7 @@ $palette = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#0891b2', '#
     <meta name="twitter:image" content="<?= $e($ogImageUrl) ?>">
 
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/style.css?v=35">
+    <link rel="stylesheet" href="assets/style.css?v=40">
     <style>
         html, body { height: 100%; margin: 0; }
         .info-panel { top: 80px; left: 12px; width: 320px; max-width: calc(100vw - 24px); max-height: calc(100dvh - 100px); overflow-y: auto; }
@@ -170,7 +170,7 @@ $palette = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#0891b2', '#
 <div class="map-page">
 
     <div class="topbar">
-        <a href="<?= $isOwner ? 'dashboard.php' : 'index.php' ?>" class="brand">&larr; <?= $isOwner ? 'Mit kontrolpanel' : 'MitSpor' ?></a>
+        <a href="<?= $isOwner ? 'dashboard.php' : 'index.php' ?>" class="brand"><span class="back-arrow" aria-hidden="true">&larr;</span><span class="brand-name"><?= $isOwner ? 'Mit kontrolpanel' : 'MitSpor' ?></span></a>
         <?php if ($showShare || $showGroupDownload): ?>
             <div class="topbar-buttons">
                 <?php if ($showShare): ?>
