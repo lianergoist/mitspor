@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../app/vejledning.php';
 
-vejledning_start('puls', 'Træning med pulsbælte', 'Brug et pulsbælte med MitSpor-appen, se pulsen undervejs og bagefter, og vælg, hvad andre må se. Trin for trin.');
+vejledning_start('puls', 'Pulsbælte m.m.', 'Brug et pulsbælte med MitSpor-appen, se pulsen undervejs og bagefter, og vælg, hvad andre må se. Trin for trin.');
 echo vj_overskrift('puls');
 ?>
     <p class="vj-situation">

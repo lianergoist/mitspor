@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../app/vejledning.php';
 
-vejledning_start('udseende', 'Giv turen det rigtige udseende', 'Giv din tur på MitSpor en god titel, en beskrivelse, den rigtige aktivitet og en figur på kortet. Trin for trin.');
+vejledning_start('udseende', 'Metadata og markør', 'Giv din tur på MitSpor en god titel, en beskrivelse, den rigtige aktivitet og en figur på kortet. Trin for trin.');
 echo vj_overskrift('udseende');
 ?>
     <p class="vj-situation">
@@ -61,17 +61,17 @@ echo vj_overskrift('udseende');
 
     <?= vj_godt('Det kan du også ændre i Rediger metadata', '
         <ul>
-            <li><strong>Type:</strong> rute eller spor. Se forskellen i <a href="/vejledning/planlaeg.php">Planlæg næste tur</a>.</li>
+            <li><strong>Type:</strong> rute eller spor. Se forskellen i <a href="/vejledning/planlaeg.php">Tegn en rute</a>.</li>
             <li><strong>Synlighed</strong>, <strong>download</strong> og om du vil være <strong>anonym</strong>. Se
             <a href="/vejledning/del-turen.php">Del turen med vennerne</a>.</li>
             <li><strong>Gruppe:</strong> hvilken ferie eller tur over flere dage turen hører til. Se
-            <a href="/vejledning/ferie.php">En ferie med flere dagsture</a>.</li>
+            <a href="/vejledning/ferie.php">Grupper og etaper</a>.</li>
         </ul>
     ') ?>
 
     <?= vj_godt('Hvad viser turens side?', '
         <p>Om turens side viser fx tid, hastighed og puls, vælger du under <strong>Visning af datafelter</strong> i
-        kontrolpanelet. Se <a href="/vejledning/puls.php">Træning med pulsbælte</a>.</p>
+        kontrolpanelet. Se <a href="/vejledning/puls.php">Pulsbælte m.m.</a>.</p>
     ') ?>
 <?php
 vejledning_slut('udseende');

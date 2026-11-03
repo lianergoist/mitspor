@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../app/vejledning.php';
 
-vejledning_start('alle-ture', 'Vis alle dine ture', 'Send ét link, der viser alle dine ture på MitSpor, også de private. Trin for trin.');
+vejledning_start('alle-ture', 'Del alle dine ruter', 'Send ét link, der viser alle dine ture på MitSpor, også de private. Trin for trin.');
 echo vj_overskrift('alle-ture');
 ?>
     <p class="vj-situation">

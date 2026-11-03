@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../app/vejledning.php';
 
-vejledning_start('foelg-med', 'Lad familien følge med', 'Send din tur live med MitSpor, så familien derhjemme kan se på et kort, hvor du er. Trin for trin.');
+vejledning_start('foelg-med', 'Send live', 'Send din tur live med MitSpor, så familien derhjemme kan se på et kort, hvor du er. Trin for trin.');
 echo vj_overskrift('foelg-med');
 ?>
     <p class="vj-situation">
