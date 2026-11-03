@@ -59,8 +59,8 @@ echo vj_overskrift('glemte-stop');
     <?= vj_trin('Klik på det sidste punkt, og tryk på Slet', '
         <p>Zoom ud, find enden af bilturen, og klik på den sidste prik. Hele bilturen bliver grøn, og nederst
         på skærmen står, hvor mange punkter og kilometer du har markeret.</p>
-        <p>Tryk på <strong class="knap">Slet</strong>, og tryk <strong>OK</strong>, når editoren spørger.</p>
         <p>Er markeringen forkert, så klik på en ny prik. Så begynder markeringen forfra med den prik som første punkt.</p>
+        <p>Klik på <strong class="knap">Slet</strong>, og klik på <strong>OK</strong>, når editoren spørger.</p>
     ', vj_billede('pc-glemt-markeret.webp', 'Bilturen er markeret med grønt, og knappen Slet er fremhævet nederst', '', 'computer')) ?>
 
     <?= vj_trin('Gem turen', '

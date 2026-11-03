@@ -100,7 +100,8 @@ echo vj_overskrift('del-turen');
     <?= vj_godt('De andre valg i dialogen', '
         <ul>
             <li><strong>Tillad download af GPX-filen:</strong> så kan andre hente turen som en fil, fx til deres
-            eget GPS-ur. Vil du ikke det, så fjern fluebenet.</li>
+            eget GPS-ur. Vil du ikke det, så fjern fluebenet. Hvad en GPX-fil er, står i
+            <a href="/vejledning/ordbog.php#gpx-fil">ordbogen</a>.</li>
             <li><strong>Vær anonym som uploader:</strong> så står dit navn ikke ved turen.</li>
         </ul>
         <p>Du kan altid gøre turen privat igen på samme måde.</p>

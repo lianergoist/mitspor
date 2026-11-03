@@ -53,7 +53,7 @@ echo vj_overskrift('find-tur');
         <strong>Download GPX</strong>. Punktet findes kun, hvis den, der delte turen, har tilladt det.</p>
         <p>Du kan også følge turen direkte på telefonen: tryk på knappen med sigtekornet over <strong>+</strong> og
         <strong>−</strong>, så viser en blå prik, hvor du er. Det står beskrevet i <a href="/vejledning/planlaeg.php">Planlæg næste tur</a>.</p>
-        <p>Du kan også sende turen til andre med <strong>Del link</strong> i samme menu.</p>
+        <p>Med <strong>Del link</strong> i samme menu sender du turen videre til andre.</p>
     ', vj_billede('web-find-menu.webp', 'Turens menu med Download GPX fremhævet')) ?>
 
     </div>

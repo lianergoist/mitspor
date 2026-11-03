@@ -94,7 +94,7 @@ echo vj_overskrift('ferie');
             <strong>Rediger gruppe</strong>. Så kommer den med på kortet på mitspor.dk som én tur. Tryk derefter
             på <strong>del-knappen</strong> øverst på gruppens side, og send linket.</li>
             <li>Vil du hellere beholde den privat, kan du sende et link til alle dine ture med
-            <strong>Del alle mine ruter</strong> i menuen (☰) i kontrolpanelet.</li>
+            <strong>Del alle mine ruter</strong>. Se <a href="/vejledning/alle-ture.php">Vis alle dine ture</a>.</li>
         </ul>
     ') ?>
 

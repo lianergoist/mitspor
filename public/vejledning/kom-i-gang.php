@@ -35,8 +35,8 @@ echo vj_overskrift('kom-i-gang');
     ', vj_billede('app-intro.webp', 'Appens velkomst med knappen Kom i gang', 'Velkomsten vises kun første gang.')) ?>
 
     <?= vj_trin('Tryk på Opret konto', '
-        <p>Nu står du på appens <strong>startside</strong>. Øverst til højre er der to knapper. Tryk på
-        <strong class="knap">Opret konto</strong>.</p>
+        <p>Nu står du på appens <strong>startside</strong>. Øverst til højre står <strong>Opret konto</strong> og
+        <strong>Log ind</strong>. Tryk på <strong class="knap">Opret konto</strong>.</p>
         <p>Har du allerede en konto, så tryk på <strong class="knap">Log ind</strong> i stedet, og spring til trin 6.</p>
     ', vj_billede('app-start-ude.webp', 'Startsiden med knapperne Opret konto og Log ind', 'Opret konto står øverst til højre.')) ?>
 

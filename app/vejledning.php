@@ -66,7 +66,7 @@ function vejledning_kapitler(): array
         'planlaeg' => [
             'titel' => 'Planlæg næste tur',
             'kort'  => 'Tegn en rute på kortet, og send den til dem, du skal af sted med.',
-            'enhed' => 'computer', 'klar' => true,
+            'enhed' => 'begge', 'klar' => true,
         ],
         'find-tur' => [
             'titel' => 'Find en ny tur',

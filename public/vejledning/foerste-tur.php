@@ -107,8 +107,8 @@ echo vj_overskrift('foerste-tur');
 
     <?= vj_trin('Giv turen et navn', '
         <p>Skriv en <strong>titel</strong>, som du kan genkende turen på, fx <em>Morgenløb i skoven</em>.</p>
-        <p>Vælg en <strong>aktivitet</strong>, her <strong>Løb</strong>. Aktiviteten bestemmer bl.a. det lille
-        billede, der viser turen på kortet.</p>
+        <p>Vælg en <strong>aktivitet</strong>, her <strong>Løb</strong>. Aktiviteten bestemmer bl.a. figuren, der
+        viser turen på kortet.</p>
         <p>Tryk på <strong class="knap">Upload</strong>.</p>
     ', vj_billede('app-upload.webp', 'Siden Upload tur med titlen Morgenløb i skoven og aktiviteten Løb')) ?>
 

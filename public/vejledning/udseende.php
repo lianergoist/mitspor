@@ -36,7 +36,7 @@ echo vj_overskrift('udseende');
 
     <div class="vj-trinliste">
 
-    <?= vj_trin('Vælg Vælg markør i kontrolpanelet', '
+    <?= vj_trin('Åbn Vælg markør i kontrolpanelet', '
         <p>Åbn dit <strong>kontrolpanel</strong>, tryk på turen, og vælg <strong>Vælg markør</strong>.</p>
     ', vj_billede('web-markoer-knap.webp', 'Turens værktøjer i kontrolpanelet med Vælg markør fremhævet')) ?>
 
