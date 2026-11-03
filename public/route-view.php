@@ -155,8 +155,11 @@ $groupContext = $route['group_id'] !== null
 $gpxUrl = 'route-file.php?id=' . urlencode($route['public_id']) . '&mode=view'
     . ($hasValidShareToken ? '&share=' . urlencode($shareToken) : '');
 $canDownload = $isOwner || $route['allow_download'];
-// Del-link findes kun til private ruter (offentlige kan deles med det almindelige link).
+// Del-link (hemmelig nøgle) findes kun til private ruter.
 $canShareLink = $isOwner && $liveEvent === null && $route['visibility'] === 'private';
+// Offentlige ruter: "Del link" viser sidens adresse til alle besøgende
+// (i appen er der ingen adresselinje at kopiere fra).
+$canSharePublic = $liveEvent === null && $route['visibility'] === 'public';
 $liveUrl = null;
 if ($liveEvent !== null) {
     $liveQuery = '?id=' . urlencode($liveEvent['public_id']) . ($liveKey !== '' ? '&k=' . urlencode($liveKey) : '');
@@ -474,14 +477,17 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
                 <button type="button" id="btn-open-login" class="btn" title="Log ind" aria-label="Log ind"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M22 11h-6"/><path d="M19 8l-3 3 3 3"/></svg><span class="btn-label">Log ind</span></button>
             <?php endif; ?>
             <?php
-            // Menuen: Åbn i editor og Del link (ejeren; Del link kun ved private
-            // ruter), Download GPX (når det er tilladt), Hjælp.
+            // Menuen: Åbn i editor (ejeren), Del link (ejeren af en privat rute:
+            // hemmeligt link; offentlig rute: alle får sidens adresse),
+            // Download GPX (når det er tilladt), Hjælp.
             $menuItems = [];
             if ($isOwner && $liveEvent === null) {
                 $menuItems[] = ['href' => 'editor/?route=' . $route['public_id'], 'label' => 'Åbn i editor'];
             }
             if ($canShareLink) {
                 $menuItems[] = ['id' => 'btn-open-share-link', 'label' => 'Del link'];
+            } elseif ($canSharePublic) {
+                $menuItems[] = ['id' => 'btn-open-public-link', 'label' => 'Del link'];
             }
             if ($canDownload) {
                 $menuItems[] = ['href' => gpx_download_url($route['public_id'], $hasValidShareToken ? $shareToken : ''), 'label' => 'Download GPX'];
@@ -588,6 +594,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
 
     <?= about_dialog() ?>
     <?= $canShareLink ? share_link_dialog() : '' ?>
+    <?= $canSharePublic ? public_link_dialog($routeCanonicalUrl, 'Alle kan se denne rute. Send linket til dem, du vil vise den.') : '' ?>
 
     <div id="map"></div>
 
@@ -1804,6 +1811,10 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
 </script>
 
 <script src="assets/topbar-menu.js?v=1"></script>
+<?php if ($canSharePublic): ?>
+<script>document.getElementById('btn-open-public-link').setAttribute('data-open-public-link', '');</script>
+<script src="assets/del-offentlig.js?v=1"></script>
+<?php endif; ?>
 <?php if ($canShareLink): ?>
 <script src="assets/del-link.js?v=1"></script>
 <script>
