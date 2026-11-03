@@ -622,13 +622,41 @@ body {
     margin-bottom: 0;
 }
 
+/* Linket til livesiden (skrivebeskyttet) og Del-knappen under valget. */
+.optag-live-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.formular .optag-live-link input {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-bottom: 0;
+    font-size: 15px;
+    color: var(--text-muted);
+}
+
+.optag-live-del {
+    flex: none;
+    width: 48px;
+    height: 48px;
+}
+
 .optag-live-status {
     margin: 0 0 16px;
     padding: 10px 12px;
     border-radius: var(--radius);
+    background: #dcfce7;
+    color: #166534;
+    font-size: 15px;
+}
+
+/* Fejl, eller afsendelsen er stoppet (optager.js). */
+.optag-live-status--fejl {
     background: #fee2e2;
     color: #991b1b;
-    font-size: 15px;
 }
 
 /* ---------- Sensorer (puls, kadence og watt) ---------- */

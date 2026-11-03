@@ -20,6 +20,7 @@
             </button>
             <div class="menu" id="menu" role="menu" hidden>
                 <button type="button" role="menuitem" data-menu="logud" data-logget-ind hidden>Log ud</button>
+                <button type="button" role="menuitem" data-menu="delalle" data-logget-ind hidden>Del alle mine ruter</button>
                 <button type="button" role="menuitem" data-menu="hjaelp">Hjælp</button>
                 <button type="button" role="menuitem" data-menu="om">Om MitSpor</button>
             </div>
@@ -208,6 +209,14 @@
                 <select id="optag-live">
                     <option value="">Nej</option>
                 </select>
+            </div>
+            <!-- Linket til den valgte livesending og Del-knappen. Vises kun, når en
+                 livesending er valgt (optager.js). -->
+            <div class="optag-live-link" id="optag-live-link" hidden>
+                <input type="text" id="optag-live-url" readonly aria-label="Link til livesiden">
+                <button type="button" class="menu-knap optag-live-del" id="optag-live-del" aria-label="Del link til livesiden" title="Del link til livesiden">
+                    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+                </button>
             </div>
         </div>
 

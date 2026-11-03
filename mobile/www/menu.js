@@ -79,8 +79,15 @@
         window.MitSporUploadVisning.logUd();
     }
 
+    // "Del alle mine ruter": kontrolpanelet åbner dialogen med linket
+    // (dashboard.php?del_alle=1, public/assets/del-alle.js).
+    function delAlle() {
+        window.MitSporApp.aabnSite('/dashboard.php?del_alle=1');
+    }
+
     var startMenu = menu('menu-knap', 'menu', 'data-menu', {
         logud: logUd,
+        delalle: delAlle,
         hjaelp: visHjaelp,
         om: visOm
     });
