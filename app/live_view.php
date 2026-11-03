@@ -141,6 +141,12 @@ function live_view_payload(PDO $pdo, array $event, bool $isOwner, string $client
             $row['planned_gpx'] !== null ? $row['planned_updated'] : '',
         ]);
     }
+    // Waypoints på igangværende etaper (fra appen). Et nyt eller ændret
+    // waypoint giver en ny version, så siden henter alt igen.
+    $liveWaypoints = live_waypoints_for_stages($pdo, array_keys($liveStageIds), $cutoff);
+    foreach ($liveWaypoints as $stageId => $list) {
+        $versionParts[] = 'w' . $stageId . ':' . sha1(json_encode($list));
+    }
     $version = substr(sha1(implode('|', $versionParts)), 0, 12);
     $full = $version !== $clientVersion;
 
@@ -239,7 +245,9 @@ function live_view_payload(PDO $pdo, array $event, bool $isOwner, string $client
                 'title'    => $row['title'] !== '' ? $row['title'] : ($st['route_shown'] ? (string) $row['route_title'] : ''),
                 'state'    => $st['state'],
                 'route'    => $st['route_shown'] ? live_gpx_points((string) $row['route_gpx']) : null,
-                'waypoints' => $st['route_shown'] ? live_gpx_waypoints((string) $row['route_gpx'], (int) $event['user_id']) : [],
+                'waypoints' => $st['route_shown']
+                    ? live_gpx_waypoints((string) $row['route_gpx'], (int) $event['user_id'])
+                    : live_waypoints_for_view($liveWaypoints[(int) $row['id']] ?? []),
                 'link'     => $routeLink,
                 'planned'  => $row['planned_gpx'] !== null ? live_gpx_points((string) $row['planned_gpx']) : null,
                 'points'   => [],
@@ -357,6 +365,18 @@ function live_gpx_waypoints(string $relativePath, int $ownerUserId): array
     }
 
     return $result;
+}
+
+/** Livewaypoints (live_waypoints_for_stages()) i samme form som live_gpx_waypoints(). */
+function live_waypoints_for_view(array $list): array
+{
+    return array_map(static fn(array $w): array => [
+        'lat'    => $w['lat'],
+        'lon'    => $w['lon'],
+        'name'   => $w['name'],
+        'desc'   => $w['desc'],
+        'images' => array_map(static fn(string $href): array => ['href' => '/' . $href, 'text' => ''], $w['images']),
+    ], $list);
 }
 
 /**

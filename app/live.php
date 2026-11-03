@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/route_groups.php';
+require_once __DIR__ . '/image_links.php';
 
 /**
  * Live-tracking: en livesending (live_events) med en fast URL, oprettet
@@ -43,6 +44,10 @@ const LIVE_POINTS_MAX_AGE_HOURS = 48;
 
 // Punkter med tid længere ude i fremtiden end dette afvises.
 const LIVE_POINTS_MAX_FUTURE_SECONDS = 300;
+
+// Waypoints under livesending (live_waypoints_save()).
+const LIVE_WAYPOINTS_MAX_PER_REQUEST = 50;
+const LIVE_WAYPOINT_MAX_IMAGES = 10;   // som MAX_BILLEDER i appens optager
 
 // ---------------------------------------------------------------------
 // Opslag
@@ -369,6 +374,125 @@ function live_points_add(PDO $pdo, array $stage, array $points): array
     ];
 }
 
+/**
+ * Gem waypoints fra appen på en igangværende etape. Hvert waypoint:
+ * { t: tid i ms, lat, lon, ele|null, name, desc, images: [billedsti, …] }.
+ * Et waypoint kendes på sin tid; sendes det igen (fx med flere billeder),
+ * opdateres det. Billedstier skal være brugerens egne MitSpor-billeder
+ * (svaret fra api/v1/upload-image.php); andre springes over.
+ *
+ * @return array{success: bool, errors?: string[], received?: int}
+ */
+function live_waypoints_save(PDO $pdo, array $stage, int $userId, array $waypoints): array
+{
+    if (count($waypoints) > LIVE_WAYPOINTS_MAX_PER_REQUEST) {
+        return ['success' => false, 'errors' => ['For mange waypoints i én forespørgsel (højst ' . LIVE_WAYPOINTS_MAX_PER_REQUEST . ').']];
+    }
+
+    $startMs = (int) $stage['started_epoch'] * 1000;
+    $minMs = $startMs - LIVE_POINTS_MAX_AGE_HOURS * 3600 * 1000;
+    $maxMs = (time() + LIVE_POINTS_MAX_FUTURE_SECONDS) * 1000;
+
+    $rows = [];
+    foreach ($waypoints as $w) {
+        if (!is_array($w)) {
+            return ['success' => false, 'errors' => ['Ugyldigt waypoint.']];
+        }
+        $lat = $w['lat'] ?? null;
+        $lon = $w['lon'] ?? null;
+        $ele = $w['ele'] ?? null;
+        $t = $w['t'] ?? null;
+        $name = $w['name'] ?? '';
+        $desc = $w['desc'] ?? '';
+        $images = $w['images'] ?? [];
+
+        if (!live_is_number($lat) || !live_is_number($lon) || !live_is_number($t)
+            || ($ele !== null && !live_is_number($ele))
+            || !is_string($name) || !is_string($desc)
+            || !is_array($images) || !array_is_list($images)) {
+            return ['success' => false, 'errors' => ['Ugyldigt waypoint.']];
+        }
+        if ($lat < -90 || $lat > 90 || $lon < -180 || $lon > 180) {
+            return ['success' => false, 'errors' => ['Ugyldigt waypoint.']];
+        }
+        $t = (int) round($t);
+        if ($t < $minMs || $t > $maxMs) {
+            return ['success' => false, 'errors' => ['Waypointets tid passer ikke til etapen. Tjek telefonens ur.']];
+        }
+
+        $paths = [];
+        foreach (array_slice($images, 0, LIVE_WAYPOINT_MAX_IMAGES) as $href) {
+            if (is_string($href) && image_link_owner_id($href) === $userId) {
+                $paths[] = ltrim(preg_replace('#^\.\./#', '', trim($href)), '/');
+            }
+        }
+
+        $rows[$t] = [
+            sprintf('%d.%03d', intdiv($t, 1000), $t % 1000),
+            sprintf('%.6f', $lat),
+            sprintf('%.6f', $lon),
+            $ele !== null && abs($ele) < 100000 ? sprintf('%.1f', $ele) : null,
+            mb_substr(trim($name), 0, 200),
+            mb_substr(trim($desc), 0, 5000),
+            $paths ? json_encode(array_values(array_unique($paths)), JSON_UNESCAPED_SLASHES) : null,
+        ];
+    }
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO live_waypoints (stage_id, recorded_at, lat, lon, ele, name, description, images)
+         VALUES (:sid, FROM_UNIXTIME(:sec), :lat, :lon, :ele, :name, :descr, :images)
+         ON DUPLICATE KEY UPDATE lat = VALUES(lat), lon = VALUES(lon), ele = VALUES(ele),
+             name = VALUES(name), description = VALUES(description), images = VALUES(images)'
+    );
+    foreach ($rows as [$sec, $lat, $lon, $ele, $name, $desc, $images]) {
+        $stmt->execute([
+            'sid' => $stage['id'], 'sec' => $sec, 'lat' => $lat, 'lon' => $lon, 'ele' => $ele,
+            'name' => $name, 'descr' => $desc !== '' ? $desc : null, 'images' => $images,
+        ]);
+    }
+
+    return ['success' => true, 'received' => count($rows)];
+}
+
+/**
+ * Etapernes livewaypoints, ældre end $cutoff (databasens tid), som
+ * livesiden og GPX'en viser dem: [stage_id => [waypoint, …]].
+ *
+ * @param int[] $stageIds
+ * @return array<int, list<array{t: int, lat: float, lon: float, ele: ?float, name: string, desc: string, images: list<string>}>>
+ */
+function live_waypoints_for_stages(PDO $pdo, array $stageIds, ?string $cutoff): array
+{
+    if (!$stageIds) {
+        return [];
+    }
+    $in = implode(',', array_map('intval', $stageIds));
+    $stmt = $pdo->prepare(
+        "SELECT stage_id, lat, lon, ele, name, description, images,
+                FLOOR(UNIX_TIMESTAMP(recorded_at) * 1000) AS t
+         FROM live_waypoints
+         WHERE stage_id IN ($in)" . ($cutoff !== null ? ' AND recorded_at <= :c' : '') . '
+         ORDER BY stage_id, recorded_at'
+    );
+    $stmt->execute($cutoff !== null ? ['c' => $cutoff] : []);
+
+    $result = [];
+    foreach ($stmt as $r) {
+        $images = $r['images'] !== null ? json_decode((string) $r['images'], true) : [];
+        $result[(int) $r['stage_id']][] = [
+            't'      => (int) $r['t'],
+            'lat'    => (float) $r['lat'],
+            'lon'    => (float) $r['lon'],
+            'ele'    => $r['ele'] !== null ? (float) $r['ele'] : null,
+            'name'   => (string) $r['name'],
+            'desc'   => (string) ($r['description'] ?? ''),
+            'images' => is_array($images) ? array_values(array_filter($images, 'is_string')) : [],
+        ];
+    }
+
+    return $result;
+}
+
 function live_is_number(mixed $value): bool
 {
     return (is_int($value) || is_float($value)) && is_finite((float) $value);
@@ -531,8 +655,22 @@ function live_stage_gpx(PDO $pdo, int $stageId, string $name, ?string $cutoff = 
 
     $out = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
         . '<gpx version="1.1" creator="MitSpor" xmlns="http://www.topografix.com/GPX/1/1"'
-        . ' xmlns:mitspor="https://mitspor.dk/gpx/1">' . "\n"
-        . '<trk><name>' . $x($name) . '</name><trkseg>' . "\n";
+        . ' xmlns:mitspor="https://mitspor.dk/gpx/1">' . "\n";
+
+    // Waypoints står før <trk> (GPX-skemaets rækkefølge).
+    foreach (live_waypoints_for_stages($pdo, [$stageId], $cutoff)[$stageId] ?? [] as $w) {
+        $out .= '<wpt lat="' . sprintf('%.6f', $w['lat']) . '" lon="' . sprintf('%.6f', $w['lon']) . '">'
+            . ($w['ele'] !== null ? '<ele>' . sprintf('%.1f', $w['ele']) . '</ele>' : '')
+            . '<time>' . gmdate('Y-m-d\TH:i:s', intdiv($w['t'], 1000)) . sprintf('.%03dZ', $w['t'] % 1000) . '</time>'
+            . ($w['name'] !== '' ? '<name>' . $x($w['name']) . '</name>' : '')
+            . ($w['desc'] !== '' ? '<desc>' . $x($w['desc']) . '</desc>' : '');
+        foreach ($w['images'] as $href) {
+            $out .= '<link href="' . $x($href) . '"><type>image</type></link>';
+        }
+        $out .= "</wpt>\n";
+    }
+
+    $out .= '<trk><name>' . $x($name) . '</name><trkseg>' . "\n";
 
     $stmt = $pdo->prepare(
         'SELECT lat, lon, ele, accuracy_m, FLOOR(UNIX_TIMESTAMP(recorded_at) * 1000) AS t
@@ -568,6 +706,12 @@ function live_stage_gpx(PDO $pdo, int $stageId, string $name, ?string $cutoff = 
  */
 function live_delete_for_user(PDO $pdo, int $userId): void
 {
+    $pdo->prepare(
+        'DELETE w FROM live_waypoints w
+         JOIN live_stages s ON s.id = w.stage_id
+         JOIN live_events e ON e.id = s.event_id
+         WHERE e.user_id = :uid'
+    )->execute(['uid' => $userId]);
     $pdo->prepare(
         'DELETE p FROM live_points p
          JOIN live_stages s ON s.id = p.stage_id
@@ -864,6 +1008,9 @@ function live_event_delete(PDO $pdo, array $event): void
     try {
         $pdo->prepare(
             'DELETE p FROM live_points p JOIN live_stages s ON s.id = p.stage_id WHERE s.event_id = :eid'
+        )->execute(['eid' => $event['id']]);
+        $pdo->prepare(
+            'DELETE w FROM live_waypoints w JOIN live_stages s ON s.id = w.stage_id WHERE s.event_id = :eid'
         )->execute(['eid' => $event['id']]);
         $pdo->prepare('DELETE FROM live_stages WHERE event_id = :eid')->execute(['eid' => $event['id']]);
         $pdo->prepare('DELETE FROM live_events WHERE id = :id')->execute(['id' => $event['id']]);
