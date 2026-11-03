@@ -108,6 +108,7 @@
     var liveValg = document.getElementById('optag-live-valg');
     var liveSelect = document.getElementById('optag-live');
     var liveLabel = document.getElementById('optag-live-label');
+    var liveDelKnap = document.getElementById('optag-live-del');
     // Punktet "Opret ny livesending …" i valget. Det kan aldrig stå som valgt.
     var NY_LIVE = 'ny';
     var forrigeLive = '';
@@ -239,6 +240,7 @@
         // Vises også uden livesendinger, så man kan oprette en ("Ny livesending").
         liveValg.hidden = aktiv || !!afbrudt || !logget;
         liveLabel.textContent = liveSelect.value ? 'Send live til' : 'Send live';
+        liveDelKnap.hidden = !valgtLivesending() || !valgtLivesending().url;
         visSensorer();
         if (afbrudt) {
             afbrudtTekst.textContent = afbrudt.navn + ' blev ikke afsluttet. Vil du fortsætte optagelsen eller afslutte og gemme den?';
@@ -1312,6 +1314,33 @@
         });
     }
 
+    // Den livesending, der er valgt under "Send live" (eller null).
+    function valgtLivesending() {
+        var v = liveSelect.value;
+        return livesendinger.filter(function (l) { return l.event === v; })[0] || null;
+    }
+
+    // "Del link til livesiden": telefonens delemenu med linket.
+    function delLiveLink() {
+        var l = valgtLivesending();
+        if (!l || !l.url) {
+            return;
+        }
+        var link = window.MITSPOR_CONFIG.siteUrl + l.url;
+        if (!Capacitor.isNativePlatform()) {
+            window.prompt('Link til livesiden', link);
+            return;
+        }
+        Share.share({ title: l.titel, text: 'Følg med på ' + l.titel + ':', url: link, dialogTitle: 'Del link til livesiden' })
+            .catch(function (fejl) {
+                // Brugeren lukkede delemenuen: ikke en fejl.
+                if (fejl && /cancel/i.test(fejl.message || '')) {
+                    return;
+                }
+                window.alert('Linket kunne ikke deles.');
+            });
+    }
+
     // ---------- Gemte ture ----------
 
     function delGpx(m) {
@@ -1347,6 +1376,7 @@
     // "Opret ny livesending …" åbner sitet. Valget springer tilbage til det
     // forrige; efter Gem lukker sitet WebView'et (/app-luk.php?live=<id>),
     // og app.js sender 'mitspor:ny-livesending', som vælger den nye.
+    liveDelKnap.addEventListener('click', delLiveLink);
     liveSelect.addEventListener('change', function () {
         if (liveSelect.value === NY_LIVE) {
             liveSelect.value = forrigeLive;

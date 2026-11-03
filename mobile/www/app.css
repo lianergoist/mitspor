@@ -622,6 +622,13 @@ body {
     margin-bottom: 0;
 }
 
+/* "Del link til livesiden" under valget, højrestillet under selve valget. */
+.optag-live-del {
+    display: block;
+    margin: 10px 0 0 auto;
+    font-size: 16px;
+}
+
 .optag-live-status {
     margin: 0 0 16px;
     padding: 10px 12px;
