@@ -20,7 +20,8 @@ vejledning_start('', 'Vejledning', 'Sådan bruger du MitSpor: optag dine ture, s
     <div class="vj-bruge">
         <p>Det skal du bruge</p>
         <ul>
-            <li>En mobiltelefon med appen MitSpor. Den er gratis.</li>
+            <li>En mobiltelefon med appen MitSpor. Den er gratis i <a href="<?= VJ_APP_STORE ?>">App Store</a>
+            og <a href="<?= VJ_GOOGLE_PLAY ?>">Google Play</a>.</li>
             <li>En konto på MitSpor. Den er også gratis, og du opretter den på et par minutter.</li>
             <li>Eventuelt en computer. Det er ikke nødvendigt, men de større ændringer af en tur er nemmest at lave på en stor skærm.</li>
         </ul>

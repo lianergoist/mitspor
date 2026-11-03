@@ -101,6 +101,18 @@ function vejledning_kapitler(): array
     ];
 }
 
+const VJ_APP_STORE = 'https://apps.apple.com/dk/app/mitspor/id6821337231';
+const VJ_GOOGLE_PLAY = 'https://play.google.com/store/apps/details?id=dk.mitspor.app';
+
+/** Knapper til appen i App Store og Google Play. */
+function vj_butikker(): string
+{
+    return '<p class="vj-butikker">'
+        . '<a class="btn btn-primary" href="' . VJ_APP_STORE . '">App Store (iPhone)</a>'
+        . '<a class="btn btn-primary" href="' . VJ_GOOGLE_PLAY . '">Google Play (Android)</a>'
+        . '</p>';
+}
+
 function vj_h(string $s): string
 {
     return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
@@ -132,7 +144,7 @@ function vejledning_start(string $slug, string $titel, string $beskrivelse): voi
     <meta name="description" content="<?= vj_h($beskrivelse) ?>">
     <link rel="canonical" href="<?= vj_h($url) ?>">
     <link rel="stylesheet" href="/assets/style.css?v=39">
-    <link rel="stylesheet" href="/assets/vejledning.css?v=2">
+    <link rel="stylesheet" href="/assets/vejledning.css?v=3">
 </head>
 <body>
 

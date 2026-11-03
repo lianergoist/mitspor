@@ -167,6 +167,10 @@
 }
 .vj-advar > :last-child { margin-bottom: 0; }
 
+/* Knapper til App Store og Google Play. */
+.vj-butikker { display: flex; flex-wrap: wrap; gap: 10px; }
+.vj-butikker .btn { text-decoration: none; }
+
 /* Oversigten. */
 .vj-intro { font-size: 19px; }
 .vj-kapitler {
