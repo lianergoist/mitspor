@@ -56,7 +56,7 @@ $palette = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#0891b2', '#
     <meta property="og:description" content="Følg turen live på MitSpor.">
 
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/style.css?v=35">
+    <link rel="stylesheet" href="assets/style.css?v=39">
     <style>
         html, body { height: 100%; margin: 0; }
         .info-panel { top: 80px; left: 12px; width: 320px; max-width: calc(100vw - 24px); max-height: calc(100dvh - 100px); overflow-y: auto; }
@@ -85,6 +85,15 @@ $palette = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#0891b2', '#
         @media (max-width: 520px) {
             .btn-label { display: none; }
             .map-page .topbar .btn { padding: 6px 12px; min-height: 40px; }
+        }
+        /* Waypoint-billeder på mobil: som på route-view.php. */
+        @media (max-width: 600px) {
+            .wpt-modal { padding: 5px; }
+            .wpt-modal-box { width: 100%; max-width: none; max-height: 98vh; max-height: 98dvh; padding: 8px; gap: 4px; }
+            .wpt-popup-images { border-radius: 6px; }
+            .wpt-popup-img-caption, .wpt-popup-name, .wpt-popup-desc { padding: 0 2px; }
+            .wpt-popup-img-caption { margin-top: 2px; }
+            .wpt-modal-close { top: 14px; right: 14px; }
         }
     </style>
 </head>
@@ -120,12 +129,29 @@ $palette = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#0891b2', '#
     </div>
 </div>
 
+<!-- Billeder på waypoints (samme visning som på route-view.php) -->
+<div id="wpt-modal" class="wpt-modal" hidden>
+    <div class="wpt-modal-backdrop"></div>
+    <div class="wpt-modal-box">
+        <button type="button" class="wpt-modal-close" aria-label="Luk">&times;</button>
+        <div class="wpt-popup-images">
+            <button type="button" class="wpt-img-prev" aria-label="Forrige billede">&#8249;</button>
+            <img class="wpt-popup-img" src="" alt="">
+            <button type="button" class="wpt-img-next" aria-label="Næste billede">&#8250;</button>
+            <div class="wpt-img-counter"></div>
+        </div>
+        <div class="wpt-popup-img-caption"></div>
+        <div class="wpt-popup-name"></div>
+        <div class="wpt-popup-desc"></div>
+    </div>
+</div>
+
 <script>
 window.MITSPOR_LIVE = <?= json_encode($config, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?>;
 window.MITSPOR_LIVE.palette = <?= json_encode($palette) ?>;
 </script>
 <script src="vendor/leaflet/leaflet.js"></script>
-<script src="assets/live.js?v=5"></script>
+<script src="assets/live.js?v=6"></script>
 
 </body>
 </html>
