@@ -956,6 +956,41 @@
     el("btn-selection-save").disabled = pts.length < 2;
   }
 
+  // "Slet" i markeringsbjælken: fjerner de markerede punkter fra ruten (fx en
+  // biltur til sidst, eller en omvej). Ét trin i Fortryd; intet gemmes, før
+  // der trykkes Gem. Waypoints røres ikke. Ruten skal have mindst 2 punkter tilbage.
+  function deleteSelection() {
+    const pts = editMode === "select" && selection.b ? selectedPoints() : [];
+    if (pts.length === 0) return;
+    if (countPoints() - pts.length < 2) {
+      window.alert("Ruten skal have mindst to punkter tilbage. Markér en mindre strækning.");
+      return;
+    }
+    const cum = selectionDistances(pts);
+    const antal = pts.length.toLocaleString("da-DK");
+    if (!window.confirm(`Slet de ${antal} markerede punkter (${formatKm(cum[cum.length - 1])})?\n\nDu kan fortryde med Fortryd, og intet gemmes, før du trykker Gem.`)) return;
+
+    pushHistory();
+    const ids = new Set(pts.map((x) => x.p.id));
+    state.segments.forEach((seg) => {
+      for (let i = seg.length - 1; i >= 0; i--) {
+        if (ids.has(seg[i].id)) {
+          seg[i].node.remove();
+          seg.splice(i, 1);
+        }
+      }
+      // Et spor-segment uden punkter fjernes helt fra filen.
+      if (seg.length === 0 && seg.node && seg.node.localName === "trkseg") seg.node.remove();
+    });
+    state.segments = state.segments.filter((seg) => seg.length > 0);
+    selection = { a: null, b: null };
+    markDirty();
+    render._hasFitBounds = true;
+    render();
+    updateSelectionBar();
+    setStatus(`${antal} punkter slettet. Tryk Gem for at gemme ændringen.`);
+  }
+
   // ---- Statistik for markeringen ----
   // Samme regler som rutens side (route-view.php): et stykke er "i bevægelse"
   // ved mindst 0,5 m/s, og maks. hastighed måles over mindst 5 sekunder.
@@ -3307,6 +3342,7 @@
     // ---- Markering ----
     el("btn-selection-stats").addEventListener("click", openSelectionStats);
     el("btn-selection-save").addEventListener("click", openSaveSelectionDialog);
+    el("btn-selection-delete").addEventListener("click", deleteSelection);
     el("btn-selection-clear").addEventListener("click", () => {
       selection = { a: null, b: null };
       render._hasFitBounds = true;
