@@ -85,8 +85,8 @@ function vejledning_kapitler(): array
         ],
         'udseende' => [
             'titel' => 'Giv turen det rigtige udseende',
-            'kort'  => 'Titel, beskrivelse, aktivitet og ikonet på kortet.',
-            'enhed' => 'begge', 'klar' => false,
+            'kort'  => 'Titel, beskrivelse, aktivitet og figuren på kortet.',
+            'enhed' => 'begge', 'klar' => true,
         ],
         'ordbog' => [
             'titel' => 'Lille ordbog',
