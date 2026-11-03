@@ -328,6 +328,9 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
         .meta-line { display: block; }
         /* "Uploadet af" på sin egen linje, afkortet med "…" hvis navnet er langt. */
         .meta-uploader { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        /* "Vis min position" (assets/min-position.js): samme størrelse som zoomknapperne, blå når den er slået til. */
+        .min-position a { display: flex; align-items: center; justify-content: center; color: #334155; }
+        .min-position a.min-position-aktiv { color: #ffffff; background: #2563eb; }
         .meta-sep-uploader { display: none; }
         /* Knapperne i topbaren ligger i en flex-række på ALLE skærmbredder. Uden den er
            beholderen en almindelig blok med inline-knapper, som linjes op efter tekstens
@@ -546,7 +549,8 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             <?php // Uploaderen vises kun på offentlige ruter (ikke på private/del-link). ?>
             <?php if ($route['visibility'] === 'public' && !$route['hide_uploader_name']): ?>
                 <span class="meta-sep-uploader">&middot;</span>
-                <span class="meta-uploader">Uploadet af: <?= htmlspecialchars($route['uploader_name'], ENT_QUOTES, 'UTF-8') ?></span>
+                <?php // Navnet linker til uploaderens andre offentlige ruter (uploader-routes.php). ?>
+                <span class="meta-uploader">Uploadet af: <?php if ($liveEvent === null): ?><a href="uploader-routes.php?route=<?= htmlspecialchars($route['public_id'], ENT_QUOTES, 'UTF-8') ?>" title="Andre ruter fra <?= htmlspecialchars($route['uploader_name'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($route['uploader_name'], ENT_QUOTES, 'UTF-8') ?></a><?php else: ?><?= htmlspecialchars($route['uploader_name'], ENT_QUOTES, 'UTF-8') ?><?php endif; ?></span>
             <?php endif; ?>
         </div>
 
@@ -581,6 +585,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
                 <li><strong>Ruter</strong>, der er plottet ind på et kort — de viser aldrig tid/hastighed, og bruger altid en simpel blå prik som bevægelig markør.</li>
             </ul>
             <p>Knapperne under kortet (<strong>◀◀ ◀ ▶ ▶▶</strong>) lader dig bevæge dig punkt for punkt eller i spring på 1/25 af ruten (højst 25 klik fra start til slut) langs ruten — den blå/farvede markør følger med. Indeholder filen data til det (fx højde, puls, kadence eller watt), og ejeren har slået det til, vises en graf nederst på siden fra start. Du kan skjule og vise den igen med <strong>Grafer</strong>-knappen øverst — findes der data til flere typer, skifter du mellem dem med fanebladene øverst i grafen.</p>
+            <p>Knappen med sigtekornet over zoomknapperne viser, hvor du er, som en blå prik på kortet. Tryk igen for at skjule den. Din placering bliver på din telefon eller computer.</p>
             <p>Pilen øverst til venstre tager dig tilbage til det, du kom fra. <strong>Download GPX</strong> i menuen (☰) henter rutens GPX-fil, når ejeren har tilladt det.</p>
             <p>Er ruten <strong>offentlig</strong>, kan alle se den; er den <strong>privat</strong>, kræver det enten at du er ejeren, eller at du har et gyldigt del-link.</p>
             <?php if ($isOwner): ?>
@@ -643,12 +648,15 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
 <script src="vendor/leaflet-gpx/gpx.js"></script>
 <script src="assets/gpx-field-labels.js?v=4"></script>
 <script src="assets/activity-marker.js?v=3"></script>
+<script src="assets/min-position.js?v=1"></script>
 <script>
 (function () {
     "use strict";
 
     var map = L.map('map', { zoomControl: false });
     L.control.zoom({ position: 'bottomright' }).addTo(map);
+    // "Vis min position" over zoomknapperne (assets/min-position.js).
+    MitSporMinPosition.tilfoej(map);
 
     // ---------- Igangværende etape (route-view.php?live=…) ----------
     // Siden hentes igen hvert minut. Kortets udsnit, og om graferne er
