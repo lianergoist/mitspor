@@ -622,11 +622,26 @@ body {
     margin-bottom: 0;
 }
 
-/* "Del link til livesiden" under valget, højrestillet under selve valget. */
+/* Linket til livesiden (skrivebeskyttet) og Del-knappen under valget. */
+.optag-live-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.formular .optag-live-link input {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-bottom: 0;
+    font-size: 15px;
+    color: var(--text-muted);
+}
+
 .optag-live-del {
-    display: block;
-    margin: 10px 0 0 auto;
-    font-size: 16px;
+    flex: none;
+    width: 48px;
+    height: 48px;
 }
 
 .optag-live-status {
