@@ -61,7 +61,7 @@ function vejledning_kapitler(): array
         'alle-ture' => [
             'titel' => 'Vis alle dine ture',
             'kort'  => 'Ét link til alle dine ture, også de private.',
-            'enhed' => 'mobil', 'klar' => false,
+            'enhed' => 'begge', 'klar' => true,
         ],
         'planlaeg' => [
             'titel' => 'Planlæg næste tur',
