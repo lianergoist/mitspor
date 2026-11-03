@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../app/db.php';
+require_once __DIR__ . '/../app/vejledning.php';
 
 header('Content-Type: application/xml; charset=UTF-8');
 
@@ -32,6 +33,20 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         <changefreq>daily</changefreq>
         <priority>1.0</priority>
     </url>
+    <url>
+        <loc><?= htmlspecialchars(APP_BASE_URL, ENT_QUOTES, 'UTF-8') ?>/vejledning/</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+<?php foreach (vejledning_kapitler() as $slug => $kapitel): ?>
+<?php if ($kapitel['klar']): ?>
+    <url>
+        <loc><?= htmlspecialchars(APP_BASE_URL . '/vejledning/' . $slug . '.php', ENT_QUOTES, 'UTF-8') ?></loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>
+<?php endif; ?>
+<?php endforeach; ?>
 <?php foreach ($routes as $route): ?>
     <url>
         <loc><?= htmlspecialchars(APP_BASE_URL . '/route-view.php?id=' . urlencode($route['public_id']), ENT_QUOTES, 'UTF-8') ?></loc>

@@ -221,6 +221,7 @@ $h = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
 <?php endif; ?>
 
 <footer class="forside-fod">
+    <a href="/vejledning/">Vejledning</a>
     <a href="/privatlivspolitik.php">Privatlivspolitik</a>
     <a href="mailto:info@mitspor.dk">info@mitspor.dk</a>
 </footer>

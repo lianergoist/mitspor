@@ -16,7 +16,7 @@ require_once __DIR__ . '/csrf.php';
 
 /**
  * @param array<int, array{id?: string, href?: string, form?: string, label: string}> $items
- *        Sidens egne punkter øverst (fx Hjælp). "Om MitSpor" kommer altid til sidst.
+ *        Sidens egne punkter øverst (fx Hjælp). "Vejledning" og "Om MitSpor" kommer altid til sidst.
  * @param string $labelClass Klassen, der skjuler knapteksten på mobil
  *        (tb-label, eller btn-label på rutens side).
  */
@@ -24,6 +24,7 @@ function topbar_menu(array $items, string $labelClass = 'tb-label'): string
 {
     $h = static fn(string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8');
 
+    $items[] = ['href' => '/vejledning/', 'label' => 'Vejledning'];
     $items[] = ['id' => 'btn-open-about', 'label' => 'Om MitSpor'];
 
     $html = '<div class="topbar-menu" data-topbar-menu>'
