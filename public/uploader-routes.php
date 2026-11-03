@@ -53,12 +53,12 @@ $routes = $stmt->fetchAll();
     <link rel="icon" type="image/png" sizes="32x32" href="/grafik/favicon-32.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($referring['display_name'], ENT_QUOTES, 'UTF-8') ?>s offentlige ruter</title>
-    <link rel="stylesheet" href="assets/style.css?v=35">
+    <link rel="stylesheet" href="assets/style.css?v=40">
 </head>
 <body>
 
 <div class="topbar">
-    <a href="index.php" class="brand">&larr; MitSpor</a>
+    <a href="index.php" class="brand"><span class="back-arrow" aria-hidden="true">&larr;</span><span class="brand-name">MitSpor</span></a>
 </div>
 
 <div class="container">

@@ -101,18 +101,37 @@ a { color: var(--primary); }
 }
 
 /* Tilbage-pilen til venstre i topbaren — ens i kontrolpanelet, på rutens
-   side og i editoren (editor/style.css har samme regel). */
+   side, livesiden, gruppesiden og i editoren (editor/style.css har samme
+   regel). Pilen er en SVG-maske i tekstfarven (samme streg som .tb-icon),
+   så den ser ens ud i alle skrifttyper; tegnet (&larr;) i HTML'en skjules. */
 .back-arrow {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
-    font-weight: 800;
-    line-height: 1;
-    padding: 0 6px 3px;
-    -webkit-text-stroke: 0.7px currentColor; /* gør pilen tydeligere fed, også i skrifttyper uden fed pil */
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(30, 41, 59, 0.07);
+    font-size: 0;
+    line-height: 0;
     text-decoration: none;
+    transition: background-color 0.15s;
+    -webkit-tap-highlight-color: transparent;
 }
+.back-arrow::before {
+    content: "";
+    width: 20px;
+    height: 20px;
+    background-color: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 12H5'/%3E%3Cpath d='M11 18l-6-6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 12H5'/%3E%3Cpath d='M11 18l-6-6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+a:hover > .back-arrow,
+a.back-arrow:hover { background: rgba(30, 41, 59, 0.13); }
+a:active > .back-arrow,
+a.back-arrow:active { background: rgba(30, 41, 59, 0.18); }
+a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offset: 2px; }
 
 /* Monokrom linjeikon (SVG): arver tekstfarven via currentColor. */
 .tb-icon {

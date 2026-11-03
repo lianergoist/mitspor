@@ -56,7 +56,7 @@ $palette = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#0891b2', '#
     <meta property="og:description" content="Følg turen live på MitSpor.">
 
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/style.css?v=39">
+    <link rel="stylesheet" href="assets/style.css?v=40">
     <style>
         html, body { height: 100%; margin: 0; }
         .info-panel { top: 80px; left: 12px; width: 320px; max-width: calc(100vw - 24px); max-height: calc(100dvh - 100px); overflow-y: auto; }
@@ -102,7 +102,7 @@ $palette = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#0891b2', '#
 <div class="map-page">
 
     <div class="topbar">
-        <a href="<?= $isOwner ? '/dashboard.php#live:' . $e($event['public_id']) : '/index.php' ?>" class="brand">&larr; <?= $isOwner ? 'Mit kontrolpanel' : 'MitSpor' ?></a>
+        <a href="<?= $isOwner ? '/dashboard.php#live:' . $e($event['public_id']) : '/index.php' ?>" class="brand"><span class="back-arrow" aria-hidden="true">&larr;</span><span class="brand-name"><?= $isOwner ? 'Mit kontrolpanel' : 'MitSpor' ?></span></a>
         <div class="topbar-buttons">
             <button type="button" class="btn" id="live-follow" aria-pressed="false" title="Hold kortet centreret på den seneste position" hidden><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span class="btn-label">Følg</span></button>
         </div>

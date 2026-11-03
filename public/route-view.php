@@ -232,7 +232,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
     <meta name="twitter:image" content="<?= htmlspecialchars($ogImageUrl, ENT_QUOTES, 'UTF-8') ?>">
 
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/style.css?v=39">
+    <link rel="stylesheet" href="assets/style.css?v=40">
     <link rel="stylesheet" href="assets/videoer.css?v=1">
     <style>
         html, body { height: 100%; margin: 0; }
@@ -467,11 +467,11 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
 
     <div class="topbar<?= $loggedIn ? '' : ' topbar-guest' ?>">
         <?php if ($liveUrl !== null): ?>
-            <a href="<?= htmlspecialchars($liveUrl, ENT_QUOTES, 'UTF-8') ?>" id="btn-back" class="brand" title="Til livesiden" aria-label="Til livesiden"><span class="back-arrow" aria-hidden="true">&larr;</span><span class="brand-name"> Livesiden</span></a>
+            <a href="<?= htmlspecialchars($liveUrl, ENT_QUOTES, 'UTF-8') ?>" id="btn-back" class="brand" title="Til livesiden" aria-label="Til livesiden"><span class="back-arrow" aria-hidden="true">&larr;</span><span class="brand-name">Livesiden</span></a>
         <?php elseif ($isOwner): ?>
-            <a href="dashboard.php" id="btn-back" class="brand" title="Tilbage" aria-label="Tilbage"><span class="back-arrow" aria-hidden="true">&larr;</span><span class="brand-name"> MitSpor</span></a>
+            <a href="dashboard.php" id="btn-back" class="brand" title="Tilbage" aria-label="Tilbage"><span class="back-arrow" aria-hidden="true">&larr;</span><span class="brand-name">MitSpor</span></a>
         <?php else: ?>
-            <a href="index.php" id="btn-back" class="brand" title="Tilbage" aria-label="Tilbage"><span class="back-arrow" aria-hidden="true">&larr;</span><span class="brand-name"> MitSpor</span></a>
+            <a href="index.php" id="btn-back" class="brand" title="Tilbage" aria-label="Tilbage"><span class="back-arrow" aria-hidden="true">&larr;</span><span class="brand-name">MitSpor</span></a>
         <?php endif; ?>
         <div class="topbar-buttons">
             <button type="button" id="btn-graphs-toggle" class="btn" hidden title="Vis/skjul grafer" aria-label="Grafer"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg><span class="btn-label">Grafer</span></button>

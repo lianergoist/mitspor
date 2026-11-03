@@ -148,7 +148,7 @@ function vejledning_start(string $slug, string $titel, string $beskrivelse): voi
     <title><?= vj_h($titel) ?> – Vejledning – MitSpor</title>
     <meta name="description" content="<?= vj_h($beskrivelse) ?>">
     <link rel="canonical" href="<?= vj_h($url) ?>">
-    <link rel="stylesheet" href="/assets/style.css?v=39">
+    <link rel="stylesheet" href="/assets/style.css?v=40">
     <link rel="stylesheet" href="/assets/vejledning.css?v=5">
 </head>
 <body>
