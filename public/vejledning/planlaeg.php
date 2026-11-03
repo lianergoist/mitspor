@@ -84,6 +84,13 @@ echo vj_overskrift('planlaeg');
         <a href="/vejledning/del-turen.php">Del turen med vennerne</a>.</p>
     ') ?>
 
+    <?= vj_trin('Følg ruten på telefonen', '
+        <p>På dagen kan I følge ruten direkte på telefonen. Åbn rutens side, og tryk på knappen med sigtekornet
+        lige over <strong>+</strong> og <strong>−</strong>. Første gang skal du give lov til, at siden må se din placering.</p>
+        <p>Nu viser en <strong>blå prik</strong>, hvor du er, og den følger med, mens I går. Så kan du hurtigt se, om I
+        stadig er på ruten. Tryk på knappen igen for at skjule prikken.</p>
+    ', vj_billede('web-plan-position.webp', 'Rold Skov-ruten med en blå prik for din position og knappen med sigtekornet fremhævet')) ?>
+
     <?= vj_trin('Hent ruten til dit ur', '
         <p>Har du et GPS-ur eller en kort-app, du plejer at følge ruter med, kan du hente ruten som en fil. Åbn
         menuen (☰) på turens side, og vælg <strong>Download GPX</strong>.</p>
