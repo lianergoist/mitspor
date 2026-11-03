@@ -67,6 +67,16 @@ if (!$hasPublic) {
     $shareDialog = public_link_dialog(APP_BASE_URL . '/group-view.php?id=' . urlencode($group['public_id']), 'Alle kan se denne gruppe. Send linket til dem, du vil vise den.');
 }
 
+// Navnet linker til uploaderens andre offentlige ruter; uploader-routes.php
+// skal have en offentlig rute med navnet synligt at gå ud fra.
+$uploaderRouteId = null;
+foreach ($members as $m) {
+    if ($m['visibility'] === 'public' && (int) $m['hide_uploader_name'] === 0) {
+        $uploaderRouteId = (string) $m['public_id'];
+        break;
+    }
+}
+
 // Navnet vises kun, hvis ALLE viste etaper selv viser det.
 $showUploader = count($members) > 0;
 foreach ($members as $m) {
@@ -182,7 +192,7 @@ $palette = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#0891b2', '#
         </div>
 
         <?php if ($showUploader): ?>
-            <div class="meta">Uploadet af: <?= $e((string) $group['uploader_name']) ?></div>
+            <div class="meta">Uploadet af: <?php if ($uploaderRouteId !== null): ?><a href="uploader-routes.php?route=<?= $e($uploaderRouteId) ?>"><?= $e((string) $group['uploader_name']) ?></a><?php else: ?><?= $e((string) $group['uploader_name']) ?><?php endif; ?></div>
         <?php endif; ?>
 
         <?php if (!empty($group['description'])): ?>
