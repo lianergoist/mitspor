@@ -171,6 +171,17 @@
 .vj-butikker { display: flex; flex-wrap: wrap; gap: 10px; }
 .vj-butikker .btn { text-decoration: none; }
 
+/* Lille ordbog. */
+.vj-ordbog { margin: 0; }
+.vj-ordbog dt {
+    font-weight: 700;
+    font-size: 18px;
+    margin-top: 18px;
+    scroll-margin-top: 70px;
+}
+.vj-ordbog dd { margin: 4px 0 0; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.vj-ordbog-mere { display: block; font-size: 15px; margin-top: 4px; }
+
 /* Oversigten. */
 .vj-intro { font-size: 19px; }
 .vj-kapitler {

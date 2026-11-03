@@ -91,7 +91,7 @@ function vejledning_kapitler(): array
         'ordbog' => [
             'titel' => 'Lille ordbog',
             'kort'  => 'Spor, rute, waypoint og de andre ord forklaret kort.',
-            'enhed' => 'begge', 'klar' => false,
+            'enhed' => 'begge', 'klar' => true,
         ],
         'naar-noget-driller' => [
             'titel' => 'Når noget driller',
@@ -144,7 +144,7 @@ function vejledning_start(string $slug, string $titel, string $beskrivelse): voi
     <meta name="description" content="<?= vj_h($beskrivelse) ?>">
     <link rel="canonical" href="<?= vj_h($url) ?>">
     <link rel="stylesheet" href="/assets/style.css?v=39">
-    <link rel="stylesheet" href="/assets/vejledning.css?v=3">
+    <link rel="stylesheet" href="/assets/vejledning.css?v=4">
 </head>
 <body>
 
