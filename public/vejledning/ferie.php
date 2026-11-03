@@ -91,7 +91,8 @@ echo vj_overskrift('ferie');
         <p>Andre kan kun se de etaper, der er <strong>offentlige</strong>. Er alle etaper private, kan kun du se gruppen.</p>
         <ul>
             <li>Vil du vise ferien for alle, så vælg <strong>Offentlig</strong> under Synlighed i
-            <strong>Rediger gruppe</strong>. Så kommer den med på kortet på mitspor.dk som én tur.</li>
+            <strong>Rediger gruppe</strong>. Så kommer den med på kortet på mitspor.dk som én tur. Tryk derefter
+            på <strong>del-knappen</strong> øverst på gruppens side, og send linket.</li>
             <li>Vil du hellere beholde den privat, kan du sende et link til alle dine ture med
             <strong>Del alle mine ruter</strong> i menuen (☰) i kontrolpanelet.</li>
         </ul>

@@ -92,6 +92,11 @@ echo vj_overskrift('del-turen');
 
     </div>
 
+    <?= vj_godt('Send linket til en offentlig tur', '
+        <p>På turens side vælger du <strong>Del link</strong> i menuen (☰) og trykker på
+        <strong class="knap">Kopiér</strong>. Det kan alle, der ser en offentlig tur, også andre end dig.</p>
+    ') ?>
+
     <?= vj_godt('De andre valg i dialogen', '
         <ul>
             <li><strong>Tillad download af GPX-filen:</strong> så kan andre hente turen som en fil, fx til deres
