@@ -26,16 +26,14 @@ echo vj_overskrift('alle-ture');
 
     <div class="vj-trinliste">
 
-    <?= vj_trin('Åbn menuen i kontrolpanelet', '
-        <p>I appen trykker du på <strong class="knap">Åbn mitspor.dk</strong> og derefter på <strong>Kontrolpanel</strong>.
-        Tryk på menuen (☰) øverst til højre, og vælg <strong>Del alle mine ruter</strong>.</p>
-        <p>I den nyeste udgave af appen kan du også vælge <strong>Del alle mine ruter</strong> direkte i menuen på
-        appens startside.</p>
-    ', vj_billede('web-delalle-menu.webp', 'Kontrolpanelets menu med Del alle mine ruter fremhævet')) ?>
+    <?= vj_trin('Vælg Del alle mine ruter i appens menu', '
+        <p>Åbn appen, tryk på menuen (☰) øverst til højre på startsiden, og vælg <strong>Del alle mine ruter</strong>.</p>
+        <p>På en computer finder du det samme i menuen (☰) i dit kontrolpanel på mitspor.dk.</p>
+    ', vj_billede('app-menu.webp', 'Appens menu på startsiden med Del alle mine ruter fremhævet')) ?>
 
     <?= vj_trin('Kopiér linket, og send det', '
-        <p>MitSpor laver linket med det samme. Tryk på <strong class="knap">Kopiér</strong>, og sæt det ind i en
-        besked til farmor.</p>
+        <p>Dit kontrolpanel åbner med linket. Tryk på <strong class="knap">Kopiér</strong>, og sæt det ind i en
+        besked til farmor. Du kommer tilbage til appen med <strong>← MitSpor</strong> og derefter <strong>‹ Appen</strong>.</p>
         <p>Åbner du dialogen igen senere, er det det samme link. Det ændrer sig ikke, før du selv beder om det.</p>
     ', vj_billede('web-delalle-dialog.webp', 'Dialogen Del alle mine ruter med linket og knappen Kopiér')) ?>
 
