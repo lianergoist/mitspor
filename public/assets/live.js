@@ -99,11 +99,84 @@
                 liveLines[st.position] = { line: line, edge: edge };
             }
             if (pts.length) bounds.extend(pts);
+            drawWaypoints(st.waypoints || []);
         });
 
         renderList(stages);
         return bounds;
     }
+
+    // ---------- Waypoints ----------
+    var waypointIcon = L.divIcon({ className: "waypoint-dot-wrap", html: '<div class="waypoint-dot-icon"></div>', iconSize: [16, 16], iconAnchor: [8, 8] });
+    var waypointImgIcon = L.divIcon({ className: "waypoint-dot-wrap", html: '<div class="waypoint-dot-icon-img"></div>', iconSize: [16, 16], iconAnchor: [8, 8] });
+
+    function drawWaypoints(list) {
+        list.forEach(function (w) {
+            var hasImages = w.images && w.images.length > 0;
+            var m = L.marker([w.lat, w.lon], { icon: hasImages ? waypointImgIcon : waypointIcon, zIndexOffset: 500 }).addTo(stageLayer);
+            if (hasImages) {
+                m.on("click", function () { modal.open(w); });
+            } else if (w.name || w.desc) {
+                m.bindPopup(
+                    (w.name ? "<strong>" + escapeHtml(w.name) + "</strong>" : "") +
+                    (w.name && w.desc ? "<br>" : "") +
+                    (w.desc ? '<span style="white-space:pre-line">' + escapeHtml(w.desc) + "</span>" : "")
+                );
+            }
+        });
+    }
+
+    // Billedvisning for waypoints med billeder (markup i live.php).
+    var modal = (function () {
+        var el = document.getElementById("wpt-modal");
+        if (!el) return { open: function () {} };
+        var img = el.querySelector(".wpt-popup-img");
+        var counter = el.querySelector(".wpt-img-counter");
+        var caption = el.querySelector(".wpt-popup-img-caption");
+        var nameEl = el.querySelector(".wpt-popup-name");
+        var descEl = el.querySelector(".wpt-popup-desc");
+        var prev = el.querySelector(".wpt-img-prev");
+        var next = el.querySelector(".wpt-img-next");
+        var images = [];
+        var index = 0;
+
+        function show(i) {
+            index = (i + images.length) % images.length;
+            var im = images[index];
+            img.src = im.href;
+            img.alt = im.text || "";
+            caption.textContent = im.text || "";
+            caption.style.display = im.text ? "" : "none";
+            counter.style.display = images.length > 1 ? "" : "none";
+            counter.textContent = (index + 1) + " / " + images.length;
+        }
+        function close() { el.setAttribute("hidden", ""); }
+
+        el.querySelector(".wpt-modal-close").addEventListener("click", close);
+        el.querySelector(".wpt-modal-backdrop").addEventListener("click", close);
+        prev.addEventListener("click", function (ev) { ev.stopPropagation(); show(index - 1); });
+        next.addEventListener("click", function (ev) { ev.stopPropagation(); show(index + 1); });
+        document.addEventListener("keydown", function (ev) {
+            if (el.hasAttribute("hidden")) return;
+            if (ev.key === "Escape") close();
+            else if (ev.key === "ArrowLeft") show(index - 1);
+            else if (ev.key === "ArrowRight") show(index + 1);
+        });
+
+        return {
+            open: function (w) {
+                images = w.images;
+                nameEl.textContent = w.name || "";
+                nameEl.style.display = w.name ? "" : "none";
+                descEl.textContent = w.desc || "";
+                descEl.style.display = w.desc ? "" : "none";
+                prev.style.display = images.length > 1 ? "" : "none";
+                next.style.display = images.length > 1 ? "" : "none";
+                show(0);
+                el.removeAttribute("hidden");
+            }
+        };
+    })();
 
     // Etapens side: den færdige rute (st.link), når den må vises, ellers
     // route-view.php med etapens livepunkter, så længe den er i gang.

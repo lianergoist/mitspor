@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/live.php';
 require_once __DIR__ . '/gpx.php';
+require_once __DIR__ . '/image_links.php';
 require_once __DIR__ . '/og_image.php';
 
 /**
@@ -140,6 +141,12 @@ function live_view_payload(PDO $pdo, array $event, bool $isOwner, string $client
             $row['planned_gpx'] !== null ? $row['planned_updated'] : '',
         ]);
     }
+    // Waypoints på igangværende etaper (fra appen). Et nyt eller ændret
+    // waypoint giver en ny version, så siden henter alt igen.
+    $liveWaypoints = live_waypoints_for_stages($pdo, array_keys($liveStageIds), $cutoff);
+    foreach ($liveWaypoints as $stageId => $list) {
+        $versionParts[] = 'w' . $stageId . ':' . sha1(json_encode($list));
+    }
     $version = substr(sha1(implode('|', $versionParts)), 0, 12);
     $full = $version !== $clientVersion;
 
@@ -238,6 +245,9 @@ function live_view_payload(PDO $pdo, array $event, bool $isOwner, string $client
                 'title'    => $row['title'] !== '' ? $row['title'] : ($st['route_shown'] ? (string) $row['route_title'] : ''),
                 'state'    => $st['state'],
                 'route'    => $st['route_shown'] ? live_gpx_points((string) $row['route_gpx']) : null,
+                'waypoints' => $st['route_shown']
+                    ? live_gpx_waypoints((string) $row['route_gpx'], (int) $event['user_id'])
+                    : live_waypoints_for_view($liveWaypoints[(int) $row['id']] ?? []),
                 'link'     => $routeLink,
                 'planned'  => $row['planned_gpx'] !== null ? live_gpx_points((string) $row['planned_gpx']) : null,
                 'points'   => [],
@@ -288,6 +298,85 @@ function live_gpx_points(string $relativePath): array
     $full = gpx_full_path($relativePath);
 
     return is_file($full) ? group_simplify_for_map(og_read_points($full)) : [];
+}
+
+/**
+ * Waypoints fra en GPX-fil: [lat, lon, navn, tekst, billeder]. Kun
+ * billedlinks til ejerens egne MitSpor-billeder kommer med (som på
+ * route-view.php, se app/image_links.php), og de gøres rodrelative.
+ *
+ * @return list<array{lat: float, lon: float, name: string, desc: string, images: list<array{href: string, text: string}>}>
+ */
+function live_gpx_waypoints(string $relativePath, int $ownerUserId): array
+{
+    $full = gpx_full_path($relativePath);
+    if (!is_file($full)) {
+        return [];
+    }
+    $xml = file_get_contents($full);
+    if ($xml === false || !str_contains($xml, 'wpt')) {
+        return [];
+    }
+
+    $doc = new DOMDocument();
+    if (!@$doc->loadXML($xml, LIBXML_NONET | LIBXML_PARSEHUGE)) {
+        return [];
+    }
+
+    $firstText = static function (DOMElement $el, string $tag): string {
+        foreach ($el->childNodes as $child) {
+            if ($child instanceof DOMElement && $child->localName === $tag) {
+                return trim((string) $child->textContent);
+            }
+        }
+        return '';
+    };
+
+    $result = [];
+    foreach ($doc->getElementsByTagNameNS('*', 'wpt') as $wpt) {
+        $lat = (float) $wpt->getAttribute('lat');
+        $lon = (float) $wpt->getAttribute('lon');
+        if ($lat < -90 || $lat > 90 || $lon < -180 || $lon > 180 || ($lat === 0.0 && $lon === 0.0)) {
+            continue;
+        }
+
+        $images = [];
+        foreach ($wpt->childNodes as $child) {
+            if (!$child instanceof DOMElement || $child->localName !== 'link') {
+                continue;
+            }
+            $href = trim($child->getAttribute('href'));
+            if (image_link_owner_id($href) !== $ownerUserId) {
+                continue;
+            }
+            $images[] = [
+                'href' => '/' . ltrim(preg_replace('#^\.\./#', '', $href), '/'),
+                'text' => $firstText($child, 'text'),
+            ];
+        }
+
+        $result[] = [
+            'lat'    => round($lat, 6),
+            'lon'    => round($lon, 6),
+            'name'   => mb_substr($firstText($wpt, 'name'), 0, 200),
+            'desc'   => mb_substr($firstText($wpt, 'desc'), 0, 2000),
+            'images' => $images,
+        ];
+    }
+
+    return $result;
+}
+
+/** Livewaypoints (live_waypoints_for_stages()) i samme form som live_gpx_waypoints(). */
+function live_waypoints_for_view(array $list): array
+{
+    return array_map(static fn(array $w): array => [
+        'lat'    => $w['lat'],
+        'lon'    => $w['lon'],
+        'name'   => $w['name'],
+        'desc'   => $w['desc'],
+        'images' => array_map(static fn(string $href): array => ['href' => '/' . $href, 'text' => ''], $w['images']),
+    ], $list);
 }
 
 /**
