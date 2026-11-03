@@ -56,7 +56,7 @@ function vejledning_kapitler(): array
         'ferie' => [
             'titel' => 'En ferie med flere dagsture',
             'kort'  => 'Saml dagene til én tur med etaper.',
-            'enhed' => 'begge', 'klar' => false,
+            'enhed' => 'begge', 'klar' => true,
         ],
         'alle-ture' => [
             'titel' => 'Vis alle dine ture',
