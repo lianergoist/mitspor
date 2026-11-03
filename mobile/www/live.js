@@ -64,7 +64,8 @@
                     return gemteLivesendinger();
                 }
                 var liste = svar.data.events.map(function (ev) {
-                    return { event: ev.public_id, titel: ev.title, aktivitet: ev.activity_type_id };
+                    // url: livesidens adresse (relativ, med nøglen k ved "kun med link").
+                    return { event: ev.public_id, titel: ev.title, aktivitet: ev.activity_type_id, url: ev.url || null };
                 });
                 try {
                     window.localStorage.setItem(LISTE_NOEGLE, JSON.stringify(liste));
