@@ -11,6 +11,8 @@ require_once __DIR__ . '/../app/app_login.php';
 require_once __DIR__ . '/../app/app_tilbage.php';
 require_once __DIR__ . '/../app/videoer.php';
 require_once __DIR__ . '/../app/topbar_menu.php';
+require_once __DIR__ . '/../app/user_share.php';
+require_once __DIR__ . '/../app/simple_page.php';
 
 $loggedIn = !empty($_SESSION['user_id']);
 $displayName = null;
@@ -30,12 +32,31 @@ if ($loggedIn) {
 // ?mine=1 viser den indloggede brugers egne ruter (også private) i stedet
 // for alle offentlige.
 $mine = isset($_GET['mine']);
+
+$pdo = get_db();
+
+// ?alle=<nøgle> viser alle ruter (også private) fra brugeren bag et
+// "Del alle mine ruter"-link (app/user_share.php). Nøglen gemmes i
+// sessionen, så de enkelte ruter og grupper også kan åbnes.
+$alleToken = (string) ($_GET['alle'] ?? '');
+$alleOwner = null;
+if ($alleToken !== '') {
+    $alleOwner = user_share_find_owner($pdo, $alleToken);
+    if ($alleOwner === null) {
+        http_response_code(404);
+        simple_message_page('Linket virker ikke', 'Linket er slettet eller udskiftet af ejeren.');
+        exit;
+    }
+    user_share_remember($alleOwner['id'], $alleToken);
+    $mine = false;
+}
+$ownerScope = $mine || $alleOwner !== null;
+
 if ($mine && !$loggedIn) {
     header('Location: /?showLogin=1');
     exit;
 }
 
-$pdo = get_db();
 $sql =
     "SELECT r.public_id, r.title, r.activity_type_id, r.route_type, a.category,
             COALESCE(r.start_lon, ST_X(r.centroid)) AS lon,
@@ -47,7 +68,10 @@ $sql =
      JOIN activity_types a ON a.id = r.activity_type_id
      LEFT JOIN route_groups g ON g.id = r.group_id
      WHERE r.status = 'active' AND ";
-if ($mine) {
+if ($alleOwner !== null) {
+    $stmt = $pdo->prepare($sql . 'r.user_id = :uid');
+    $stmt->execute(['uid' => $alleOwner['id']]);
+} elseif ($mine) {
     $stmt = $pdo->prepare($sql . 'r.user_id = :uid');
     $stmt->execute(['uid' => (int) $_SESSION['user_id']]);
 } else {
@@ -63,12 +87,17 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
     <link rel="icon" type="image/svg+xml" href="/grafik/favicon.svg">
     <link rel="icon" type="image/png" sizes="32x32" href="/grafik/favicon-32.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title><?= $mine ? 'Mine ruter – MitSpor' : 'Offentlige ruter – MitSpor' ?></title>
+    <title><?= $alleOwner !== null
+        ? htmlspecialchars($alleOwner['display_name'], ENT_QUOTES, 'UTF-8') . 's ruter – MitSpor'
+        : ($mine ? 'Mine ruter – MitSpor' : 'Offentlige ruter – MitSpor') ?></title>
 
     <meta name="description" content="Alle offentlige ruter og spor på MitSpor, til vands og til lands.">
     <link rel="canonical" href="<?= APP_BASE_URL ?>/kort.php">
-<?php if ($mine): ?>
+<?php if ($ownerScope): ?>
     <meta name="robots" content="noindex, nofollow">
+<?php endif; ?>
+<?php if ($alleOwner !== null): ?>
+    <meta name="referrer" content="same-origin">
 <?php endif; ?>
 
     <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
@@ -93,7 +122,9 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
         <?php endif; ?>
 
         <div class="topbar-filters">
-            <?php if ($mine): ?>
+            <?php if ($alleOwner !== null): ?>
+            <strong class="kort-titel"><?= htmlspecialchars($alleOwner['display_name'], ENT_QUOTES, 'UTF-8') ?>s ruter</strong>
+            <?php elseif ($mine): ?>
             <strong class="kort-titel">Mine ruter</strong>
             <?php endif; ?>
             <div class="segmented-filter" role="group" aria-label="Filtrer ruter">
@@ -101,7 +132,7 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
                 <button type="button" class="segmented-btn" data-filter="category:water">Ruter på vand</button>
                 <button type="button" class="segmented-btn" data-filter="category:land">Ruter på land</button>
             </div>
-            <?php if (!$mine): ?>
+            <?php if (!$ownerScope): ?>
             <input type="text" id="route-search" placeholder="Søg i offentlige ruter...">
             <button type="button" id="btn-toggle-search" class="search-toggle-btn" aria-label="Søg i offentlige ruter" title="Søg i offentlige ruter"><svg class="tb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg></button>
             <?php endif; ?>
@@ -121,7 +152,11 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
 
     <?= about_dialog() ?>
 
-    <?php if ($mine && !$publicRoutes): ?>
+    <?php if ($alleOwner !== null && !$publicRoutes): ?>
+        <div class="map-overlay-panel" style="top: calc(var(--topbar-height, 58px) + 8px); left: 12px; right: 12px; max-width: 420px; margin: 0 auto;">
+            Der er ingen ruter at vise endnu.
+        </div>
+    <?php elseif ($mine && !$publicRoutes): ?>
         <div class="map-overlay-panel" style="top: calc(var(--topbar-height, 58px) + 8px); left: 12px; right: 12px; max-width: 420px; margin: 0 auto;">
             Du har ingen ruter endnu. <a href="/editor/?new=1">Tegn en rute</a>, eller upload et GPX-spor i <a href="/dashboard.php">kontrolpanelet</a>.
         </div>
@@ -143,7 +178,8 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
 (function () {
     "use strict";
 
-    var MINE = <?= $mine ? 'true' : 'false' ?>;
+    // Ekstra parameter til overview-lines.php: egne ruter eller et "Del alle"-link.
+    var LINES_SCOPE = <?= json_encode($alleOwner !== null ? '&alle=' . rawurlencode($alleToken) : ($mine ? '&mine=1' : '')) ?>;
     var map = L.map('map', { zoomControl: false }).setView([56.0, 10.0], 7);
 
     // Kortet ligger under topbaren og skifter størrelse, når topbaren gør
@@ -320,7 +356,7 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
         for (var i = 0; i < todo.length; i += 60) {
             (function (batch) {
                 batch.forEach(function (id) { lineInflight[level + ':' + id] = true; });
-                fetch('/overview-lines.php?level=' + level + (MINE ? '&mine=1' : '') + '&ids=' + batch.join(','))
+                fetch('/overview-lines.php?level=' + level + LINES_SCOPE + '&ids=' + batch.join(','))
                     .then(function (res) {
                         if (!res.ok) throw new Error('HTTP ' + res.status);
                         return res.json();

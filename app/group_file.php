@@ -5,6 +5,7 @@ require_once __DIR__ . '/gpx.php';
 require_once __DIR__ . '/image_links.php';
 require_once __DIR__ . '/route_groups.php';
 require_once __DIR__ . '/route_file.php';
+require_once __DIR__ . '/user_share.php';
 
 /*
  * Download af en hel gruppe som én GPX-fil: én <trk> (eller <rte>) pr.
@@ -198,7 +199,10 @@ function group_file_find(PDO $pdo, string $publicId, ?int $viewerId): array
 
     // Samme regel som group-view.php: en gruppe uden synlige etaper findes
     // ikke for andre end ejeren.
-    $members = group_members($pdo, (int) $group['id'], $isOwner);
+    // Et "Del alle mine ruter"-link giver adgang til de private etaper, men
+    // download følger stadig hver etapes allow_download.
+    $seeAll = $isOwner || user_share_grants($pdo, (int) $group['user_id']);
+    $members = group_members($pdo, (int) $group['id'], $seeAll);
     if ($members === []) {
         return $none;
     }

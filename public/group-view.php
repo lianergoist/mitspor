@@ -9,6 +9,7 @@ require_once __DIR__ . '/../app/route_groups.php';
 require_once __DIR__ . '/../app/og_image.php';
 require_once __DIR__ . '/../app/group_file.php';
 require_once __DIR__ . '/../app/app_hent.php';
+require_once __DIR__ . '/../app/user_share.php';
 
 $pdo = get_db();
 $group = group_find($pdo, (string) ($_GET['id'] ?? ''));
@@ -19,7 +20,9 @@ $isOwner = $group !== null
 
 // Besøgende ser kun de etaper, der er offentlige. Har gruppen ingen, ser
 // de kun en "findes ikke"-side — så en helt privat gruppe ikke afslører sig.
-$members = $group !== null ? group_members($pdo, (int) $group['id'], $isOwner) : [];
+// Med ejerens "Del alle mine ruter"-link ses alle etaper.
+$seeAll = $isOwner || ($group !== null && user_share_grants($pdo, (int) $group['user_id']));
+$members = $group !== null ? group_members($pdo, (int) $group['id'], $seeAll) : [];
 
 if ($group === null || (!$isOwner && count($members) === 0)) {
     http_response_code(404);
@@ -33,7 +36,7 @@ $totals = group_totals($members);
 // selv kan hente gruppen (se group_download_available() i app/app_hent.php).
 $downloadPlan = group_download_plan($members, $isOwner);
 $showGroupDownload = $downloadPlan['included'] !== [] && group_download_available();
-$geometry = group_geometry($group, $members, $isOwner);
+$geometry = group_geometry($group, $members, $seeAll);
 $hasPublic = false;
 foreach ($members as $m) {
     if ($m['visibility'] === 'public') {
@@ -63,7 +66,7 @@ if (!empty($group['description'])) {
 
 // Delingsbillede (og:image): et kort med alle offentlige etaper. Har gruppen
 // ingen offentlige etaper (kun ejeren kan se den), bruges det generiske billede.
-$publicMembers = $isOwner ? group_members($pdo, (int) $group['id'], false) : $members;
+$publicMembers = $seeAll ? group_members($pdo, (int) $group['id'], false) : $members;
 if ($publicMembers) {
     $ogImageUrl = APP_BASE_URL . '/og-image.php?group=' . urlencode($group['public_id'])
         . '&v=' . og_group_version($group, $publicMembers);
@@ -173,7 +176,7 @@ $palette = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#0891b2', '#
                     <a href="route-view.php?id=<?= $e($m['public_id']) ?>">
                         <span class="stage-num" style="background: <?= $palette[$i % count($palette)] ?>"><?= $i + 1 ?></span>
                         <span class="stage-title"><?= $e($m['title']) ?></span>
-                        <?php if ($isOwner && $m['visibility'] === 'private'): ?><span class="stage-private">privat</span><?php endif; ?>
+                        <?php if ($seeAll && $m['visibility'] === 'private'): ?><span class="stage-private">privat</span><?php endif; ?>
                         <span class="stage-km"><?= $km((int) $m['distance_meters']) ?></span>
                     </a>
                 </li>
