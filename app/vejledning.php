@@ -40,8 +40,8 @@ function vejledning_kapitler(): array
         ],
         'farligt-sted' => [
             'titel' => 'Advar om et farligt sted',
-            'kort'  => 'Sæt en nål med et billede på kortet, og ret teksten bagefter.',
-            'enhed' => 'begge', 'klar' => false,
+            'kort'  => 'Markér stedet på kortet med et billede, og ret det bagefter.',
+            'enhed' => 'begge', 'klar' => true,
         ],
         'foelg-med' => [
             'titel' => 'Lad familien følge med',
@@ -132,7 +132,7 @@ function vejledning_start(string $slug, string $titel, string $beskrivelse): voi
     <meta name="description" content="<?= vj_h($beskrivelse) ?>">
     <link rel="canonical" href="<?= vj_h($url) ?>">
     <link rel="stylesheet" href="/assets/style.css?v=39">
-    <link rel="stylesheet" href="/assets/vejledning.css?v=1">
+    <link rel="stylesheet" href="/assets/vejledning.css?v=2">
 </head>
 <body>
 
@@ -197,8 +197,11 @@ function vj_overskrift(string $slug): string
  */
 function vj_billede(string $fil, string $alt, string $tekst = '', string $type = 'mobil'): string
 {
+    // Bredde og højde reserverer pladsen, før billedet er hentet (loading="lazy").
+    $maal = @getimagesize(__DIR__ . '/../public/vejledning/billeder/' . $fil);
+    $str = $maal ? ' width="' . (int) $maal[0] . '" height="' . (int) $maal[1] . '"' : '';
     $html = '<figure class="vj-billede vj-billede--' . vj_h($type) . '">'
-        . '<img src="/vejledning/billeder/' . vj_h($fil) . '?v=1" alt="' . vj_h($alt) . '" loading="lazy">';
+        . '<img src="/vejledning/billeder/' . vj_h($fil) . '?v=1" alt="' . vj_h($alt) . '"' . $str . ' loading="lazy">';
     if ($tekst !== '') {
         $html .= '<figcaption>' . $tekst . '</figcaption>';
     }
@@ -229,7 +232,10 @@ function vj_godt(string $titel, string $html): string
  */
 function vj_trin(string $titel, string $html, string $billede = ''): string
 {
-    return '<section class="vj-trin' . ($billede === '' ? ' vj-trin--uden-billede' : '') . '">'
+    $klasse = $billede === '' ? ' vj-trin--uden-billede'
+        : (str_contains($billede, 'vj-billede--computer') ? ' vj-trin--computer' : '');
+
+    return '<section class="vj-trin' . $klasse . '">'
         . '<div class="vj-trin-tekst"><h3>' . vj_h($titel) . '</h3>' . $html . '</div>'
         . $billede . '</section>';
 }

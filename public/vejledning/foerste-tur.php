@@ -30,13 +30,24 @@ echo vj_overskrift('foerste-tur');
         lade være. Send live står på <strong>Nej</strong>, og det er det rigtige i dag.</p>
     ', vj_billede('app-optag-klar.webp', 'Optageren, før turen er startet, med knappen Start optagelse')) ?>
 
-    <?= vj_trin('Tryk på Start optagelse', '
+    <?= vj_trin('Tryk på Start optagelse, og giv lov til din placering', '
         <p>Gå udenfor, og tryk på <strong class="knap">Start optagelse</strong>.</p>
-        <p><strong>Første gang</strong> spørger telefonen, om MitSpor må bruge din placering. Vælg den
-        mulighed, der giver lov. Ellers kan appen ikke se, hvor du løber.</p>
-        <p>Spørger telefonen også, om MitSpor må sende notifikationer, så sig ja. Notifikationen viser,
-        at optagelsen kører.</p>
-    ', vj_mangler('Telefonens spørgsmål: Må MitSpor bruge din placering?')) ?>
+        <p><strong>Første gang</strong> spørger telefonen, om MitSpor må bruge din placering (på Android
+        står der <em>lokation</em>). Ellers kan appen ikke se, hvor du løber.</p>
+        <ul>
+            <li>Lad <strong>Præcis</strong> være valgt. Med <em>Omtrentlig</em> bliver turen på kortet unøjagtig.</li>
+            <li>Tryk på <strong class="knap">Mens appen bruges</strong>. På en iPhone hedder knappen
+            <strong>Tillad, mens appen bruges</strong>.</li>
+        </ul>
+        <p>Det er nok, selvom du slukker skærmen undervejs. Telefonen ved, at appen er i gang med at optage.</p>
+    ', vj_billede('app-tilladelse-placering.webp', 'Telefonen spørger, om MitSpor må få adgang til enhedens lokation', 'Spørgsmålet på en Android-telefon.')) ?>
+
+    <?= vj_trin('Sig ja til notifikationer', '
+        <p>Lige efter spørger telefonen måske, om MitSpor må sende dig notifikationer. Tryk på
+        <strong class="knap">Tillad</strong>.</p>
+        <p>Appen sender ikke reklamer eller beskeder. Notifikationen står bare på telefonen, mens du optager,
+        så du kan se, at optagelsen kører, og hurtigt komme tilbage til appen.</p>
+    ', vj_billede('app-tilladelse-notifikationer.webp', 'Telefonen spørger, om MitSpor må sende notifikationer', 'Begge spørgsmål kommer kun første gang.')) ?>
 
     <?= vj_godt('Hvad bruger appen din placering til?', '
         <p>MitSpor bruger kun din placering, mens du optager en tur, og kun når du selv har trykket på

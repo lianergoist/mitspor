@@ -73,6 +73,9 @@
     counter-increment: vj-trin;
 }
 .vj-trin--uden-billede { grid-template-columns: minmax(0, 1fr); }
+/* Billeder fra en computer står i fuld bredde under teksten. */
+.vj-trin--computer { grid-template-columns: minmax(0, 1fr); }
+.vj-trin--computer .vj-billede { margin-top: 10px; }
 .vj-trin-tekst > :last-child { margin-bottom: 0; }
 .vj-trin-tekst h3 { margin-top: 0; display: flex; gap: 10px; align-items: baseline; }
 .vj-trin-tekst h3::before {
@@ -233,6 +236,6 @@
     .vejledning h2 { font-size: 21px; margin-top: 36px; }
     .vj-situation { font-size: 17px; }
     .vj-trin { grid-template-columns: minmax(0, 1fr); }
-    .vj-trin .vj-billede { max-width: 250px; margin: 6px auto 0; width: 100%; }
+    .vj-trin .vj-billede--mobil { max-width: 250px; margin: 6px auto 0; width: 100%; }
     .vj-blad a { max-width: 100%; }
 }
