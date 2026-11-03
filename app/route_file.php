@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/gpx.php';
 require_once __DIR__ . '/image_links.php';
+require_once __DIR__ . '/user_share.php';
 
 /*
  * Udlevering af en rutes GPX-fil. Bruges af route-file.php (sitet, med
@@ -53,7 +54,10 @@ function route_file_find(PDO $pdo, string $publicId, ?int $viewerId, string $sha
         && $shareToken !== ''
         && hash_equals($route['share_token'], $shareToken);
 
-    if ($route['visibility'] === 'private' && !$isOwner && !$hasValidShareToken) {
+    // "Del alle mine ruter" (app/user_share.php) giver også adgang, men kun
+    // på sitet: API'et har ingen session.
+    if ($route['visibility'] === 'private' && !$isOwner && !$hasValidShareToken
+        && !user_share_grants($pdo, (int) $route['user_id'])) {
         return ['status' => 403, 'route' => null, 'is_owner' => false];
     }
 

@@ -21,10 +21,14 @@ declare(strict_types=1);
  *
  * Med mine=1 (kortet "Mine ruter", kort.php?mine=1) udleveres i stedet den
  * indloggede brugers egne ruter, også de private. Kun her læses sessionen.
+ *
+ * Med alle=<nøgle> (kort.php?alle=…, "Del alle mine ruter") udleveres alle
+ * ruter fra brugeren bag nøglen, også de private (app/user_share.php).
  */
 
 require_once __DIR__ . '/../app/db.php';
 require_once __DIR__ . '/../app/overview_lines.php';
+require_once __DIR__ . '/../app/user_share.php';
 
 const LINES_MAX_IDS = 60;
 const LINES_MAX_COMPUTE = 10;      // nye linjer, der beregnes pr. forespørgsel
@@ -52,8 +56,19 @@ if (!$ids) {
 }
 
 $mine = isset($_GET['mine']);
+$alleToken = (string) ($_GET['alle'] ?? '');
 $params = $ids;
-if ($mine) {
+if ($alleToken !== '') {
+    $alleOwner = user_share_find_owner(get_db(), $alleToken);
+    if ($alleOwner === null) {
+        http_response_code(403);
+        echo json_encode(['lines' => new stdClass(), 'pending' => []]);
+        exit;
+    }
+    $mine = true; // privat cache, som for egne ruter
+    $access = 'user_id = ?';
+    $params[] = $alleOwner['id'];
+} elseif ($mine) {
     session_start();
     $userId = (int) ($_SESSION['user_id'] ?? 0);
     session_write_close();

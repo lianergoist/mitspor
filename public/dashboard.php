@@ -90,6 +90,7 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
         <?= topbar_menu([
             ['form' => '/logout.php', 'label' => 'Log ud'],
             ['id' => 'btn-open-profile', 'label' => 'Profil og konto'],
+            ['id' => 'btn-open-share-all', 'label' => 'Del alle mine ruter'],
             ['id' => 'btn-open-dashboard-help', 'label' => 'Hjælp'],
         ]) ?>
     </div>
@@ -123,6 +124,8 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
         </ul>
 
         <p><strong>Grupper:</strong> En gruppe samler flere ruter (etaper) til én tur, fx en flerdagestur. Sæt kryds ved ruterne i listen og tryk "Gruppér valgte", eller vælg flere GPX-filer på én gang, når du uploader. Under fanen Grupper vælger du en gruppe for at åbne den med "Vis gruppe på kort" eller ændre den med "Rediger gruppe". Der kan du også tilføje og fjerne etaper. Etaperne vises som én tur på forsiden, med "Forrige" og "Næste" på hver etape. Synligheden bestemmer du stadig pr. rute, men under "Rediger gruppe" kan du gøre hele gruppen offentlig eller privat med ét klik.</p>
+
+        <p><strong>Del alle mine ruter</strong> (i menuen ☰) giver ét link til et kort med alle dine spor, ruter og grupper, også de private. Den, der får linket, kan åbne dem alle uden at logge ind, og kan downloade dem, du har tilladt download af. Du kan lave et nyt link (det gamle holder op med at virke) eller slette linket.</p>
 
         <p>Har du spørgsmål, forslag eller kommentarer, er du velkommen til at skrive til <a href="mailto:info@mitspor.dk">info@mitspor.dk</a>.</p>
     </div>
@@ -773,6 +776,35 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
 
 <?= share_link_dialog() ?>
 
+<dialog id="share-all-dialog" class="modal-dialog" data-csrf="<?= dash_h(csrf_token()) ?>">
+    <button type="button" id="share-all-close" class="modal-close" aria-label="Luk">&times;</button>
+    <h2>Del alle mine ruter</h2>
+
+    <div id="share-all-errors" class="modal-errors" hidden></div>
+
+    <p>
+        Linket viser et kort med alle dine spor, ruter og grupper, også de private.
+        Alle, der har linket, kan se dem uden at logge ind.
+    </p>
+
+    <div id="share-all-active" hidden>
+        <label>
+            Link
+            <input type="text" id="share-all-url" readonly>
+        </label>
+        <div class="inline-edit-actions" style="margin-top: 8px;">
+            <button type="button" id="share-all-copy-btn" class="btn">Kopiér</button>
+            <button type="button" id="share-all-new-btn" class="btn">Nyt link</button>
+            <button type="button" id="share-all-revoke-btn" class="btn btn-danger">Slet link</button>
+        </div>
+    </div>
+
+    <div id="share-all-none" hidden>
+        <p>Du har intet link lige nu.</p>
+        <button type="button" id="share-all-create-btn" class="btn btn-primary">Lav link</button>
+    </div>
+</dialog>
+
 <dialog id="group-create-dialog" class="modal-dialog">
     <button type="button" id="group-create-close" class="modal-close" aria-label="Luk">&times;</button>
     <h2>Gruppér valgte ruter</h2>
@@ -1004,6 +1036,7 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
 <script src="assets/genindlaes.js?v=1"></script>
 <script src="assets/dashboard.js?v=30"></script>
 <script src="assets/del-link.js?v=1"></script>
+<script src="assets/del-alle.js?v=1"></script>
 <script src="assets/dashboard-tools.js?v=9"></script>
 <script src="assets/activity-marker.js?v=3"></script>
 <script src="assets/dashboard-map.js?v=7"></script>

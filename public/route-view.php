@@ -14,6 +14,7 @@ require_once __DIR__ . '/../app/videoer.php';
 require_once __DIR__ . '/../app/markers.php';
 require_once __DIR__ . '/../app/topbar_menu.php';
 require_once __DIR__ . '/../app/share_link_dialog.php';
+require_once __DIR__ . '/../app/user_share.php';
 
 $publicId = (string) ($_GET['id'] ?? '');
 
@@ -136,7 +137,10 @@ $hasValidShareToken = $route['share_token'] !== null
     && $shareToken !== ''
     && hash_equals($route['share_token'], $shareToken);
 
-if ($route['visibility'] === 'private' && !$isOwner && !$hasValidShareToken && $liveEvent === null) {
+// Adgang via ejerens "Del alle mine ruter"-link (gemt i sessionen).
+$hasUserShare = !$isOwner && $liveEvent === null && user_share_grants($pdo, (int) $route['user_id']);
+
+if ($route['visibility'] === 'private' && !$isOwner && !$hasValidShareToken && !$hasUserShare && $liveEvent === null) {
     http_response_code(403);
     simple_message_page('Ingen adgang', 'Denne rute er privat.');
     exit;
@@ -145,7 +149,7 @@ if ($route['visibility'] === 'private' && !$isOwner && !$hasValidShareToken && $
 // Hører ruten til en gruppe (etape-tur)? Så vises forrige/næste etape —
 // kun blandt de etaper, den besøgende må se (private springes over).
 $groupContext = $route['group_id'] !== null
-    ? group_context_for_route($pdo, (int) $route['group_id'], (int) $route['id'], $isOwner)
+    ? group_context_for_route($pdo, (int) $route['group_id'], (int) $route['id'], $isOwner || $hasUserShare)
     : null;
 
 $gpxUrl = 'route-file.php?id=' . urlencode($route['public_id']) . '&mode=view'
