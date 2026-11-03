@@ -96,7 +96,7 @@ function vejledning_kapitler(): array
         'naar-noget-driller' => [
             'titel' => 'Når noget driller',
             'kort'  => 'GPS\'en finder dig ikke, turen stoppede, eller den kom ikke op.',
-            'enhed' => 'begge', 'klar' => false,
+            'enhed' => 'begge', 'klar' => true,
         ],
     ];
 }
@@ -144,7 +144,7 @@ function vejledning_start(string $slug, string $titel, string $beskrivelse): voi
     <meta name="description" content="<?= vj_h($beskrivelse) ?>">
     <link rel="canonical" href="<?= vj_h($url) ?>">
     <link rel="stylesheet" href="/assets/style.css?v=39">
-    <link rel="stylesheet" href="/assets/vejledning.css?v=4">
+    <link rel="stylesheet" href="/assets/vejledning.css?v=5">
 </head>
 <body>
 

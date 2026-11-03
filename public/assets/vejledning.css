@@ -93,6 +93,10 @@
     transform: translateY(-2px);
 }
 .vj-trinliste { counter-reset: vj-trin; }
+/* Spørgsmål i "Når noget driller": uden nummer. */
+.vejledning h3.vj-spm::before { content: none; }
+.vejledning h3.vj-spm { margin-top: 26px; }
+.vj-trin-tekst h3.vj-spm { margin-top: 0; }
 
 .vejledning strong.knap {
     white-space: nowrap;
