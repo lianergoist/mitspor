@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../app/vejledning.php';
 
-vejledning_start('farligt-sted', 'Advar om et farligt sted', 'Markér et sted på din tur med en tekst og et billede, mens du er der, og ret det bagefter på computeren. Trin for trin.');
+vejledning_start('farligt-sted', 'Indsæt waypoint', 'Markér et sted på din tur med en tekst og et billede, mens du er der, og ret det bagefter på computeren. Trin for trin.');
 echo vj_overskrift('farligt-sted');
 ?>
     <p class="vj-situation">

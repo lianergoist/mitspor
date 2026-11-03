@@ -77,7 +77,7 @@ echo vj_overskrift('uden-net');
     <?= vj_godt('Livesending uden net', '
         <p>Sender du live, og der er et stykke uden dækning, gemmer appen dine punkter og sender dem, så snart der er net
         igen. Familien ser altså et hul i et stykke tid, og så kommer resten. Se
-        <a href="/vejledning/foelg-med.php">Lad familien følge med</a>.</p>
+        <a href="/vejledning/foelg-med.php">Send live</a>.</p>
     ') ?>
 
     <?= vj_godt('Turene bliver på telefonen', '

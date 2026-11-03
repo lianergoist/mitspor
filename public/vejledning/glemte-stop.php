@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../app/vejledning.php';
 
-vejledning_start('glemte-stop', 'Du glemte at stoppe optagelsen', 'Fjern bilturen hjem fra din tur, hvis du glemte at stoppe optagelsen. Trin for trin i editoren på computeren.');
+vejledning_start('glemte-stop', 'Rediger en optagelse', 'Fjern bilturen hjem fra din tur, hvis du glemte at stoppe optagelsen. Trin for trin i editoren på computeren.');
 echo vj_overskrift('glemte-stop');
 ?>
     <p class="vj-situation">
@@ -34,7 +34,7 @@ echo vj_overskrift('glemte-stop');
     <?= vj_trin('Åbn turen i editoren', '
         <p>Gå til dit <strong>kontrolpanel</strong>, klik på turen i listen, og klik på
         <strong class="knap">Rediger i GPX-editor</strong>. Det er beskrevet med billeder i
-        <a href="/vejledning/farligt-sted.php">Advar om et farligt sted</a>.</p>
+        <a href="/vejledning/farligt-sted.php">Indsæt waypoint</a>.</p>
     ') ?>
 
     <?= vj_trin('Find ud af, hvor bilturen begynder', '

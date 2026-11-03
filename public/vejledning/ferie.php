@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../app/vejledning.php';
 
-vejledning_start('ferie', 'En ferie med flere dagsture', 'Saml flere ture til én ferie på MitSpor, så hele turen kan ses på ét kort med etaper. Trin for trin.');
+vejledning_start('ferie', 'Grupper og etaper', 'Saml flere ture til én ferie på MitSpor, så hele turen kan ses på ét kort med etaper. Trin for trin.');
 echo vj_overskrift('ferie');
 ?>
     <p class="vj-situation">
@@ -94,7 +94,7 @@ echo vj_overskrift('ferie');
             <strong>Rediger gruppe</strong>. Så kommer den med på kortet på mitspor.dk som én tur. Tryk derefter
             på <strong>del-knappen</strong> øverst på gruppens side, og send linket.</li>
             <li>Vil du hellere beholde den privat, kan du sende et link til alle dine ture med
-            <strong>Del alle mine ruter</strong>. Se <a href="/vejledning/alle-ture.php">Vis alle dine ture</a>.</li>
+            <strong>Del alle mine ruter</strong>. Se <a href="/vejledning/alle-ture.php">Del alle dine ruter</a>.</li>
         </ul>
     ') ?>
 
@@ -102,7 +102,7 @@ echo vj_overskrift('ferie');
         <ul>
             <li>Uploader du flere filer på én gang fra en computer, kan du samle dem i en gruppe med det samme.</li>
             <li>Sender du live flere dage i træk, samles dagene automatisk i en gruppe. Se
-            <a href="/vejledning/foelg-med.php">Lad familien følge med</a>.</li>
+            <a href="/vejledning/foelg-med.php">Send live</a>.</li>
         </ul>
     ') ?>
 

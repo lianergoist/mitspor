@@ -43,10 +43,10 @@ echo vj_overskrift('naar-noget-driller');
     <h3 class="vj-spm">Optagelsen stoppede af sig selv på en meget lang tur</h3>
     <p>En tur kan højst fylde 10 MB. Bliver den så lang, stopper appen og gemmer turen, og du får besked. Start bare en
     ny optagelse og gå videre. Bagefter kan du samle de to ture i en gruppe. Se
-    <a href="/vejledning/ferie.php">En ferie med flere dagsture</a>.</p>
+    <a href="/vejledning/ferie.php">Grupper og etaper</a>.</p>
 
     <h3 class="vj-spm">Turen har et mærkeligt hop, eller bilturen hjem kom med</h3>
-    <p>Markér stykket i editoren, og slet det. Se <a href="/vejledning/glemte-stop.php">Du glemte at stoppe optagelsen</a>.</p>
+    <p>Markér stykket i editoren, og slet det. Se <a href="/vejledning/glemte-stop.php">Rediger en optagelse</a>.</p>
 
     <h2>Når turen skal op på mitspor.dk</h2>
 
@@ -91,10 +91,10 @@ echo vj_overskrift('naar-noget-driller');
     <h3 class="vj-spm">Et link til en tur virker ikke</h3>
     <p>Står der <strong>Ingen adgang</strong> eller <strong>Linket virker ikke</strong>, er turen privat, og linket er
     slettet eller udskiftet af ejeren. Bed om et nyt link. Se
-    <a href="/vejledning/del-turen.php">Del turen med vennerne</a> og <a href="/vejledning/alle-ture.php">Vis alle dine ture</a>.</p>
+    <a href="/vejledning/del-turen.php">Del turen med vennerne</a> og <a href="/vejledning/alle-ture.php">Del alle dine ruter</a>.</p>
 
     <h3 class="vj-spm">Andre kan ikke se min gruppe</h3>
-    <p>Andre ser kun de etaper, der er offentlige. Se <a href="/vejledning/ferie.php">En ferie med flere dagsture</a>.</p>
+    <p>Andre ser kun de etaper, der er offentlige. Se <a href="/vejledning/ferie.php">Grupper og etaper</a>.</p>
 
     <h2>Din konto og dine data</h2>
 

@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../app/vejledning.php';
 
-vejledning_start('find-tur', 'Find en ny tur', 'Find inspiration blandt andres offentlige ture på MitSpor: søg, filtrér og hent en tur til dit eget ur. Trin for trin.');
+vejledning_start('find-tur', 'Offentlige ruter', 'Find inspiration blandt andres offentlige ture på MitSpor: søg, filtrér og hent en tur til dit eget ur. Trin for trin.');
 echo vj_overskrift('find-tur');
 ?>
     <p class="vj-situation">
@@ -52,7 +52,7 @@ echo vj_overskrift('find-tur');
         <p>Vil du følge turen på dit GPS-ur eller i en kort-app, så åbn menuen (☰) og vælg
         <strong>Download GPX</strong>. Punktet findes kun, hvis den, der delte turen, har tilladt det.</p>
         <p>Du kan også følge turen direkte på telefonen: tryk på knappen med sigtekornet over <strong>+</strong> og
-        <strong>−</strong>, så viser en blå prik, hvor du er. Det står beskrevet i <a href="/vejledning/planlaeg.php">Planlæg næste tur</a>.</p>
+        <strong>−</strong>, så viser en blå prik, hvor du er. Det står beskrevet i <a href="/vejledning/planlaeg.php">Tegn en rute</a>.</p>
         <p>Med <strong>Del link</strong> i samme menu sender du turen videre til andre.</p>
     ', vj_billede('web-find-menu.webp', 'Turens menu med Download GPX fremhævet')) ?>
 
@@ -65,12 +65,12 @@ echo vj_overskrift('find-tur');
             <li><strong>Lilla:</strong> en planlagt rute på vandet.</li>
             <li><strong>Orange:</strong> en planlagt rute på land.</li>
         </ul>
-        <p>Forskellen på en optaget tur og en planlagt rute står i <a href="/vejledning/planlaeg.php">Planlæg næste tur</a>.</p>
+        <p>Forskellen på en optaget tur og en planlagt rute står i <a href="/vejledning/planlaeg.php">Tegn en rute</a>.</p>
     ') ?>
 
     <?= vj_godt('Hvad er en GPX-fil?', '
         <p>Det er den slags fil, ture gemmes i, og som GPS-ure og kort-apps kan læse. Læs mere i
-        <a href="/vejledning/planlaeg.php">Planlæg næste tur</a>.</p>
+        <a href="/vejledning/planlaeg.php">Tegn en rute</a>.</p>
     ') ?>
 
     <?= vj_godt('Del selv dine bedste ture', '

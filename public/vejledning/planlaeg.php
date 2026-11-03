@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../app/vejledning.php';
 
-vejledning_start('planlaeg', 'Planlæg næste tur', 'Tegn en rute på kortet i MitSpor, send den til dem, du skal af sted med, og hent den til dit GPS-ur. Trin for trin.');
+vejledning_start('planlaeg', 'Tegn en rute', 'Tegn en rute på kortet i MitSpor, send den til dem, du skal af sted med, og hent den til dit GPS-ur. Trin for trin.');
 echo vj_overskrift('planlaeg');
 ?>
     <p class="vj-situation">
@@ -115,7 +115,7 @@ echo vj_overskrift('planlaeg');
 
     <?= vj_godt('Marker madpakkestedet', '
         <p>Du kan sætte prikker med tekst og billeder på ruten, fx hvor I spiser frokost, eller hvor der er en flot
-        udsigt. Det fungerer som i <a href="/vejledning/farligt-sted.php">Advar om et farligt sted</a>.</p>
+        udsigt. Det fungerer som i <a href="/vejledning/farligt-sted.php">Indsæt waypoint</a>.</p>
     ') ?>
 <?php
 vejledning_slut('planlaeg');

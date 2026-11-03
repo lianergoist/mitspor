@@ -30,7 +30,7 @@ vejledning_start('', 'Vejledning', 'Sådan bruger du MitSpor: optag dine ture, s
     <h2>Sådan læser du vejledningen</h2>
     <p>
         Begynd med <a href="/vejledning/kom-i-gang.php">Kom i gang</a>. Derefter kan du læse kapitlerne i
-        rækkefølge eller springe direkte til den situation, der passer dig. Ved hvert kapitel står der, om
+        rækkefølge eller springe direkte til det emne, der passer dig. Ved hvert kapitel står der, om
         det foregår på mobilen, på computeren eller begge steder.
     </p>
 

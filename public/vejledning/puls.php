@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../app/vejledning.php';
 
-vejledning_start('puls', 'Træning med pulsbælte', 'Brug et pulsbælte med MitSpor-appen, se pulsen undervejs og bagefter, og vælg, hvad andre må se. Trin for trin.');
+vejledning_start('puls', 'Pulsbælte m.m.', 'Brug et pulsbælte med MitSpor-appen, se pulsen undervejs og bagefter, og vælg, hvad andre må se. Trin for trin.');
 echo vj_overskrift('puls');
 ?>
     <p class="vj-situation">
@@ -87,7 +87,7 @@ echo vj_overskrift('puls');
     <?= vj_godt('Skjult er ikke slettet', '
         <p>Visning af datafelter bestemmer kun, hvad turens side viser. Har du tilladt, at andre må hente turen som fil,
         er pulsen stadig i filen. Vil du have den helt væk, så åbn turen i editoren, og vælg
-        <strong>Slet datafelter</strong> i menuen (☰).</p>
+        <strong>Slet datafelter</strong> i menuen (☰). Se <a href="/vejledning/datafelter.php">Datafelter</a>.</p>
     ') ?>
 
     <?= vj_godt('Cykel og løb: kadence og watt', '
