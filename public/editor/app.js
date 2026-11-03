@@ -319,12 +319,20 @@
     }));
   }
 
+  // Rækkefølgen af et <wpt>'s børn i GPX 1.1. Et nyt <name> eller <desc>
+  // skal stå før fx <link>, ellers er filen ikke gyldig GPX.
+  const WPT_CHILD_ORDER = ["ele", "time", "magvar", "geoidheight", "name", "cmt", "desc", "src", "link",
+    "sym", "type", "fix", "sat", "hdop", "vdop", "pdop", "ageofdgpsdata", "dgpsid", "extensions"];
+
   function setNodeText(parent, tag, text, ns) {
     let node = tagAll(parent, tag)[0];
     if (text) {
       if (!node) {
         node = parent.ownerDocument.createElementNS(ns, tag);
-        parent.appendChild(node);
+        const pos = (parent.localName === "wpt") ? WPT_CHILD_ORDER.indexOf(tag) : -1;
+        const after = pos < 0 ? null : Array.from(parent.children).find((c) =>
+          WPT_CHILD_ORDER.indexOf(c.localName) > pos);
+        parent.insertBefore(node, after || null);
       }
       node.textContent = text;
     } else if (node) {
@@ -2370,6 +2378,7 @@
     editImagesRows = [];
     el("edit-images-dialog-title").textContent = "Nyt waypoint med billede(r)";
     el("edit-images-waypoint-name").value = "";
+    el("edit-images-waypoint-desc").value = "";
     const errEl = el("edit-images-errors");
     if (errEl) errEl.hidden = true;
     const deleteBtn = el("btn-delete-edit-images-waypoint");
@@ -2393,6 +2402,7 @@
     }));
     el("edit-images-dialog-title").textContent = "Billeder";
     el("edit-images-waypoint-name").value = w.name || "";
+    el("edit-images-waypoint-desc").value = w.desc || "";
     const errEl = el("edit-images-errors");
     if (errEl) errEl.hidden = true;
     const deleteBtn = el("btn-delete-edit-images-waypoint");
@@ -2542,6 +2552,7 @@
       .filter(Boolean);
 
     const name = el("edit-images-waypoint-name").value.trim() || "Nyt waypoint";
+    const desc = el("edit-images-waypoint-desc").value.trim();
     let targetWpt = null;
 
     if (editImagesContext.mode === "new") {
@@ -2568,6 +2579,8 @@
 
     targetWpt.name = name;
     setNodeText(targetWpt.node, "name", name, state.ns);
+    targetWpt.desc = desc;
+    setNodeText(targetWpt.node, "desc", desc, state.ns);
 
     targetWpt.links = [];
     orderedRows.forEach((row) => {
