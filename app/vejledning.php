@@ -81,7 +81,7 @@ function vejledning_kapitler(): array
         'uden-net' => [
             'titel' => 'På tur uden net',
             'kort'  => 'Appen optager uden net og sender turen, når du er tilbage.',
-            'enhed' => 'mobil', 'klar' => false,
+            'enhed' => 'mobil', 'klar' => true,
         ],
         'udseende' => [
             'titel' => 'Giv turen det rigtige udseende',
