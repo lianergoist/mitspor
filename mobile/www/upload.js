@@ -101,6 +101,44 @@
         return senere(m, fejl).then(function () { return false; });
     }
 
+    // Sender ét billede til upload-image.php. Svarer med { url } (sendt,
+    // også hvis sitet havde det i forvejen), { afvist: tekst } (kan ikke
+    // sendes, fx filtype, eller kan ikke læses på enheden), { logUd: true }
+    // (401) eller { senere: tekst } (429, 5xx). Uden net afvises løftet.
+    // Bruges også af live.js, når et waypoint sendes live.
+    function sendBillede(m, b, login) {
+        return Lager.laesBillede(m.id, b)
+            .then(function (blob) {
+                var data = new FormData();
+                data.append('client_upload_id', b.id);
+                data.append('image', blob, b.fil.split('/').pop());
+                return Konto.api('upload-image.php', { method: 'POST', token: login.token, body: data, timeout: BILLEDE_TIMEOUT_MS });
+            }, function () {
+                var fejl = new Error('Billedet kunne ikke læses på enheden.');
+                fejl.lokal = true;
+                throw fejl;
+            })
+            .then(function (svar) {
+                var data = svar.data || {};
+                var tekst = data.error || 'Ukendt fejl (' + svar.status + ').';
+                if ((svar.status === 200 || svar.status === 201) && data.success && data.image) {
+                    return { url: data.image.url };
+                }
+                if (svar.status === 401) {
+                    return { logUd: true };
+                }
+                if (svar.status === 400 || svar.status === 413 || svar.status === 422) {
+                    return { afvist: tekst };
+                }
+                return { senere: tekst };
+            }, function (fejl) {
+                if (fejl.lokal) {
+                    return { afvist: fejl.message };
+                }
+                throw fejl;
+            });
+    }
+
     // Sender billederne, der mangler. Svarer true, når de alle er sendt eller
     // afvist (så GPX-filen kan sendes), og false, når køen skal stoppe
     // (intet net, udløbet login eller en midlertidig fejl).
@@ -113,48 +151,34 @@
                 }
             });
         });
-
-        function afvis(b, tekst) {
-            b.fejl = tekst;
-            return Lager.gemWaypoints(m.id, waypoints).then(naeste);
-        }
+        // Billeder, der allerede er sendt under en livesending (live.js).
+        var sendtLive = (m.live && m.live.billeder) || {};
 
         function naeste() {
             var b = mangler.shift();
             if (!b) {
                 return true;
             }
-            return Lager.laesBillede(m.id, b)
-                .then(function (blob) {
-                    var data = new FormData();
-                    data.append('client_upload_id', b.id);
-                    data.append('image', blob, b.fil.split('/').pop());
-                    return Konto.api('upload-image.php', { method: 'POST', token: login.token, body: data, timeout: BILLEDE_TIMEOUT_MS });
-                }, function () {
-                    var fejl = new Error('Billedet kunne ikke læses på enheden.');
-                    fejl.lokal = true;
-                    throw fejl;
-                })
-                .then(function (svar) {
-                    var data = svar.data || {};
-                    var tekst = data.error || 'Ukendt fejl (' + svar.status + ').';
-                    if ((svar.status === 200 || svar.status === 201) && data.success && data.image) {
-                        b.url = data.image.url;
-                        return Lager.gemWaypoints(m.id, waypoints).then(naeste);
-                    }
-                    if (svar.status === 401) {
-                        return Konto.glem().then(function () { return false; });
-                    }
-                    if (svar.status === 400 || svar.status === 413 || svar.status === 422) {
-                        return afvis(b, tekst);
-                    }
-                    return senere(m, 'Billede: ' + tekst).then(function () { return false; });
-                }, function (fejl) {
-                    if (fejl.lokal) {
-                        return afvis(b, fejl.message);
-                    }
-                    return false;
-                });
+            if (sendtLive[b.id]) {
+                b.url = sendtLive[b.id];
+                return Lager.gemWaypoints(m.id, waypoints).then(naeste);
+            }
+            return sendBillede(m, b, login).then(function (svar) {
+                if (svar.url) {
+                    b.url = svar.url;
+                    return Lager.gemWaypoints(m.id, waypoints).then(naeste);
+                }
+                if (svar.afvist) {
+                    b.fejl = svar.afvist;
+                    return Lager.gemWaypoints(m.id, waypoints).then(naeste);
+                }
+                if (svar.logUd) {
+                    return Konto.glem().then(function () { return false; });
+                }
+                return senere(m, 'Billede: ' + svar.senere).then(function () { return false; });
+            }, function () {
+                return false;
+            });
         }
 
         return Promise.resolve().then(naeste);
@@ -273,6 +297,7 @@
     window.MitSporUpload = {
         saetIKoe: saetIKoe,
         koerKoe: koerKoe,
+        sendBillede: sendBillede,
         igang: function () { return igang; },
         onSkift: function (fn) { lyttere.push(fn); }
     };

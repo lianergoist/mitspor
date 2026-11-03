@@ -16,7 +16,16 @@
 //     sidstMs,                          tid på det seneste bekræftede punkt
 //     slut: null|'etape'|'alt',         optagelsen er stoppet; 'alt' afslutter
 //                                       også livesendingen
-//     faerdig, stoppet, fejl, sendt }   sendt: Date.now() ved seneste svar
+//     faerdig, stoppet, fejl, sendt,    sendt: Date.now() ved seneste svar
+//     wpt: { <tid>: signatur },         waypoints, sitet har fået (og hvordan)
+//     billeder: { <billed-id>: url } }  waypoint-billeder, der er uploadet;
+//                                       '' = afvist. upload.js genbruger url'en.
+//
+// Waypoints (waypoints.json, skrevet af optageren) sendes efter punkterne
+// til live-waypoints.php. Først sendes de med de billeder, der allerede er
+// uploadet, så de hurtigt kommer på livesiden. Derefter uploades de
+// manglende billeder, og waypointet sendes igen med dem. Fejl her stopper
+// aldrig livesendingen; der prøves igen ved næste forsøg.
 //
 // Er turen stoppet, før alt er sendt (fx uden net), sendes resten senere
 // fra køen her, ligesom upload.js gør med uploads.
@@ -30,6 +39,7 @@
 
     var INTERVAL_MS = 60 * 1000;
     var MAX_PUNKTER = 2000;          // som LIVE_POINTS_MAX_PER_REQUEST på sitet
+    var MAX_WAYPOINTS = 50;          // som LIVE_WAYPOINTS_MAX_PER_REQUEST på sitet
     // Livesendingerne gemmes, så de kan vælges uden net. Kun titler og id'er.
     var LISTE_NOEGLE = 'mitspor-livesendinger';
 
@@ -185,6 +195,113 @@
         });
     }
 
+    // ---------- Waypoints ----------
+
+    // Det, sitet skal vise for et waypoint. Ændrer det sig (fx når et billede
+    // er uploadet), sendes waypointet igen.
+    function wptData(live, w) {
+        var urls = (w.billeder || [])
+            .map(function (b) { return b.url || live.billeder[b.id] || ''; })
+            .filter(Boolean);
+        return { t: w.tid, lat: w.lat, lon: w.lon, ele: w.ele, name: w.titel || '', desc: w.tekst || '', images: urls };
+    }
+
+    function signatur(d) {
+        return JSON.stringify([d.lat, d.lon, d.name, d.desc, d.images]);
+    }
+
+    // Sender de waypoints, sitet ikke har i den nuværende udgave.
+    // Svarer true, når der kan fortsættes (også efter en fejl, der ikke
+    // skal stoppe resten), og false, når login er udløbet.
+    function sendWaypointListe(meta, waypoints, login) {
+        var live = meta.live;
+        var nye = [];
+        waypoints.forEach(function (w) {
+            var d = wptData(live, w);
+            var sig = signatur(d);
+            if (live.wpt[w.tid] !== sig) {
+                nye.push({ data: d, sig: sig });
+            }
+        });
+        nye = nye.slice(0, MAX_WAYPOINTS);
+        if (!nye.length) {
+            return Promise.resolve(true);
+        }
+        var body = JSON.stringify({
+            event: live.event,
+            client_upload_id: meta.id,
+            waypoints: nye.map(function (n) { return n.data; })
+        });
+        return post('live-waypoints.php', login, body).then(function (svar) {
+            if (svar.status === 401) {
+                live.fejl = 'Log ind igen for at sende live.';
+                return Konto.glem().then(function () { return false; });
+            }
+            // 422 (fx tiden passer ikke) går ikke over af sig selv: marker
+            // dem som sendt, så de ikke sendes igen og igen.
+            if ((svar.status === 200 && svar.data && svar.data.success) || svar.status === 422) {
+                nye.forEach(function (n) { live.wpt[n.data.t] = n.sig; });
+            }
+            // 404 (fx et site uden live-waypoints.php endnu), 429, 5xx: prøv igen senere.
+            return true;
+        });
+    }
+
+    // Uploader billeder til waypoints, der mangler. Svarer true, hvis mindst
+    // ét nyt billede er uploadet.
+    function sendWaypointBilleder(meta, waypoints, login) {
+        var live = meta.live;
+        var Upload = window.MitSporUpload;
+        var mangler = [];
+        waypoints.forEach(function (w) {
+            (w.billeder || []).forEach(function (b) {
+                if (!b.url && !b.fejl && live.billeder[b.id] === undefined) {
+                    mangler.push(b);
+                }
+            });
+        });
+        var nyt = false;
+
+        function naeste() {
+            var b = mangler.shift();
+            if (!b || !Upload) {
+                return nyt;
+            }
+            return Upload.sendBillede(meta, b, login).then(function (svar) {
+                if (svar.url) {
+                    live.billeder[b.id] = svar.url;
+                    nyt = true;
+                    return naeste();
+                }
+                if (svar.afvist) {
+                    live.billeder[b.id] = '';
+                    return naeste();
+                }
+                if (svar.logUd) {
+                    return Konto.glem().then(function () { return nyt; });
+                }
+                return nyt;   // 429, 5xx: prøv igen ved næste forsøg
+            });
+        }
+
+        return Promise.resolve().then(naeste);
+    }
+
+    function sendWaypoints(meta, login) {
+        var live = meta.live;
+        live.wpt = live.wpt || {};
+        live.billeder = live.billeder || {};
+        return Lager.hentWaypoints(meta.id).then(function (waypoints) {
+            if (!waypoints.length) {
+                return true;
+            }
+            return sendWaypointListe(meta, waypoints, login)
+                .then(function (ok) { return ok && sendWaypointBilleder(meta, waypoints, login); })
+                .then(function (nyt) { return nyt ? sendWaypointListe(meta, waypoints, login) : true; })
+                .then(function () { return true; }, function () { return true; });
+        }, function () { return true; });
+    }
+
     // Sender det, der mangler: start af etapen, nye punkter og til sidst
     // slut. Højst hvert minut, medmindre tving er sand.
     function send(meta, punkter, tving) {
@@ -207,6 +324,7 @@
                 }
                 return startEtape(meta, login)
                     .then(function (ok) { return ok && sendPunkter(meta, punkter, login); })
+                    .then(function (ok) { return ok && sendWaypoints(meta, login); })
                     .then(function (ok) { return ok && live.slut && afslutEtape(meta, login); });
             })
             .catch(function () {
