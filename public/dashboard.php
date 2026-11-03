@@ -1036,7 +1036,7 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
 <script src="assets/genindlaes.js?v=1"></script>
 <script src="assets/dashboard.js?v=30"></script>
 <script src="assets/del-link.js?v=1"></script>
-<script src="assets/del-alle.js?v=1"></script>
+<script src="assets/del-alle.js?v=2"></script>
 <script src="assets/dashboard-tools.js?v=9"></script>
 <script src="assets/activity-marker.js?v=3"></script>
 <script src="assets/dashboard-map.js?v=7"></script>
