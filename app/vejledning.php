@@ -76,7 +76,7 @@ function vejledning_kapitler(): array
         'puls' => [
             'titel' => 'Træning med pulsbælte',
             'kort'  => 'Gem puls, kadence og watt, og vælg, hvad der vises.',
-            'enhed' => 'begge', 'klar' => false,
+            'enhed' => 'begge', 'klar' => true,
         ],
         'uden-net' => [
             'titel' => 'På tur uden net',
