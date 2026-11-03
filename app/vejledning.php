@@ -88,6 +88,11 @@ function vejledning_kapitler(): array
             'kort'  => 'Titel, beskrivelse, aktivitet og figuren på kortet.',
             'enhed' => 'begge', 'klar' => true,
         ],
+        'datafelter' => [
+            'titel' => 'Datafelter',
+            'kort'  => 'Vælg, hvad turens side viser, og fjern fx tid eller puls fra filen.',
+            'enhed' => 'begge', 'klar' => true,
+        ],
         'ordbog' => [
             'titel' => 'Lille ordbog',
             'kort'  => 'Spor, rute, waypoint og de andre ord forklaret kort.',

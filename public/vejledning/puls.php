@@ -87,7 +87,7 @@ echo vj_overskrift('puls');
     <?= vj_godt('Skjult er ikke slettet', '
         <p>Visning af datafelter bestemmer kun, hvad turens side viser. Har du tilladt, at andre må hente turen som fil,
         er pulsen stadig i filen. Vil du have den helt væk, så åbn turen i editoren, og vælg
-        <strong>Slet datafelter</strong> i menuen (☰).</p>
+        <strong>Slet datafelter</strong> i menuen (☰). Se <a href="/vejledning/datafelter.php">Datafelter</a>.</p>
     ') ?>
 
     <?= vj_godt('Cykel og løb: kadence og watt', '

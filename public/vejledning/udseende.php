@@ -71,7 +71,7 @@ echo vj_overskrift('udseende');
 
     <?= vj_godt('Hvad viser turens side?', '
         <p>Om turens side viser fx tid, hastighed og puls, vælger du under <strong>Visning af datafelter</strong> i
-        kontrolpanelet. Se <a href="/vejledning/puls.php">Pulsbælte m.m.</a>.</p>
+        kontrolpanelet. Se <a href="/vejledning/datafelter.php">Datafelter</a>.</p>
     ') ?>
 <?php
 vejledning_slut('udseende');
