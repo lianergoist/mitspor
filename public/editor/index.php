@@ -61,7 +61,7 @@ if ($initialRouteId === '' && $initialGroupId === '' && !$isNewRoute) {
 <title>GPX-editor</title>
 
 <link rel="stylesheet" href="../vendor/leaflet/leaflet.css" />
-<link rel="stylesheet" href="style.css?v=49" />
+<link rel="stylesheet" href="style.css?v=50" />
 <link rel="stylesheet" href="../assets/videoer.css?v=1">
 </head>
 <body data-image-prefix="<?= htmlspecialchars(IMAGE_PUBLIC_URL_BASE . '/' . $userId . '/', ENT_QUOTES, 'UTF-8') ?>">
@@ -235,6 +235,7 @@ if ($initialRouteId === '' && $initialGroupId === '' && !$isNewRoute) {
   <div class="selection-buttons">
     <button type="button" id="btn-selection-stats">Statistik</button>
     <button type="button" id="btn-selection-save">Gem som nyt spor</button>
+    <button type="button" id="btn-selection-delete" class="selection-delete">Slet</button>
     <button type="button" id="btn-selection-clear" class="selection-clear" aria-label="Ryd markeringen" title="Ryd markeringen">&times;</button>
   </div>
 </div>
@@ -456,6 +457,7 @@ if ($initialRouteId === '' && $initialGroupId === '' && !$isNewRoute) {
       <li>I markerings-tilstand kan punkterne ikke flyttes, og et tryk på linjen indsætter ikke et punkt.</li>
       <li><strong>Statistik</strong> viser afstand, tid, hastighed, højde og puls (hvis filen har dem) for den markerede strækning.</li>
       <li><strong>Gem som nyt spor</strong> gemmer strækningen som en ny, privat rute. Den rute, du redigerer, ændres ikke.</li>
+      <li><strong>Slet</strong> fjerner de markerede punkter fra ruten, fx en biltur til sidst, som kom med, fordi optagelsen ikke blev stoppet. Waypoints bliver. Du kan fortryde, og intet gemmes, før du trykker Gem.</li>
     </ul>
 
     <h3>En hel gruppe</h3>
@@ -499,7 +501,7 @@ if ($initialRouteId === '' && $initialGroupId === '' && !$isNewRoute) {
 <script src="../assets/route-meta-dialog.js?v=2"></script>
 <script src="../assets/gpx-field-labels.js?v=4"></script>
 <script src="../assets/gpx-tools.js?v=3"></script>
-<script src="app.js?v=53"></script>
+<script src="app.js?v=54"></script>
 <script src="../assets/videoer.js?v=1"></script>
 </body>
 </html>
