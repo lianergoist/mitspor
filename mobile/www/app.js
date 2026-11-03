@@ -208,6 +208,11 @@
         openSite('/privatlivspolitik.php');
     });
 
+    // "Læs vejledningen" på Hjælp-siden.
+    document.getElementById('hjaelp-vejledning').addEventListener('click', function () {
+        openSite('/vejledning/');
+    });
+
     // Appens lokale skærme er <main>-elementer. Kun én vises ad gangen.
     // En dialog med data-side hører til den side: den lukkes, når siden
     // forlades (fx fra Gemte ture til Upload), og åbnes igen, når man kommer
