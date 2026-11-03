@@ -50,8 +50,8 @@ function vejledning_kapitler(): array
         ],
         'glemte-stop' => [
             'titel' => 'Du glemte at stoppe optagelsen',
-            'kort'  => 'Klip slutningen af turen, eller del den i to.',
-            'enhed' => 'computer', 'klar' => false,
+            'kort'  => 'Fjern bilturen hjem fra slutningen af turen.',
+            'enhed' => 'computer', 'klar' => true,
         ],
         'ferie' => [
             'titel' => 'En ferie med flere dagsture',
