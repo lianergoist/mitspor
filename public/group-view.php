@@ -10,6 +10,7 @@ require_once __DIR__ . '/../app/og_image.php';
 require_once __DIR__ . '/../app/group_file.php';
 require_once __DIR__ . '/../app/app_hent.php';
 require_once __DIR__ . '/../app/user_share.php';
+require_once __DIR__ . '/../app/share_link_dialog.php';
 
 $pdo = get_db();
 $group = group_find($pdo, (string) ($_GET['id'] ?? ''));
@@ -43,6 +44,27 @@ foreach ($members as $m) {
         $hasPublic = true;
         break;
     }
+}
+
+// "Del link": gruppens adresse, når andre kan se mindst én etape. Er alle
+// etaper private, kan gruppen ikke deles med et link; dialogen fortæller
+// ejeren, hvad der kan gøres i stedet. Andre ser kun knappen ved offentlige etaper.
+$hasPrivate = false;
+foreach ($members as $m) {
+    if ($m['visibility'] !== 'public') {
+        $hasPrivate = true;
+        break;
+    }
+}
+$showShare = $hasPublic || $isOwner;
+if (!$hasPublic) {
+    $shareDialog = public_link_dialog(null, 'Alle etaperne er private, så gruppen kan ikke deles med et link. '
+        . 'Gør etaperne offentlige under <strong>Rediger gruppe</strong> i kontrolpanelet, eller send et link til alle '
+        . 'dine ture med <strong>Del alle mine ruter</strong> i kontrolpanelets menu (☰).');
+} elseif ($hasPrivate) {
+    $shareDialog = public_link_dialog(APP_BASE_URL . '/group-view.php?id=' . urlencode($group['public_id']), 'Andre kan se de offentlige etaper. De private etaper ser kun du og dem, du har delt dem med.');
+} else {
+    $shareDialog = public_link_dialog(APP_BASE_URL . '/group-view.php?id=' . urlencode($group['public_id']), 'Alle kan se denne gruppe. Send linket til dem, du vil vise den.');
 }
 
 // Navnet vises kun, hvis ALLE viste etaper selv viser det.
@@ -139,9 +161,14 @@ $palette = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#0891b2', '#
 
     <div class="topbar">
         <a href="<?= $isOwner ? 'dashboard.php' : 'index.php' ?>" class="brand">&larr; <?= $isOwner ? 'Mit kontrolpanel' : 'MitSpor' ?></a>
-        <?php if ($showGroupDownload): ?>
+        <?php if ($showShare || $showGroupDownload): ?>
             <div class="topbar-buttons">
+                <?php if ($showShare): ?>
+                <button type="button" class="btn" data-open-public-link title="Del link til gruppen" aria-label="Del link"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></g></svg><span class="btn-label">Del link</span></button>
+                <?php endif; ?>
+                <?php if ($showGroupDownload): ?>
                 <a class="btn" href="<?= $e(group_download_url($group['public_id'])) ?>" title="Download hele gruppen som én GPX-fil" aria-label="Download"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M12 3v12m0 0l-5-5m5 5l5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="btn-label">Download</span></a>
+                <?php endif; ?>
             </div>
         <?php endif; ?>
     </div>
@@ -185,6 +212,10 @@ $palette = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#0891b2', '#
     </div>
 </div>
 
+<?php if ($showShare): ?>
+<?= $shareDialog ?>
+<script src="assets/del-offentlig.js?v=1"></script>
+<?php endif; ?>
 <script src="vendor/leaflet/leaflet.js"></script>
 <script>
 (function () {
