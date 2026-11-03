@@ -546,7 +546,8 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             <?php // Uploaderen vises kun på offentlige ruter (ikke på private/del-link). ?>
             <?php if ($route['visibility'] === 'public' && !$route['hide_uploader_name']): ?>
                 <span class="meta-sep-uploader">&middot;</span>
-                <span class="meta-uploader">Uploadet af: <?= htmlspecialchars($route['uploader_name'], ENT_QUOTES, 'UTF-8') ?></span>
+                <?php // Navnet linker til uploaderens andre offentlige ruter (uploader-routes.php). ?>
+                <span class="meta-uploader">Uploadet af: <?php if ($liveEvent === null): ?><a href="uploader-routes.php?route=<?= htmlspecialchars($route['public_id'], ENT_QUOTES, 'UTF-8') ?>" title="Andre ruter fra <?= htmlspecialchars($route['uploader_name'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($route['uploader_name'], ENT_QUOTES, 'UTF-8') ?></a><?php else: ?><?= htmlspecialchars($route['uploader_name'], ENT_QUOTES, 'UTF-8') ?><?php endif; ?></span>
             <?php endif; ?>
         </div>
 
