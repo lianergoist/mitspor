@@ -1,6 +1,7 @@
 // "Del alle mine ruter" i kontrolpanelet (dialogen #share-all-dialog i
 // dashboard.php, endpoint /share-all-link.php). Menupunktet
-// #btn-open-share-all åbner dialogen.
+// #btn-open-share-all åbner dialogen. Appens menu åbner
+// dashboard.php?del_alle=1, der åbner dialogen med det samme.
 (function () {
     "use strict";
     var dialog = document.getElementById('share-all-dialog');
@@ -40,14 +41,26 @@
             });
     }
 
-    openBtn.addEventListener('click', function () {
+    function aabn() {
         errorsEl.hidden = true;
         activeEl.hidden = true;
         noneEl.hidden = true;
         // 'create' opretter kun et nyt link, hvis der ikke allerede er ét.
         kald('create');
         dialog.showModal();
-    });
+    }
+
+    openBtn.addEventListener('click', aabn);
+
+    // Fra appens menu: ?del_alle=1 åbner dialogen med det samme. Parameteren
+    // fjernes fra adressen, så dialogen ikke åbner igen ved genindlæsning.
+    var params = new URLSearchParams(location.search);
+    if (params.has('del_alle')) {
+        params.delete('del_alle');
+        var q = params.toString();
+        try { history.replaceState(null, '', location.pathname + (q ? '?' + q : '') + location.hash); } catch (e) { /* ikke kritisk */ }
+        aabn();
+    }
 
     document.getElementById('share-all-close').addEventListener('click', function () { dialog.close(); });
     dialog.addEventListener('click', function (ev) {
