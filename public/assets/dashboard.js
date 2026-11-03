@@ -47,6 +47,16 @@ function markerDefaultPreview(select, box) {
 
     openBtn.addEventListener('click', function () { dialog.showModal(); });
     closeBtn.addEventListener('click', function () { dialog.close(); });
+
+    // /dashboard.php?profil=1 (fx fra forsidens menu) åbner dialogen med det samme.
+    // Parameteren fjernes igen, så en genindlæsning ikke åbner den en gang til.
+    var params = new URLSearchParams(location.search);
+    if (params.has('profil')) {
+        params.delete('profil');
+        var q = params.toString();
+        try { history.replaceState(null, '', location.pathname + (q ? '?' + q : '') + location.hash); } catch (e) { /* ikke kritisk */ }
+        dialog.showModal();
+    }
     dialog.addEventListener('click', function (ev) {
         if (ev.target === dialog) {
             dialog.close();
