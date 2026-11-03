@@ -103,7 +103,7 @@ echo vj_overskrift('farligt-sted');
     <?= vj_trin('Klik på prikken, og ret det, du vil', '
         <p>Dialogen <strong>Billeder</strong> åbner. Her kan du:</p>
         <ul>
-            <li>rette <strong>titlen</strong>,</li>
+            <li>rette <strong>titlen</strong> og <strong>beskrivelsen</strong> (den tekst, du skrev på turen),</li>
             <li>skrive en <strong>tekst til billedet</strong> i feltet ved siden af det,</li>
             <li>lægge flere billeder på med <strong>📷 Tilføj billeder</strong>,</li>
             <li>fjerne et billede med det røde <strong>✕</strong>.</li>

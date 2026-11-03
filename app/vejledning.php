@@ -210,10 +210,12 @@ function vj_overskrift(string $slug): string
 function vj_billede(string $fil, string $alt, string $tekst = '', string $type = 'mobil'): string
 {
     // Bredde og højde reserverer pladsen, før billedet er hentet (loading="lazy").
-    $maal = @getimagesize(__DIR__ . '/../public/vejledning/billeder/' . $fil);
+    // ?v= er filens ændringstid, så et nyt skærmbillede altid hentes.
+    $sti = __DIR__ . '/../public/vejledning/billeder/' . $fil;
+    $maal = @getimagesize($sti);
     $str = $maal ? ' width="' . (int) $maal[0] . '" height="' . (int) $maal[1] . '"' : '';
     $html = '<figure class="vj-billede vj-billede--' . vj_h($type) . '">'
-        . '<img src="/vejledning/billeder/' . vj_h($fil) . '?v=1" alt="' . vj_h($alt) . '"' . $str . ' loading="lazy">';
+        . '<img src="/vejledning/billeder/' . vj_h($fil) . '?v=' . (int) @filemtime($sti) . '" alt="' . vj_h($alt) . '"' . $str . ' loading="lazy">';
     if ($tekst !== '') {
         $html .= '<figcaption>' . $tekst . '</figcaption>';
     }
