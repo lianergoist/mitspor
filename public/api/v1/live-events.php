@@ -27,7 +27,9 @@ $events = array_map(
         'activity_type_id' => (int) $event['activity_type_id'],
         'status'           => $event['status'],
         'delay_minutes'    => (int) $event['delay_minutes'],
-        'url'              => '/live.php?id=' . $event['public_id'],
+        // Med nøglen k, når livesiden kun kan ses med linket (som i kontrolpanelet).
+        // Appen deler den fra "Del link til livesiden".
+        'url'              => live_url($event),
         'stages'           => array_map('live_stage_json', $event['stages']),
     ],
     live_events_open_for_user(get_db(), $userId)

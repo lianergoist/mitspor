@@ -116,7 +116,7 @@ function live_stage_find(PDO $pdo, int $eventId, string $clientUploadId): ?array
 function live_events_open_for_user(PDO $pdo, int $userId): array
 {
     $stmt = $pdo->prepare(
-        "SELECT id, public_id, title, activity_type_id, status, visibility, delay_minutes, planned_start_at
+        "SELECT id, public_id, title, activity_type_id, status, visibility, share_token, delay_minutes, planned_start_at
          FROM live_events
          WHERE user_id = :uid AND status <> 'afsluttet'
          ORDER BY COALESCE(planned_start_at, created_at) ASC, id ASC"
