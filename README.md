@@ -60,3 +60,7 @@ Schema changes are added as files in `sql/` with the date in the name, so they c
 The app (`dk.mitspor.app`) consists of local pages with the GPS recorder, which works offline, and an in-app
 WebView showing mitspor.dk. Recordings are saved continuously on the phone and uploaded via `public/api/v1/`
 when there is a connection. Details on the recorder, upload, login and builds are in [`mobile/README.md`](mobile/README.md) (in Danish).
+
+## License
+
+MIT, see [LICENSE](LICENSE).

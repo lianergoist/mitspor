@@ -60,3 +60,7 @@ Skemaændringer lægges som filer i `sql/` med dato i navnet, så de kan køres 
 Appen (`dk.mitspor.app`) består af lokale sider med GPS-optageren, der virker uden net, og en in-app
 WebView, der viser mitspor.dk. Optagelser gemmes løbende på telefonen og uploades via `public/api/v1/`,
 når der er net. Detaljer om optager, upload, login og bygning står i [`mobile/README.md`](mobile/README.md).
+
+## Licens
+
+MIT, se [LICENSE](LICENSE).
