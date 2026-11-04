@@ -1,6 +1,16 @@
 {
-    "emoji_mand": "Emoji (M)",
     "emoji_kvinde": "Emoji (K)",
+    "emoji_kvinde_brun": "Emoji (K)",
+    "emoji_mand": "Emoji (M)",
     "emoji_mand_brun": "Emoji (M)",
-    "emoji_kvinde_brun": "Emoji (K)"
+    "vaeltepeter": "Væltepeter",
+    "vaeltepeter_blaa": "Væltepeter, blå",
+    "vaeltepeter_groen": "Væltepeter, grøn",
+    "vaeltepeter_lilla": "Væltepeter, lilla",
+    "vaeltepeter_roed": "Væltepeter, rød",
+    "velociped": "Velociped",
+    "velociped_blaa": "Velociped, blå",
+    "velociped_groen": "Velociped, grøn",
+    "velociped_lilla": "Velociped, lilla",
+    "velociped_roed": "Velociped, rød"
 }
