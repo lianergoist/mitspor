@@ -316,3 +316,9 @@
     font-size: 14px;
     font-family: inherit;
 }
+
+/* "Datafelter og markør for alle etaper": luft om de to afkrydsninger. */
+.group-display-choice {
+    display: block;
+    margin: 1.4rem 0 0.4rem;
+}
