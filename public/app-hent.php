@@ -54,7 +54,7 @@ $backJson = json_encode($back, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSO
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex">
     <title>Henter filen – MitSpor</title>
-    <script src="/assets/tema.js?v=1"></script>
+    <script src="/assets/tema.js?v=2"></script>
     <link rel="stylesheet" href="/assets/style.css?v=42">
 </head>
 <body>

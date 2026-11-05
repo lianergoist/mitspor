@@ -100,7 +100,7 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
     <meta name="referrer" content="same-origin">
 <?php endif; ?>
 
-    <script src="/assets/tema.js?v=1"></script>
+    <script src="/assets/tema.js?v=2"></script>
     <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
     <link rel="stylesheet" href="/assets/style.css?v=42">
     <link rel="stylesheet" href="/assets/videoer.css?v=2">
