@@ -215,7 +215,7 @@ function vejledning_start(string $slug, string $titel, string $beskrivelse): voi
     <meta name="twitter:card" content="summary_large_image">
     <script type="application/ld+json"><?= json_encode($jsonLd, $jsonFlag) ?></script>
     <script src="/assets/tema.js?v=1"></script>
-    <link rel="stylesheet" href="/assets/style.css?v=41">
+    <link rel="stylesheet" href="/assets/style.css?v=42">
     <link rel="stylesheet" href="/assets/vejledning.css?v=6">
 </head>
 <body>

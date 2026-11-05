@@ -30,6 +30,8 @@
     --card-bg: #fcfcfc;
     --info-panel-bg: #fafbfc;
     --overlay-bg: rgba(255, 255, 255, 0.92);  /* paneler oven på kortet */
+    --overlay-bg-soft: rgba(255, 255, 255, 0.85);
+    --text-2: #334155;
     --panel-bg: rgba(255, 255, 255, 0.97);    /* grafpanelet */
     --hover-tint: rgba(15, 23, 42, 0.04);
     --tint-1: rgba(30, 41, 59, 0.07);
@@ -76,6 +78,8 @@ html[data-tema="moerk"] {
     --card-bg: #172033;
     --info-panel-bg: #172033;
     --overlay-bg: rgba(30, 41, 59, 0.92);
+    --overlay-bg-soft: rgba(30, 41, 59, 0.85);
+    --text-2: #cbd5e1;
     --panel-bg: rgba(30, 41, 59, 0.97);
     --hover-tint: rgba(226, 232, 240, 0.06);
     --tint-1: rgba(226, 232, 240, 0.08);
@@ -886,7 +890,6 @@ a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offse
     border: none;
     border-radius: 6px;
     background: var(--surface-2);
-    color: var(--text);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -1049,7 +1052,7 @@ a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offse
     border-radius: 10px;
 }
 .wpt-popup-name { font-weight: bold; }
-.wpt-popup-desc { color: var(--text); white-space: pre-line; }
+.wpt-popup-desc { color: #333; white-space: pre-line; }
 .wpt-popup-img-caption {
     color: var(--text-muted);
     font-size: 0.9em;
@@ -1503,6 +1506,10 @@ a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offse
     margin: 0;
     padding-left: 18px;
 }
+
+/* Mørkt tema: scrubberens ikoner er sorte PNG'er, og popuppens tekst er fast grå. */
+html[data-tema="moerk"] .scrubber button img { filter: invert(1); }
+html[data-tema="moerk"] .wpt-popup-desc { color: var(--text); }
 
 /* Mørkt tema: dialoger følger sidens flader (standard er browserens Canvas). */
 html[data-tema="moerk"] dialog {

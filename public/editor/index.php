@@ -62,7 +62,7 @@ if ($initialRouteId === '' && $initialGroupId === '' && !$isNewRoute) {
 
 <script src="/assets/tema.js?v=1"></script>
 <link rel="stylesheet" href="../vendor/leaflet/leaflet.css" />
-<link rel="stylesheet" href="style.css?v=51" />
+<link rel="stylesheet" href="style.css?v=52" />
 <link rel="stylesheet" href="../assets/videoer.css?v=2">
 </head>
 <body data-image-prefix="<?= htmlspecialchars(IMAGE_PUBLIC_URL_BASE . '/' . $userId . '/', ENT_QUOTES, 'UTF-8') ?>">
@@ -96,6 +96,7 @@ if ($initialRouteId === '' && $initialGroupId === '' && !$isNewRoute) {
         <button type="button" role="menuitem" data-menu="thin">Udtynd punkter</button>
         <div class="editor-menu-sep" role="separator"></div>
         <button type="button" role="menuitem" data-menu="help">Hjælp</button>
+        <button type="button" role="menuitem" data-menu="tema" data-tema-skift>Mørkt tema</button>
         <a role="menuitem" id="menu-vejledning" href="/vejledning/">Vejledning</a>
         <button type="button" role="menuitem" data-menu="about">Om MitSpor</button>
       </div>
@@ -503,7 +504,7 @@ if ($initialRouteId === '' && $initialGroupId === '' && !$isNewRoute) {
 <script src="../assets/route-meta-dialog.js?v=2"></script>
 <script src="../assets/gpx-field-labels.js?v=4"></script>
 <script src="../assets/gpx-tools.js?v=3"></script>
-<script src="app.js?v=55"></script>
+<script src="app.js?v=56"></script>
 <script src="../assets/videoer.js?v=1"></script>
 </body>
 </html>

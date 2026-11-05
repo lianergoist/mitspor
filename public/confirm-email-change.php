@@ -76,7 +76,7 @@ if ($rawToken !== '') {
     <meta name="robots" content="noindex, nofollow">
     <title>Bekræft e-mailskift</title>
     <script src="/assets/tema.js?v=1"></script>
-    <link rel="stylesheet" href="assets/style.css?v=41">
+    <link rel="stylesheet" href="assets/style.css?v=42">
 </head>
 <body>
 

@@ -18,7 +18,7 @@ function simple_page_start(string $title): void
     <meta name="robots" content="noindex, nofollow">
     <title><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?> – MitSpor</title>
     <script src="/assets/tema.js?v=1"></script>
-    <link rel="stylesheet" href="/assets/style.css?v=41">
+    <link rel="stylesheet" href="/assets/style.css?v=42">
 </head>
 <body>
 

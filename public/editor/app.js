@@ -3533,6 +3533,7 @@
       ele: openEleDialog,
       thin: openThinTool,
       help: () => helpDialog.showModal(),
+      tema: () => {}, // selve skiftet og teksten klares af assets/tema.js (data-tema-skift)
       about: () => aboutDialog.showModal()
     };
     const aboutDialog = el("about-dialog");

@@ -233,7 +233,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
 
     <script src="/assets/tema.js?v=1"></script>
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/style.css?v=41">
+    <link rel="stylesheet" href="assets/style.css?v=42">
     <link rel="stylesheet" href="assets/videoer.css?v=2">
     <style>
         html, body { height: 100%; margin: 0; }
@@ -247,7 +247,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             left: 8px;
             max-width: min(320px, calc(100vw - 16px));
             padding: 8px 12px;
-            background: var(--overlay-bg);
+            background: var(--overlay-bg-soft);
             -webkit-backdrop-filter: blur(4px);
             /* Titelrækken står fast øverst; udfoldet scrolles kun resten
                (.info-body). max-height sættes i JS, se applyStatsFolding(). */
@@ -330,7 +330,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
         /* "Uploadet af" på sin egen linje, afkortet med "…" hvis navnet er langt. */
         .meta-uploader { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         /* "Vis min position" (assets/min-position.js): samme størrelse som zoomknapperne, blå når den er slået til. */
-        .min-position a { display: flex; align-items: center; justify-content: center; color: var(--text); }
+        .min-position a { display: flex; align-items: center; justify-content: center; color: var(--text-2); }
         .min-position a.min-position-aktiv { color: #ffffff; background: #2563eb; }
         .meta-sep-uploader { display: none; }
         /* Knapperne i topbaren ligger i en flex-række på ALLE skærmbredder. Uden den er

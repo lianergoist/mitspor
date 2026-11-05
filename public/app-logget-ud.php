@@ -20,7 +20,7 @@ header('X-Robots-Tag: noindex');
     <meta name="robots" content="noindex">
     <title>Logget ud – MitSpor</title>
     <script src="/assets/tema.js?v=1"></script>
-    <link rel="stylesheet" href="/assets/style.css?v=41">
+    <link rel="stylesheet" href="/assets/style.css?v=42">
 </head>
 <body>
     <main class="container" style="text-align: center; padding-top: 48px;">

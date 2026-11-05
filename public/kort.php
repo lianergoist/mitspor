@@ -102,7 +102,7 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
 
     <script src="/assets/tema.js?v=1"></script>
     <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="/assets/style.css?v=41">
+    <link rel="stylesheet" href="/assets/style.css?v=42">
     <link rel="stylesheet" href="/assets/videoer.css?v=2">
     <style>
         html, body { height: 100%; margin: 0; }
