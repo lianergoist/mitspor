@@ -137,6 +137,32 @@ function vj_enhed(string $enhed): string
 function vejledning_start(string $slug, string $titel, string $beskrivelse): void
 {
     $url = APP_BASE_URL . '/vejledning/' . ($slug === '' ? '' : $slug . '.php');
+    $oversigtUrl = APP_BASE_URL . '/vejledning/';
+
+    // Oversigten får en fuld titel; kapitlerne "Kapitel – MitSpor vejledning".
+    $sideTitel = $slug === ''
+        ? 'Vejledning til MitSpor – optag, se og del dine ture'
+        : $titel . ' – MitSpor vejledning';
+
+    // Fælles delingsbillede for hele vejledningen. Laves med
+    // /root/mitspor-arkiv/vejledning-og/lav.sh. ?v= er filens ændringstid.
+    $ogFil = __DIR__ . '/../public/vejledning/billeder/og-vejledning.jpg';
+    $ogBillede = APP_BASE_URL . '/vejledning/billeder/og-vejledning.jpg?v=' . (int) @filemtime($ogFil);
+
+    // Strukturerede data: brødkrummesti (Forside › Vejledning › Kapitel).
+    $krummer = [
+        ['@type' => 'ListItem', 'position' => 1, 'name' => 'MitSpor', 'item' => APP_BASE_URL . '/'],
+        ['@type' => 'ListItem', 'position' => 2, 'name' => 'Vejledning', 'item' => $oversigtUrl],
+    ];
+    if ($slug !== '') {
+        $krummer[] = ['@type' => 'ListItem', 'position' => 3, 'name' => $titel, 'item' => $url];
+    }
+    $jsonLd = [
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => $krummer,
+    ];
+    $jsonFlag = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP;
     ?>
 <!DOCTYPE html>
 <html lang="da">
@@ -145,9 +171,22 @@ function vejledning_start(string $slug, string $titel, string $beskrivelse): voi
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="/grafik/favicon.svg">
     <link rel="icon" type="image/png" sizes="32x32" href="/grafik/favicon-32.png">
-    <title><?= vj_h($titel) ?> – Vejledning – MitSpor</title>
+    <title><?= vj_h($sideTitel) ?></title>
     <meta name="description" content="<?= vj_h($beskrivelse) ?>">
     <link rel="canonical" href="<?= vj_h($url) ?>">
+    <meta property="og:type" content="<?= $slug === '' ? 'website' : 'article' ?>">
+    <meta property="og:site_name" content="MitSpor">
+    <meta property="og:locale" content="da_DK">
+    <meta property="og:title" content="<?= vj_h($sideTitel) ?>">
+    <meta property="og:description" content="<?= vj_h($beskrivelse) ?>">
+    <meta property="og:url" content="<?= vj_h($url) ?>">
+    <meta property="og:image" content="<?= vj_h($ogBillede) ?>">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Vejledning til MitSpor: sådan optager, ser og deler du dine ture, trin for trin.">
+    <meta name="twitter:card" content="summary_large_image">
+    <script type="application/ld+json"><?= json_encode($jsonLd, $jsonFlag) ?></script>
     <link rel="stylesheet" href="/assets/style.css?v=40">
     <link rel="stylesheet" href="/assets/vejledning.css?v=5">
 </head>
