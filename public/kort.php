@@ -100,9 +100,10 @@ $publicRoutes = group_collapse_overview($stmt->fetchAll());
     <meta name="referrer" content="same-origin">
 <?php endif; ?>
 
+    <script src="/assets/tema.js?v=1"></script>
     <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="/assets/style.css?v=40">
-    <link rel="stylesheet" href="/assets/videoer.css?v=1">
+    <link rel="stylesheet" href="/assets/style.css?v=41">
+    <link rel="stylesheet" href="/assets/videoer.css?v=2">
     <style>
         html, body { height: 100%; margin: 0; }
         .start-dot { width: 11px; height: 11px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 3px rgba(0,0,0,.55); }

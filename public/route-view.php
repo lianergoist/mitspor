@@ -231,9 +231,10 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:image" content="<?= htmlspecialchars($ogImageUrl, ENT_QUOTES, 'UTF-8') ?>">
 
+    <script src="/assets/tema.js?v=1"></script>
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/style.css?v=40">
-    <link rel="stylesheet" href="assets/videoer.css?v=1">
+    <link rel="stylesheet" href="assets/style.css?v=41">
+    <link rel="stylesheet" href="assets/videoer.css?v=2">
     <style>
         html, body { height: 100%; margin: 0; }
         /* Topbar + info-boks: .top-area ligger øverst over kortet, og info-boksen
@@ -246,7 +247,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             left: 8px;
             max-width: min(320px, calc(100vw - 16px));
             padding: 8px 12px;
-            background: rgba(255, 255, 255, 0.85);
+            background: var(--overlay-bg);
             -webkit-backdrop-filter: blur(4px);
             /* Titelrækken står fast øverst; udfoldet scrolles kun resten
                (.info-body). max-height sættes i JS, se applyStatsFolding(). */
@@ -299,7 +300,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
         .info-panel .stats { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
         .info-panel .stat-extra-field { display: flex; flex-direction: column; }
         .info-panel .stat-current-line { display: block; }
-        .info-panel .stat-range-line { display: block; font-size: 0.85em; color: #64748b; }
+        .info-panel .stat-range-line { display: block; font-size: 0.85em; color: var(--text-muted); }
         .info-panel .stat-extra { display: none; }
         .info-panel .stats.stats-expanded .stat-extra { display: block; }
         #btn-stats-toggle,
@@ -316,7 +317,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             padding: 0;
             border: 1px solid var(--border);
             border-radius: 5px;
-            background: #f1f5f9;
+            background: var(--surface-2);
             color: var(--text);
             font-size: 11px;
             line-height: 1;
@@ -329,7 +330,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
         /* "Uploadet af" på sin egen linje, afkortet med "…" hvis navnet er langt. */
         .meta-uploader { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         /* "Vis min position" (assets/min-position.js): samme størrelse som zoomknapperne, blå når den er slået til. */
-        .min-position a { display: flex; align-items: center; justify-content: center; color: #334155; }
+        .min-position a { display: flex; align-items: center; justify-content: center; color: var(--text); }
         .min-position a.min-position-aktiv { color: #ffffff; background: #2563eb; }
         .meta-sep-uploader { display: none; }
         /* Knapperne i topbaren ligger i en flex-række på ALLE skærmbredder. Uden den er
@@ -376,7 +377,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
                 position: static;
                 max-width: none;
                 padding: 6px 12px 8px;
-                background: #fafbfc;
+                background: var(--info-panel-bg);
                 backdrop-filter: none;
                 -webkit-backdrop-filter: none;
                 border: 0;
@@ -453,7 +454,7 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
             .info-panel .stats { padding: 0 clamp(0px, calc((100vw - 384px) / 2), 16px); }
         }
         /* Igangværende etape i en livesending (route-view.php?live=…). */
-        .live-note { display: flex; align-items: center; gap: 6px; margin: 2px 0 6px; font-size: 13px; font-weight: 600; color: #b91c1c; }
+        .live-note { display: flex; align-items: center; gap: 6px; margin: 2px 0 6px; font-size: 13px; font-weight: 600; color: var(--danger); }
         .live-note .live-dot { flex: 0 0 auto; width: 10px; height: 10px; border-radius: 50%; background: #dc2626; animation: live-pulse 1.6s ease-in-out infinite; }
         @keyframes live-pulse { 50% { opacity: 0.3; } }
         @media (prefers-reduced-motion: reduce) { .live-note .live-dot { animation: none; } }

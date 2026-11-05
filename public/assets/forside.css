@@ -148,8 +148,8 @@ body.forside {
 .forside-gratis {
     padding: 16px;
     border-radius: var(--radius);
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
+    background: var(--info-bg);
+    border: 1px solid var(--info-border);
 }
 .forside-tjek {
     list-style: none;
@@ -227,11 +227,11 @@ body.forside {
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
 .hjem-kort:hover {
-    border-color: #93c5fd;
-    background: #f8fbff;
+    border-color: var(--info-hover-border);
+    background: var(--info-hover-bg);
 }
 .hjem-kort:focus-visible {
-    outline: 3px solid #93c5fd;
+    outline: 3px solid var(--info-hover-border);
     outline-offset: 2px;
 }
 .hjem-ikon {
@@ -240,7 +240,7 @@ body.forside {
     height: 44px;
     padding: 9px;
     border-radius: 10px;
-    background: #eff6ff;
+    background: var(--info-bg);
     color: var(--primary);
     stroke-width: 2;
 }

@@ -182,3 +182,12 @@
     font-size: 13px;
     color: var(--text-muted, #64748b);
 }
+
+/* Mørkt tema (se assets/tema.js). */
+html[data-tema="moerk"] .video-btn {
+    border-color: #1e3a8a;
+    background: #172554;
+    color: #bfdbfe;
+}
+html[data-tema="moerk"] .video-btn:hover { background: #1e3a8a; }
+html[data-tema="moerk"] .video-card:hover { border-color: #3b82f6; }

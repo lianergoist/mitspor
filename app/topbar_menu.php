@@ -15,8 +15,9 @@ require_once __DIR__ . '/csrf.php';
  */
 
 /**
- * @param array<int, array{id?: string, href?: string, form?: string, label: string}> $items
- *        Sidens egne punkter øverst (fx Hjælp). "Vejledning" og "Om MitSpor" kommer altid til sidst.
+ * @param array<int, array{id?: string, href?: string, form?: string, tema?: bool, label: string}> $items
+ *        Sidens egne punkter øverst (fx Hjælp). "Mørkt tema", "Vejledning" og "Om MitSpor"
+ *        kommer altid til sidst. Temapunktet håndteres af assets/tema.js.
  * @param string $labelClass Klassen, der skjuler knapteksten på mobil
  *        (tb-label, eller btn-label på rutens side).
  */
@@ -24,6 +25,7 @@ function topbar_menu(array $items, string $labelClass = 'tb-label'): string
 {
     $h = static fn(string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8');
 
+    $items[] = ['tema' => true, 'label' => 'Mørkt tema'];
     $items[] = ['href' => '/vejledning/', 'label' => 'Vejledning'];
     $items[] = ['id' => 'btn-open-about', 'label' => 'Om MitSpor'];
 
@@ -37,6 +39,9 @@ function topbar_menu(array $items, string $labelClass = 'tb-label'): string
             $html .= '<form method="post" action="' . $h($item['form']) . '">'
                 . '<input type="hidden" name="csrf_token" value="' . $h(csrf_token()) . '">'
                 . '<button type="submit" role="menuitem">' . $h($item['label']) . '</button></form>';
+        } elseif (!empty($item['tema'])) {
+            // Teksten skiftes til "Lyst tema" af assets/tema.js, når mørkt tema er valgt.
+            $html .= '<button type="button" role="menuitem" data-tema-skift>' . $h($item['label']) . '</button>';
         } elseif (isset($item['href'])) {
             $html .= '<a role="menuitem" href="' . $h($item['href']) . '">' . $h($item['label']) . '</a>';
         } else {

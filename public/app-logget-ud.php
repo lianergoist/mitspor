@@ -19,7 +19,8 @@ header('X-Robots-Tag: noindex');
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex">
     <title>Logget ud – MitSpor</title>
-    <link rel="stylesheet" href="/assets/style.css">
+    <script src="/assets/tema.js?v=1"></script>
+    <link rel="stylesheet" href="/assets/style.css?v=41">
 </head>
 <body>
     <main class="container" style="text-align: center; padding-top: 48px;">
