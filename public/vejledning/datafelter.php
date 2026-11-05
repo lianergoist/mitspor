@@ -70,6 +70,36 @@ echo vj_overskrift('datafelter');
 
     </div>
 
+    <h2>Det samme for alle etaper i en gruppe</h2>
+
+    <p>
+        Har du samlet en tur i etaper (se <a href="/vejledning/ferie.php">Grupper og etaper</a>), kan du vælge
+        datafelter og markør for alle etaperne på én gang. Det foregår i kontrolpanelet på computeren eller mobilen.
+    </p>
+
+    <div class="vj-trinliste">
+
+    <?= vj_trin('Vælg gruppen', '
+        <p>Åbn dit <strong>kontrolpanel</strong>, vælg fanen <strong>Grupper</strong>, og tryk på gruppen. Tryk derefter på
+        <strong class="knap">Datafelter og markør for alle etaper</strong>.</p>
+    ') ?>
+
+    <?= vj_trin('Vælg datafelter og markør', '
+        <p>Listen viser alle visninger, som mindst én etape har data til. En etape uden fx puls viser bare ikke pulsen.</p>
+        <p>Har etaperne forskellige aktiviteter, fx cykel og kajak, vælger du en markør for hver aktivitet.
+        Vil du kun ændre det ene, så fjern krydset ved <strong>Overskriv datafelter</strong> eller
+        <strong>Overskriv markør</strong>.</p>
+    ') ?>
+
+    <?= vj_trin('Gem for alle etaper', '
+        <p>Tryk på <strong class="knap">Gem for alle etaper</strong>. MitSpor fortæller, hvor mange etaper der bliver
+        ændret. Tryk igen for at gemme.</p>
+        <p>Valget overskriver det, du tidligere har valgt for de enkelte etaper. Filerne ændres ikke. En etape, du
+        tilføjer senere, beholder sine egne valg, til du gør det igen.</p>
+    ') ?>
+
+    </div>
+
     <h2>Hvornår skal jeg bruge hvad?</h2>
 
     <ul>
