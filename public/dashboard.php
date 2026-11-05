@@ -70,7 +70,7 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
     <title>Mit kontrolpanel</title>
     <link rel="stylesheet" href="assets/style.css?v=40">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/dashboard.css?v=32">
+    <link rel="stylesheet" href="assets/dashboard.css?v=33">
     <link rel="stylesheet" href="assets/videoer.css?v=1">
 </head>
 <body>
@@ -390,6 +390,10 @@ function render_group_detail(array $g): void
             <a class="tool" href="<?= dash_h(group_download_url($id)) ?>">Download gruppen som én GPX</a>
             <?php endif; ?>
             <button type="button" class="tool" data-edit-group="<?= dash_h($id) ?>">Rediger gruppe</button>
+            <div class="tool-row">
+                <button type="button" class="tool" data-group-display="<?= dash_h($id) ?>" data-group-title="<?= dash_h($g['title']) ?>">Datafelter og markør for alle etaper</button>
+                <?= dash_help_btn('group_display', 'Datafelter og markør for alle etaper') ?>
+            </div>
             <button type="button" class="tool danger" data-delete-group="<?= dash_h($id) ?>" data-group-title="<?= dash_h($g['title']) ?>" data-stage-count="<?= (int) $g['stage_count'] ?>">Slet gruppen og alle etaper</button>
         </div>
     </section>
@@ -582,6 +586,40 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
 
     <p id="tool-fields-status" class="hint" hidden></p>
     <button type="button" id="tool-fields-save" class="btn btn-primary" disabled>💾 Gem</button>
+</dialog>
+
+<?php // "Datafelter og markør for alle etaper" (assets/dashboard-tools.js, group-display-settings.php). ?>
+<dialog id="group-display-dialog" class="modal-dialog tool-wide">
+    <button type="button" id="group-display-close" class="modal-close" aria-label="Luk">&times;</button>
+    <h2>Datafelter og markør for alle etaper</h2>
+    <p><strong id="group-display-title"></strong></p>
+
+    <div id="group-display-errors" class="modal-errors" hidden></div>
+
+    <div id="group-display-body" hidden>
+        <p class="hint" id="group-display-intro"></p>
+
+        <label class="checkbox-field group-display-choice"><input type="checkbox" id="group-display-apply-fields" checked> <strong>Overskriv datafelter</strong></label>
+        <div id="group-display-fields-box">
+            <h3 class="data-fields-heading">Visninger</h3>
+            <p class="hint">Alle visninger, som mindst én etape har data til. En etape uden fx puls viser bare ikke pulsen.</p>
+            <ul id="group-display-functions" class="data-fields-list"></ul>
+            <div id="group-display-raw" hidden>
+                <h3 class="data-fields-heading">Øvrige felter</h3>
+                <p class="hint">Felter uden en indbygget visning. De afkrydsede vises som tal på etapernes sider.</p>
+                <ul id="group-display-fields" class="data-fields-list"></ul>
+            </div>
+        </div>
+
+        <label class="checkbox-field group-display-choice"><input type="checkbox" id="group-display-apply-markers" checked> <strong>Overskriv markør</strong></label>
+        <div id="group-display-markers-box"></div>
+    </div>
+
+    <template id="group-display-marker-template"><?php render_marker_picker('group-display-marker-default'); ?></template>
+
+    <p id="group-display-warning" class="modal-errors" hidden></p>
+    <p id="group-display-status" class="hint" hidden></p>
+    <button type="button" id="group-display-save" class="btn btn-primary" disabled>💾 Gem for alle etaper</button>
 </dialog>
 
 <dialog id="marker-dialog" class="modal-dialog">
@@ -1034,10 +1072,10 @@ $firstTab = (!$sporRoutes && $ruteRoutes) ? 'tab-rute' : 'tab-spor';
 <script src="assets/gpx-tools.js?v=3"></script>
 <script src="assets/topbar-menu.js?v=1"></script>
 <script src="assets/genindlaes.js?v=1"></script>
-<script src="assets/dashboard.js?v=31"></script>
+<script src="assets/dashboard.js?v=32"></script>
 <script src="assets/del-link.js?v=1"></script>
 <script src="assets/del-alle.js?v=2"></script>
-<script src="assets/dashboard-tools.js?v=9"></script>
+<script src="assets/dashboard-tools.js?v=10"></script>
 <script src="assets/activity-marker.js?v=3"></script>
 <script src="assets/dashboard-map.js?v=7"></script>
 <script src="assets/dashboard-live.js?v=2"></script>

@@ -1460,6 +1460,13 @@ function markerDefaultPreview(select, box) {
                 'Her vælger du også rutens aktivitetstype. Du kan vælge mellem aktivitetens markører og dem, der passer til alle aktiviteter.'
             ]
         },
+        group_display: {
+            title: 'Datafelter og markør for alle etaper',
+            text: [
+                'Vælger på én gang, hvilke datafelter og hvilken markør alle gruppens etaper viser. Har etaperne forskellige aktiviteter, vælger du en markør for hver aktivitet.',
+                'Dine valg overskriver etapernes egne valg. Du kan nøjes med at ændre datafelterne eller markøren. Filerne ændres ikke, og en etape, du tilføjer senere, beholder sine egne indstillinger.'
+            ]
+        },
         share: {
             title: 'Del link',
             text: [
