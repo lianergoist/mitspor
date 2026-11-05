@@ -1,12 +1,14 @@
 {
     "emoji_kvinde": "Emoji (K)",
-    "emoji_kvinde_brun": "Emoji (K)",
     "emoji_mand": "Emoji (M)",
-    "emoji_mand_brun": "Emoji (M)",
-    "illustration_k": "Illustration (K)",
-    "piktogram": "Piktogram",
     "piktogram_blaa": "Piktogram, blå",
     "piktogram_groen": "Piktogram, grøn",
+    "piktogram_gul": "Piktogram, gul",
     "piktogram_lilla": "Piktogram, lilla",
-    "tegning": "Tegning"
+    "piktogram_turkis": "Piktogram, turkis",
+    "tegning": "Tegning",
+    "tegning_groen": "Tegning, grøn",
+    "tegning_gul": "Tegning, gul",
+    "tegning_orange": "Tegning, orange",
+    "tegning_roed": "Tegning, rød"
 }
