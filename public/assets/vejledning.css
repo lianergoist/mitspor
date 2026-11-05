@@ -172,8 +172,9 @@
 .vj-advar > :last-child { margin-bottom: 0; }
 
 /* Knapper til App Store og Google Play. */
-.vj-butikker { display: flex; flex-wrap: wrap; gap: 10px; }
-.vj-butikker .btn { text-decoration: none; }
+.vj-butikker { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.vj-butikker a { display: inline-block; line-height: 0; }
+.vj-butikker img { height: 48px; width: auto; }
 
 /* Lille ordbog. */
 .vj-ordbog { margin: 0; }
