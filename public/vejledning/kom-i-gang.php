@@ -22,7 +22,7 @@ echo vj_overskrift('kom-i-gang');
     <div class="vj-trinliste">
 
     <?= vj_trin('Hent appen', '
-        <p>Læser du det her på telefonen, så tryk på knappen, der passer til din telefon, og installér appen.
+        <p>Læser du det her på telefonen, så tryk på mærket, der passer til din telefon, og installér appen.
         Den er gratis.</p>
         ' . vj_butikker() . '
         <p>Du kan også åbne <strong>App Store</strong> på en iPhone eller <strong>Google Play</strong> på en

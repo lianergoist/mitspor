@@ -127,12 +127,12 @@ function vejledning_kapitler(): array
 const VJ_APP_STORE = 'https://apps.apple.com/dk/app/mitspor/id6821337231';
 const VJ_GOOGLE_PLAY = 'https://play.google.com/store/apps/details?id=dk.mitspor.app';
 
-/** Knapper til appen i App Store og Google Play. */
+/** Officielle mærker til appen i App Store og Google Play (danske udgaver). */
 function vj_butikker(): string
 {
     return '<p class="vj-butikker">'
-        . '<a class="btn btn-primary" href="' . VJ_APP_STORE . '">App Store (iPhone)</a>'
-        . '<a class="btn btn-primary" href="' . VJ_GOOGLE_PLAY . '">Google Play (Android)</a>'
+        . '<a href="' . VJ_APP_STORE . '"><img src="/vejledning/billeder/app-store-da.svg" alt="Hent i App Store" width="144" height="48"></a>'
+        . '<a href="' . VJ_GOOGLE_PLAY . '"><img src="/vejledning/billeder/google-play-da.png" alt="Hent i Google Play" width="124" height="48"></a>'
         . '</p>';
 }
 
@@ -216,7 +216,7 @@ function vejledning_start(string $slug, string $titel, string $beskrivelse): voi
     <script type="application/ld+json"><?= json_encode($jsonLd, $jsonFlag) ?></script>
     <script src="/assets/tema.js?v=2"></script>
     <link rel="stylesheet" href="/assets/style.css?v=42">
-    <link rel="stylesheet" href="/assets/vejledning.css?v=6">
+    <link rel="stylesheet" href="/assets/vejledning.css?v=7">
 </head>
 <body>
 
