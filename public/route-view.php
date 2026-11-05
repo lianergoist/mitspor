@@ -1760,7 +1760,11 @@ if ($route['visibility'] === 'public' && $liveEvent === null) {
 
         if (elevationGainStats) {
             document.getElementById('stat-elevation-gain').textContent = 'Højdemeter: +' +
-                Math.round(elevationGainStats.gainCum[idx]) + ' / -' + Math.round(elevationGainStats.lossCum[idx]) + '\u00A0m';
+                Math.round(elevationGainStats.gainCum[idx]) + ' / -' + Math.round(elevationGainStats.lossCum[idx]) + '\u00A0m' +
+                // Turens samlede tal (sidste punkt), så "+0 / -0" ved start
+                // ikke ligner manglende højdedata.
+                ' (i\u00A0alt\u00A0+' + Math.round(elevationGainStats.gainCum[elevationGainStats.gainCum.length - 1]) +
+                '\u00A0/\u00A0-' + Math.round(elevationGainStats.lossCum[elevationGainStats.lossCum.length - 1]) + ')';
         }
 
         updateExtraFieldCurrentValues(idx);
