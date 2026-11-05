@@ -226,7 +226,11 @@ function vejledning_start(string $slug, string $titel, string $beskrivelse): voi
     <?php else: ?>
     <a href="/" class="brand brand-navn"><img class="brand-logo" src="/grafik/favicon.svg" alt="" width="28" height="28"><span class="brand-text">MitSpor</span></a>
     <?php endif; ?>
-    <a href="/vejledning/" class="btn">Vejledning</a>
+    <div class="topbar-actions">
+        <?php /* Vejledningen har ingen ☰-menu; temaskiftet klares af assets/tema.js (data-tema-skift). */ ?>
+        <button type="button" class="btn" data-tema-skift>Mørkt tema</button>
+        <a href="/vejledning/" class="btn">Vejledning</a>
+    </div>
 </header>
 
 <main class="container vejledning">
