@@ -68,7 +68,7 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mit kontrolpanel</title>
-    <script src="/assets/tema.js?v=1"></script>
+    <script src="/assets/tema.js?v=2"></script>
     <link rel="stylesheet" href="assets/style.css?v=42">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
     <link rel="stylesheet" href="assets/dashboard.css?v=34">

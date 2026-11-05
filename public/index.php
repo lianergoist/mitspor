@@ -74,7 +74,7 @@ $h = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
     <meta property="og:image:alt" content="MitSpor – del dine spor og ruter. Hent appen i App Store og Google Play.">
     <meta name="twitter:card" content="summary_large_image">
 
-    <script src="/assets/tema.js?v=1"></script>
+    <script src="/assets/tema.js?v=2"></script>
     <link rel="stylesheet" href="/assets/style.css?v=42">
     <link rel="stylesheet" href="/assets/videoer.css?v=2">
     <link rel="stylesheet" href="/assets/forside.css?v=14">

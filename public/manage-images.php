@@ -156,7 +156,7 @@ $imageUrl = static fn (array $img, bool $thumb): string =>
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mine billeder</title>
-    <script src="/assets/tema.js?v=1"></script>
+    <script src="/assets/tema.js?v=2"></script>
     <link rel="stylesheet" href="/assets/style.css?v=42">
     <link rel="stylesheet" href="/assets/manage-images.css?v=3">
     <link rel="stylesheet" href="/assets/videoer.css?v=2">

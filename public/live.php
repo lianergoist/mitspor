@@ -55,7 +55,7 @@ $palette = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#0891b2', '#
     <meta property="og:title" content="<?= $e($event['title']) ?> – live">
     <meta property="og:description" content="Følg turen live på MitSpor.">
 
-    <script src="/assets/tema.js?v=1"></script>
+    <script src="/assets/tema.js?v=2"></script>
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
     <link rel="stylesheet" href="assets/style.css?v=42">
     <style>
