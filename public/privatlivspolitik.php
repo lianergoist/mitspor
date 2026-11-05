@@ -14,7 +14,8 @@ require_once __DIR__ . '/../app/config.php';
     <meta name="description" content="Sådan behandler MitSpor dine oplysninger: hvad vi gemmer, hvorfor, hvor længe, og hvordan du selv kan downloade eller slette dine data.">
     <link rel="canonical" href="<?= APP_BASE_URL ?>/privatlivspolitik.php">
 
-    <link rel="stylesheet" href="assets/style.css?v=40">
+    <script src="/assets/tema.js?v=1"></script>
+    <link rel="stylesheet" href="assets/style.css?v=42">
     <style>
         .policy { max-width: 780px; }
         .policy h1 { margin: 0 0 4px; font-size: 26px; }
@@ -25,8 +26,8 @@ require_once __DIR__ . '/../app/config.php';
         .policy li { margin-bottom: 4px; }
         .policy .updated { color: var(--text-muted); font-size: 13px; margin: 0 0 18px; }
         .policy .summary {
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
+            background: var(--info-bg);
+            border: 1px solid var(--info-border);
             border-radius: var(--radius);
             padding: 14px 18px;
             margin: 16px 0 8px;

@@ -22,6 +22,83 @@
        fra telefonens lyse statuslinje. Over sidens baggrund (--bg-deep)
        giver de 90 % ca. #f1f5f9 (samme farve som editorens værktøjslinje). */
     --toolbar-bg: rgba(241, 245, 249, 0.9);
+
+    /* Farver, der skifter med mørkt tema (se html[data-tema="moerk"] nedenfor). */
+    --surface-2: #f1f5f9;          /* svag flade: knapper i scrubberen, hover i menuer */
+    --border-strong: #cbd5e1;
+    --scroll-thumb: #94a3b8;
+    --card-bg: #fcfcfc;
+    --info-panel-bg: #fafbfc;
+    --overlay-bg: rgba(255, 255, 255, 0.92);  /* paneler oven på kortet */
+    --overlay-bg-soft: rgba(255, 255, 255, 0.85);
+    --text-2: #334155;
+    --panel-bg: rgba(255, 255, 255, 0.97);    /* grafpanelet */
+    --hover-tint: rgba(15, 23, 42, 0.04);
+    --tint-1: rgba(30, 41, 59, 0.07);
+    --tint-2: rgba(30, 41, 59, 0.13);
+    --tint-3: rgba(30, 41, 59, 0.18);
+    --dialog-header-bg: #e2e8f0;
+    --dialog-header-border: #cbd5e1;
+    --danger-bg: #fee2e2;
+    --danger-border: #fca5a5;
+    --danger-text: #991b1b;
+    --warn-bg: #fff7ed;
+    --warn-border: #fed7aa;
+    --warn-text: #7c2d12;
+    --on-primary: #fff;            /* tekst på blå knapper */
+    --info-bg: #eff6ff;            /* lyseblå bokse */
+    --info-border: #bfdbfe;
+    --info-hover-border: #93c5fd;
+    --info-hover-bg: #f8fbff;
+    --link: var(--primary);
+    color-scheme: light;
+}
+
+/* ---------------------------------------------------------------
+   Mørkt tema. Slås til af assets/tema.js (data-tema="moerk" på
+   <html>). Kortets fliser er de samme i begge temaer.
+------------------------------------------------------------------ */
+html[data-tema="moerk"] {
+    --bg: #1e293b;
+    --bg-deep: #0f172a;
+    --surface: #1e293b;
+    --border: #334155;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --primary: #3b82f6;
+    --primary-dark: #2563eb;
+    --danger: #f87171;
+    --danger-dark: #ef4444;
+    --success: #22c55e;
+    --success-dark: #16a34a;
+    --toolbar-bg: rgba(15, 23, 42, 0.9);
+    --surface-2: #334155;
+    --border-strong: #475569;
+    --scroll-thumb: #64748b;
+    --card-bg: #172033;
+    --info-panel-bg: #172033;
+    --overlay-bg: rgba(30, 41, 59, 0.92);
+    --overlay-bg-soft: rgba(30, 41, 59, 0.85);
+    --text-2: #cbd5e1;
+    --panel-bg: rgba(30, 41, 59, 0.97);
+    --hover-tint: rgba(226, 232, 240, 0.06);
+    --tint-1: rgba(226, 232, 240, 0.08);
+    --tint-2: rgba(226, 232, 240, 0.14);
+    --tint-3: rgba(226, 232, 240, 0.2);
+    --dialog-header-bg: #0f172a;
+    --dialog-header-border: #334155;
+    --danger-bg: #450a0a;
+    --danger-border: #7f1d1d;
+    --danger-text: #fecaca;
+    --warn-bg: #431407;
+    --warn-border: #7c2d12;
+    --warn-text: #fed7aa;
+    --info-bg: #172554;
+    --info-border: #1e3a8a;
+    --info-hover-border: #3b82f6;
+    --info-hover-bg: #1e2a44;
+    --link: #60a5fa;
+    color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -44,7 +121,7 @@ body {
     line-height: 1.5;
 }
 
-a { color: var(--primary); }
+a { color: var(--link); }
 
 .topbar {
     display: flex;
@@ -112,7 +189,7 @@ a { color: var(--primary); }
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: rgba(30, 41, 59, 0.07);
+    background: var(--tint-1);
     font-size: 0;
     line-height: 0;
     text-decoration: none;
@@ -128,9 +205,9 @@ a { color: var(--primary); }
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 12H5'/%3E%3Cpath d='M11 18l-6-6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 a:hover > .back-arrow,
-a.back-arrow:hover { background: rgba(30, 41, 59, 0.13); }
+a.back-arrow:hover { background: var(--tint-2); }
 a:active > .back-arrow,
-a.back-arrow:active { background: rgba(30, 41, 59, 0.18); }
+a.back-arrow:active { background: var(--tint-3); }
 a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offset: 2px; }
 
 /* Monokrom linjeikon (SVG): arver tekstfarven via currentColor. */
@@ -215,7 +292,7 @@ a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offse
 }
 
 .card {
-    background: #fcfcfc;
+    background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 20px;
@@ -254,7 +331,7 @@ a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offse
 .btn-primary {
     background: var(--primary);
     border-color: var(--primary-dark);
-    color: #fff;
+    color: var(--on-primary);
 }
 .btn-primary:hover { background: var(--primary-dark); }
 
@@ -271,9 +348,9 @@ a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offse
 }
 
 .btn-danger {
-    background: #fee2e2;
-    border-color: #fca5a5;
-    color: #991b1b;
+    background: var(--danger-bg);
+    border-color: var(--danger-border);
+    color: var(--danger-text);
 }
 
 .search-toggle-btn {
@@ -347,7 +424,7 @@ a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offse
     font-weight: 600;
     color: var(--text-muted);
 }
-.tab-btn:hover { color: var(--text); background: rgba(15, 23, 42, 0.04); }
+.tab-btn:hover { color: var(--text); background: var(--hover-tint); }
 .tab-btn.active {
     color: #fff;
     background: var(--primary);
@@ -373,7 +450,7 @@ a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offse
     color: var(--text-muted);
     white-space: nowrap;
 }
-.segmented-btn:hover { color: var(--text); background: rgba(15, 23, 42, 0.04); }
+.segmented-btn:hover { color: var(--text); background: var(--hover-tint); }
 .segmented-btn.active {
     color: #fff;
     background: var(--primary);
@@ -463,9 +540,9 @@ a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offse
 }
 .notice-field {
     font-size: 12px;
-    color: #7c2d12;
-    background: #fff7ed;
-    border: 1px solid #fed7aa;
+    color: var(--warn-text);
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-border);
     border-radius: 4px;
     padding: 8px 10px;
 }
@@ -552,7 +629,7 @@ a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offse
     min-height: 40px;
 }
 #dashboard-topbar .action-group-btn { color: var(--text-muted); }
-#dashboard-topbar .action-group-btn:hover { color: var(--text); background: rgba(15, 23, 42, 0.04); }
+#dashboard-topbar .action-group-btn:hover { color: var(--text); background: var(--hover-tint); }
 /* "Gruppér valgte" er tonet ned, indtil der er sat kryds ved en rute. */
 #dashboard-topbar .action-group-btn:disabled {
     opacity: 0.45;
@@ -602,7 +679,7 @@ a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offse
     bottom: 0;
     height: 20%;
     z-index: 900;
-    background: rgba(255, 255, 255, 0.97);
+    background: var(--panel-bg);
     border-top: 1px solid var(--border);
     box-shadow: 0 -2px 8px rgba(0,0,0,0.15);
     padding: 6px 12px;
@@ -671,7 +748,7 @@ a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offse
     font-size: 10px;
     line-height: 1;
     color: var(--text-muted);
-    background: rgba(255,255,255,0.8);
+    background: var(--panel-bg);
     padding: 1px 3px;
     border-radius: 2px;
 }
@@ -681,7 +758,7 @@ a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offse
 
 .map-overlay-panel {
     position: absolute;
-    background: rgba(255,255,255,0.92);
+    background: var(--overlay-bg);
     backdrop-filter: blur(4px);
     border-radius: var(--radius);
     border: 1px solid var(--border);
@@ -776,7 +853,7 @@ a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offse
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255,255,255,0.92);
+    background: var(--overlay-bg);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     box-shadow: 0 3px 10px rgba(0,0,0,0.1);
@@ -797,7 +874,7 @@ a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offse
     transform: translateX(-50%);
     display: flex;
     gap: 8px;
-    background: rgba(255,255,255,0.92);
+    background: var(--overlay-bg);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     box-shadow: 0 3px 10px rgba(0,0,0,0.1);
@@ -812,7 +889,7 @@ a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offse
     height: 38px;
     border: none;
     border-radius: 6px;
-    background: #f1f5f9;
+    background: var(--surface-2);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -899,7 +976,7 @@ a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offse
     display: flex;
     flex-direction: column;
     gap: 6px;
-    background: #fff;
+    background: var(--surface);
     border-radius: 10px;
     padding: 14px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.4);
@@ -977,7 +1054,7 @@ a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offse
 .wpt-popup-name { font-weight: bold; }
 .wpt-popup-desc { color: #333; white-space: pre-line; }
 .wpt-popup-img-caption {
-    color: #64748b;
+    color: var(--text-muted);
     font-size: 0.9em;
     font-style: italic;
     margin-top: 4px;
@@ -1021,8 +1098,8 @@ a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offse
     justify-content: space-between;
     align-items: center;
     padding: 15px 20px;
-    background: #e2e8f0;
-    border-bottom: 1px solid #cbd5e1;
+    background: var(--dialog-header-bg);
+    border-bottom: 1px solid var(--dialog-header-border);
     position: sticky;
     top: 0;
 }
@@ -1035,11 +1112,11 @@ a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offse
     border: none !important;
     font-size: 20px;
     cursor: pointer;
-    color: #64748b !important;
+    color: var(--text-muted) !important;
     padding: 0 !important;
 }
 .close-btn:hover {
-    color: #0f172a !important;
+    color: var(--text) !important;
 }
 .dialog-content {
     padding: 20px;
@@ -1092,9 +1169,9 @@ a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offse
     cursor: pointer;
 }
 .modal-errors {
-    background: #fee2e2;
-    border: 1px solid #fca5a5;
-    color: #991b1b;
+    background: var(--danger-bg);
+    border: 1px solid var(--danger-border);
+    color: var(--danger-text);
     border-radius: 6px;
     padding: 8px 10px;
     font-size: 13px;
@@ -1121,7 +1198,7 @@ a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offse
     z-index: 1100; /* over Leaflets kontroller */
     min-width: 200px;
     padding: 6px;
-    background: #ffffff;
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 10px;
     box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
@@ -1160,7 +1237,7 @@ a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offse
 .topbar-menu-list > button:focus-visible,
 .topbar-menu-list > a:focus-visible,
 .topbar-menu-list > form > button:focus-visible {
-    background: #f1f5f9;
+    background: var(--surface-2);
 }
 
 .icon-btn {
@@ -1429,3 +1506,34 @@ a:focus-visible > .back-arrow { outline: 2px solid var(--primary); outline-offse
     margin: 0;
     padding-left: 18px;
 }
+
+/* Mørkt tema: scrubberens ikoner er sorte PNG'er, og popuppens tekst er fast grå. */
+html[data-tema="moerk"] .scrubber button img { filter: invert(1); }
+html[data-tema="moerk"] .wpt-popup-desc { color: var(--text); }
+
+/* Mørkt tema: dialoger følger sidens flader (standard er browserens Canvas). */
+html[data-tema="moerk"] dialog {
+    background: var(--surface);
+    color: var(--text);
+}
+
+/* Mørkt tema: Leaflets egne kontroller og popups (vendor-CSS'en rettes ikke).
+   Selve kortfliserne er uændrede. */
+html[data-tema="moerk"] .leaflet-bar a,
+html[data-tema="moerk"] .leaflet-control-layers,
+html[data-tema="moerk"] .leaflet-popup-content-wrapper,
+html[data-tema="moerk"] .leaflet-popup-tip {
+    background: var(--surface);
+    color: var(--text);
+}
+html[data-tema="moerk"] .leaflet-bar a { border-bottom-color: var(--border); }
+html[data-tema="moerk"] .leaflet-bar a:hover,
+html[data-tema="moerk"] .leaflet-bar a:focus { background: var(--surface-2); }
+html[data-tema="moerk"] .leaflet-bar a.leaflet-disabled { background: var(--bg-deep); color: var(--text-muted); }
+html[data-tema="moerk"] .leaflet-container .leaflet-control-attribution {
+    background: rgba(15, 23, 42, 0.8);
+    color: var(--text-muted);
+}
+html[data-tema="moerk"] .leaflet-container .leaflet-control-attribution a { color: var(--link); }
+html[data-tema="moerk"] .leaflet-container a.leaflet-popup-close-button { color: var(--text-muted); }
+html[data-tema="moerk"] .leaflet-container { background: var(--bg-deep); }

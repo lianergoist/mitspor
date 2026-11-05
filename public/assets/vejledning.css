@@ -28,7 +28,7 @@
 /* Indledningen øverst i et kapitel: situationen. */
 .vj-situation {
     font-size: 19px;
-    color: #334155;
+    color: var(--text);
     border-left: 4px solid var(--primary);
     padding: 4px 0 4px 16px;
     margin: 18px 0 26px;
@@ -118,7 +118,7 @@
 }
 .vj-billede--computer img {
     border: 1px solid var(--border);
-    border-top: 22px solid #e2e8f0;
+    border-top: 22px solid var(--dialog-header-bg);
     border-radius: 8px;
     box-shadow: 0 6px 18px rgba(15, 23, 42, 0.14);
 }
@@ -139,7 +139,7 @@
     font-size: 15px;
     color: var(--text-muted);
     text-align: center;
-    background: repeating-linear-gradient(135deg, #f8fafc 0 12px, #f1f5f9 12px 24px);
+    background: repeating-linear-gradient(135deg, var(--bg) 0 12px, var(--surface-2) 12px 24px);
 }
 .vj-billede--mangler strong { color: var(--text); }
 
@@ -222,7 +222,7 @@
     justify-content: center;
 }
 .vj-kapitler .vj-snart { color: var(--text-muted); background: transparent; border-style: dashed; }
-.vj-kapitler .vj-snart::before { background: #cbd5e1; }
+.vj-kapitler .vj-snart::before { background: var(--border-strong); }
 .vj-kap-titel { font-weight: 700; font-size: 18px; }
 .vj-kap-kort { font-size: 15px; color: var(--text-muted); }
 .vj-kap-maerker { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
@@ -258,3 +258,13 @@
     .vj-trin .vj-billede--mobil { max-width: 250px; margin: 6px auto 0; width: 100%; }
     .vj-blad a { max-width: 100%; }
 }
+
+/* Mørkt tema (se assets/tema.js): mærker og bokse med egne farver. */
+html[data-tema="moerk"] .vj-enhed { background: #0c4a6e; color: #bae6fd; }
+html[data-tema="moerk"] .vj-enhed--computer { background: #3b0764; color: #ddd6fe; }
+html[data-tema="moerk"] .vj-enhed--begge { background: #365314; color: #d9f99d; }
+html[data-tema="moerk"] .vj-godt { background: #052e16; border-color: #166534; }
+html[data-tema="moerk"] .vj-godt-titel { color: #86efac; }
+html[data-tema="moerk"] .vj-advar { background: #422006; border-color: #854d0e; }
+html[data-tema="moerk"] .vj-billede--mobil img,
+html[data-tema="moerk"] .vj-billede--mangler > div { border-color: #475569; }

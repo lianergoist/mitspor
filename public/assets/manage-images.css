@@ -150,3 +150,10 @@
     flex-wrap: wrap;
     gap: 10px;
 }
+
+/* Mørkt tema (se assets/tema.js). */
+html[data-tema="moerk"] .image-notice {
+    background: #052e16;
+    border-color: #166534;
+    color: #bbf7d0;
+}

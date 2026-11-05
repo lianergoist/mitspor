@@ -67,7 +67,7 @@
     padding: 0 4px;
 }
 .hub-items li:last-child { border-bottom: none; }
-.hub-items li.selected { background: #eff6ff; box-shadow: inset 3px 0 0 var(--primary); }
+.hub-items li.selected { background: var(--info-bg); box-shadow: inset 3px 0 0 var(--primary); }
 .hub-items .route-select { margin: 0; flex-shrink: 0; }
 
 .hub-item-main {
@@ -152,7 +152,7 @@
     text-decoration: none;
     cursor: pointer;
 }
-.tool:hover { background: var(--bg); border-color: #cbd5e1; }
+.tool:hover { background: var(--bg); border-color: var(--border-strong); }
 .tool.danger { color: var(--danger); }
 
 .hub-back { display: none; margin-bottom: 10px; font-size: 1rem; }
@@ -238,18 +238,18 @@
     width: 10px;
 }
 .marker-options::-webkit-scrollbar-track {
-    background: #f1f5f9;
+    background: var(--surface-2);
     border-radius: 5px;
 }
 .marker-options::-webkit-scrollbar-thumb {
-    background: #94a3b8;
+    background: var(--scroll-thumb);
     border-radius: 5px;
-    border: 2px solid #f1f5f9;
+    border: 2px solid var(--surface-2);
 }
 @supports not selector(::-webkit-scrollbar) {
     .marker-options {
         scrollbar-width: thin;
-        scrollbar-color: #94a3b8 #f1f5f9;
+        scrollbar-color: var(--scroll-thumb) var(--surface-2);
     }
 }
 .modal-dialog label.marker-option[hidden] { display: none; }
@@ -290,7 +290,7 @@
 }
 .marker-option input:checked + .marker-option-img {
     border-color: var(--primary);
-    background: #eff6ff;
+    background: var(--info-bg);
 }
 .marker-option input:focus-visible + .marker-option-img {
     outline: 2px solid var(--primary);

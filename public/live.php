@@ -55,8 +55,9 @@ $palette = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#0891b2', '#
     <meta property="og:title" content="<?= $e($event['title']) ?> – live">
     <meta property="og:description" content="Følg turen live på MitSpor.">
 
+    <script src="/assets/tema.js?v=1"></script>
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/style.css?v=40">
+    <link rel="stylesheet" href="assets/style.css?v=42">
     <style>
         html, body { height: 100%; margin: 0; }
         .info-panel { top: 80px; left: 12px; width: 320px; max-width: calc(100vw - 24px); max-height: calc(100dvh - 100px); overflow-y: auto; }
@@ -71,7 +72,7 @@ $palette = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#0891b2', '#
         .live-status[data-status="afsluttet"] .live-dot { background: #16a34a; }
         @keyframes live-pulse { 50% { opacity: 0.3; } }
         @media (prefers-reduced-motion: reduce) { .live-status[data-status="live"] .live-dot { animation: none; } }
-        .live-error { color: #b91c1c; font-size: 12px; }
+        .live-error { color: var(--danger); font-size: 12px; }
         .stage-list { list-style: none; margin: 10px 0 0; padding: 0; border-top: 1px solid var(--border); }
         .stage-list li { display: flex; align-items: center; gap: 10px; padding: 7px 4px; border-bottom: 1px solid var(--border); font-size: 13px; }
         .stage-list a { color: inherit; }
