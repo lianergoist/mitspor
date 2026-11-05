@@ -35,6 +35,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
     </url>
     <url>
         <loc><?= htmlspecialchars(APP_BASE_URL, ENT_QUOTES, 'UTF-8') ?>/vejledning/</loc>
+        <lastmod><?= date('Y-m-d', (int) filemtime(__DIR__ . '/vejledning/index.php')) ?></lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
@@ -42,6 +43,10 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
 <?php if ($kapitel['klar']): ?>
     <url>
         <loc><?= htmlspecialchars(APP_BASE_URL . '/vejledning/' . $slug . '.php', ENT_QUOTES, 'UTF-8') ?></loc>
+<?php $vjFil = __DIR__ . '/vejledning/' . $slug . '.php'; ?>
+<?php if (is_file($vjFil)): ?>
+        <lastmod><?= date('Y-m-d', (int) filemtime($vjFil)) ?></lastmod>
+<?php endif; ?>
         <changefreq>monthly</changefreq>
         <priority>0.6</priority>
     </url>
