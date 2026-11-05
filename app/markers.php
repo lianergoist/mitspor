@@ -19,9 +19,11 @@ declare(strict_types=1);
  * Markøren <aktivitet>/standard er aktivitetens standardmarkør. Den vises
  * som "Standard" i markørvalget.
  *
- * Navnet i markørvalget laves ud fra filnavnet (retro -> Retro). Andre navne,
- * fx med æ, ø og å, kan skrives i en valgfri navne.json i mappen:
- * {"groen": "Grøn"}.
+ * Markørvalget viser kun billederne, sorteret efter filnavn (så varianter af
+ * samme motiv står samlet), med de neutrale til sidst. Navnet vises, når man
+ * holder musen over en markør, og læses op af skærmlæsere. Det laves ud fra
+ * filnavnet (retro -> Retro). Pænere navne, fx med æ, ø og å, kan skrives i
+ * en valgfri navne.json i mappen: {"groen": "Grøn"}.
  *
  * I databasen gemmes markøren som <mappe>/<navn>, fx sup/retro. Fjernes et
  * billede, vises aktivitetens standardmarkør i stedet.
@@ -33,7 +35,7 @@ const MARKER_NAME_PATTERN = '[a-z0-9_-]+';
 
 /**
  * Alle markører, man kan vælge, undtagen standardmarkørerne.
- * Aktivitetens markører først (sorteret efter navn), de neutrale til sidst.
+ * Aktivitetens markører først (sorteret efter filnavn), de neutrale til sidst.
  *
  * @return array<string, array{name: string, activity: ?string}>  nøgle = <mappe>/<navn>
  */
@@ -72,7 +74,7 @@ function marker_library(): array
                 'activity' => $folder === MARKER_NEUTRAL ? null : $folder,
             ];
         }
-        uasort($markers, fn(array $a, array $b): int => strnatcasecmp($a['name'], $b['name']));
+        uksort($markers, 'strnatcasecmp');
         if ($folder === MARKER_NEUTRAL) {
             $neutral = $markers;
         } else {

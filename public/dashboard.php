@@ -70,7 +70,7 @@ $liveEvents = live_events_for_dashboard($pdo, $userId);
     <title>Mit kontrolpanel</title>
     <link rel="stylesheet" href="assets/style.css?v=40">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-    <link rel="stylesheet" href="assets/dashboard.css?v=31">
+    <link rel="stylesheet" href="assets/dashboard.css?v=32">
     <link rel="stylesheet" href="assets/videoer.css?v=1">
 </head>
 <body>
@@ -235,6 +235,7 @@ function dash_h(?string $value): string
  * (fyldes af markerDefaultPreview() i assets/dashboard.js). Markører med en
  * aktivitet vises kun, når den aktivitet er valgt; de neutrale vises altid.
  * Markørerne læses fra mapperne i public/markers/ (se app/markers.php).
+ * Kun "Standard" har en tekst; de øvrige viser navnet som title/aria-label.
  */
 function render_marker_picker(string $defaultBoxId): void
 {
@@ -248,10 +249,9 @@ function render_marker_picker(string $defaultBoxId): void
                     <span class="marker-option-name">Standard</span>
                 </label>
                 <?php foreach (marker_library() as $markerKey => $marker): ?>
-                <label class="marker-option" data-marker-activity="<?= dash_h($marker['activity']) ?>">
-                    <input type="radio" name="marker_icon" value="<?= dash_h($markerKey) ?>">
+                <label class="marker-option" data-marker-activity="<?= dash_h($marker['activity']) ?>" title="<?= dash_h($marker['name']) ?>">
+                    <input type="radio" name="marker_icon" value="<?= dash_h($markerKey) ?>" aria-label="<?= dash_h($marker['name']) ?>">
                     <span class="marker-option-img"><img src="<?= dash_h(marker_image_urls($markerKey)['east'] ?? '') ?>" alt="" loading="lazy"></span>
-                    <span class="marker-option-name"><?= dash_h($marker['name']) ?></span>
                 </label>
                 <?php endforeach; ?>
             </div>

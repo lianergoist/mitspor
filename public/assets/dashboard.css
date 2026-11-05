@@ -225,7 +225,7 @@
    er skjult, men kan stadig vælges med tastaturet. */
 .marker-options {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
     align-content: start;
     gap: 6px;
     /* Godt to rækker ad gangen; resten rulles frem. Den halve række viser,
