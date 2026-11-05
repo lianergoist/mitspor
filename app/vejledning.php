@@ -17,89 +17,107 @@ require_once __DIR__ . '/app_tilbage.php';
  */
 
 /**
- * @return array<string, array{titel: string, kort: string, enhed: string, klar: bool}>
+ * @return array<string, array{titel: string, seo: string, kort: string, enhed: string, klar: bool}>
  *         enhed: 'mobil', 'computer' eller 'begge'
+ *         seo: titlen til søgemaskiner og deling (<title>, og:title), med de ord folk søger på.
+ *         Den synlige overskrift er 'titel'.
  */
 function vejledning_kapitler(): array
 {
     return [
         'kom-i-gang' => [
             'titel' => 'Kom i gang på 5 minutter',
+            'seo'   => 'Kom i gang: hent appen, og opret en gratis konto',
             'kort'  => 'Hent appen, opret en konto, og lær startsiden at kende.',
             'enhed' => 'mobil', 'klar' => true,
         ],
         'foerste-tur' => [
             'titel' => 'Din første tur',
+            'seo'   => 'Optag din løbetur med mobilen, og se den på kortet',
             'kort'  => 'Du skal ud og løbe. Optag turen, og se den på kortet, når du kommer hjem.',
             'enhed' => 'mobil', 'klar' => true,
         ],
         'del-turen' => [
             'titel' => 'Del turen med vennerne',
+            'seo'   => 'Del din tur eller rute med et link',
             'kort'  => 'Send et link til turen, eller vis den for alle.',
             'enhed' => 'mobil', 'klar' => true,
         ],
         'farligt-sted' => [
             'titel' => 'Indsæt waypoint',
+            'seo'   => 'Sæt waypoints med tekst og billeder på din tur',
             'kort'  => 'Markér stedet på kortet med et billede, og ret det bagefter.',
             'enhed' => 'begge', 'klar' => true,
         ],
         'foelg-med' => [
             'titel' => 'Send live',
+            'seo'   => 'Live-tracking: lad familien følge din tur på kortet',
             'kort'  => 'Send turen live, så de derhjemme kan se, hvor du er.',
             'enhed' => 'mobil', 'klar' => true,
         ],
         'glemte-stop' => [
             'titel' => 'Rediger en optagelse',
+            'seo'   => 'Glemte du at stoppe? Ret i din GPS-optagelse',
             'kort'  => 'Fjern bilturen hjem fra slutningen af turen.',
             'enhed' => 'computer', 'klar' => true,
         ],
         'ferie' => [
             'titel' => 'Grupper og etaper',
+            'seo'   => 'Saml en flerdagestur i etaper på ét kort',
             'kort'  => 'Saml dagene til én tur med etaper.',
             'enhed' => 'begge', 'klar' => true,
         ],
         'alle-ture' => [
             'titel' => 'Del alle dine ruter',
+            'seo'   => 'Del alle dine ture og ruter med ét link',
             'kort'  => 'Ét link til alle dine ture, også de private.',
             'enhed' => 'begge', 'klar' => true,
         ],
         'planlaeg' => [
             'titel' => 'Tegn en rute',
+            'seo'   => 'Tegn en rute på kortet, og hent den som GPX til dit ur',
             'kort'  => 'Tegn en rute på kortet, og send den til dem, du skal af sted med.',
             'enhed' => 'begge', 'klar' => true,
         ],
         'find-tur' => [
             'titel' => 'Offentlige ruter',
+            'seo'   => 'Find offentlige ruter, og hent dem som GPX til dit ur',
             'kort'  => 'Kig på andres ture, og hent en til dit ur.',
             'enhed' => 'begge', 'klar' => true,
         ],
         'puls' => [
             'titel' => 'Pulsbælte m.m.',
+            'seo'   => 'Brug pulsbælte, kadence og watt med MitSpor-appen',
             'kort'  => 'Gem puls, kadence og watt, og vælg, hvad der vises.',
             'enhed' => 'begge', 'klar' => true,
         ],
         'uden-net' => [
             'titel' => 'På tur uden net',
+            'seo'   => 'Optag din tur uden mobildækning (offline)',
             'kort'  => 'Appen optager uden net og sender turen, når du er tilbage.',
             'enhed' => 'mobil', 'klar' => true,
         ],
         'udseende' => [
             'titel' => 'Metadata og markør',
+            'seo'   => 'Giv din tur titel, beskrivelse, aktivitet og markør',
             'kort'  => 'Titel, beskrivelse, aktivitet og figuren på kortet.',
             'enhed' => 'begge', 'klar' => true,
         ],
         'datafelter' => [
             'titel' => 'Datafelter',
+            'seo'   => 'Vælg datafelter, og fjern puls eller tid fra GPX-filen',
             'kort'  => 'Vælg, hvad turens side viser, og fjern fx tid eller puls fra filen.',
             'enhed' => 'begge', 'klar' => true,
         ],
         'ordbog' => [
             'titel' => 'Lille ordbog',
+            'seo'   => 'Ordbog: spor, rute, waypoint og GPX forklaret',
             'kort'  => 'Spor, rute, waypoint og de andre ord forklaret kort.',
             'enhed' => 'begge', 'klar' => true,
         ],
         'naar-noget-driller' => [
             'titel' => 'Når noget driller',
+            'seo'   => 'Hjælp til GPS, optagelse, upload og login',
             'kort'  => 'GPS\'en finder dig ikke, turen stoppede, eller den kom ikke op.',
             'enhed' => 'begge', 'klar' => true,
         ],
@@ -139,15 +157,24 @@ function vejledning_start(string $slug, string $titel, string $beskrivelse): voi
     $url = APP_BASE_URL . '/vejledning/' . ($slug === '' ? '' : $slug . '.php');
     $oversigtUrl = APP_BASE_URL . '/vejledning/';
 
-    // Oversigten får en fuld titel; kapitlerne "Kapitel – MitSpor vejledning".
-    $sideTitel = $slug === ''
+    // Oversigten får en fuld titel; kapitlerne deres søgetitel ('seo') + "MitSpor".
+    $kapitel = $slug === '' ? null : (vejledning_kapitler()[$slug] ?? null);
+    $sideTitel = $kapitel === null
         ? 'Vejledning til MitSpor – optag, se og del dine ture'
-        : $titel . ' – MitSpor vejledning';
+        : ($kapitel['seo'] ?? $titel) . ' – MitSpor';
 
-    // Fælles delingsbillede for hele vejledningen. Laves med
-    // /root/mitspor-arkiv/vejledning-og/lav.sh. ?v= er filens ændringstid.
-    $ogFil = __DIR__ . '/../public/vejledning/billeder/og-vejledning.jpg';
-    $ogBillede = APP_BASE_URL . '/vejledning/billeder/og-vejledning.jpg?v=' . (int) @filemtime($ogFil);
+    // Delingsbillede: og-<slug>.jpg for kapitlet, ellers det fælles
+    // og-vejledning.jpg. Laves med /root/mitspor-arkiv/vejledning-og
+    // (lav.sh og lav-kapitler.php). ?v= er filens ændringstid.
+    $ogNavn = 'og-' . ($slug === '' ? 'vejledning' : $slug) . '.jpg';
+    $billedMappe = __DIR__ . '/../public/vejledning/billeder/';
+    if (!is_file($billedMappe . $ogNavn)) {
+        $ogNavn = 'og-vejledning.jpg';
+    }
+    $ogBillede = APP_BASE_URL . '/vejledning/billeder/' . $ogNavn . '?v=' . (int) @filemtime($billedMappe . $ogNavn);
+    $ogAlt = $kapitel === null
+        ? 'Vejledning til MitSpor: sådan optager, ser og deler du dine ture, trin for trin.'
+        : 'Vejledning til MitSpor: ' . $titel . '. ' . $kapitel['kort'];
 
     // Strukturerede data: brødkrummesti (Forside › Vejledning › Kapitel).
     $krummer = [
@@ -184,7 +211,7 @@ function vejledning_start(string $slug, string $titel, string $beskrivelse): voi
     <meta property="og:image:type" content="image/jpeg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="Vejledning til MitSpor: sådan optager, ser og deler du dine ture, trin for trin.">
+    <meta property="og:image:alt" content="<?= vj_h($ogAlt) ?>">
     <meta name="twitter:card" content="summary_large_image">
     <script type="application/ld+json"><?= json_encode($jsonLd, $jsonFlag) ?></script>
     <link rel="stylesheet" href="/assets/style.css?v=40">
